@@ -1,0 +1,342 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="ko"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>EnemyShip.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">my-java-project</a> &gt; <a href="index.source.html" class="el_package">entity</a> &gt; <span class="el_source">EnemyShip.java</span></div><h1>EnemyShip.java</h1><pre class="source lang-java linenums">package entity;
+
+import java.awt.Color;
+import java.util.Objects;
+
+import Enemy.HpEnemyShip;
+import engine.Cooldown;
+import engine.Core;
+import engine.DrawManager.SpriteType;
+// Sound Operator
+import Sound_Operator.SoundManager;
+
+/**
+ * Implements a enemy ship, to be destroyed by the player.
+ * @author &lt;a href=&quot;mailto:RobertoIA1987@gmail.com&quot;&gt;Roberto Izquierdo Amo&lt;/a&gt;
+ */
+public class EnemyShip extends Entity {
+	/** Point value of a type A enemy. */
+	private static final int A_TYPE_POINTS = 10;
+	/** Point value of a type B enemy. */
+	private static final int B_TYPE_POINTS = 20;
+	/** Point value of a type C enemy. */
+	private static final int C_TYPE_POINTS = 30;
+	/** Point value of a type Story enemy(D, E, F) */
+	private static final int D_TYPE_POINTS = 10;
+	private static final int E_TYPE_POINTS = 20;
+	private static final int F_TYPE_POINTS = 30;
+	/** Point value of a type Explosive enemy. */
+	private static final int EXPLOSIVE_TYPE_POINTS = 50; //Edited by Enemy
+	/** Point value of a bonus enemy. */
+	private static final int BONUS_TYPE_POINTS = 100;
+
+	/** EnemyShip's health point */
+	private int hp; // Add by team Enemy
+	private int Maxhp;
+	/** EnemyShip's Initial x-coordinate **/
+	private int x; // Add by team Enemy
+	/** EnemyShip's Initial y=coordinate **/
+	private int y; // Add by team Enemy
+
+	/** Cooldown between sprite changes. */
+	private Cooldown animationCooldown;
+	/** Checks if the ship has been hit by a bullet. */
+	private boolean isDestroyed;
+	/** Checks if the ship is bombed */
+	private boolean isChainExploded;
+	/** Values of the ship, in points, when destroyed. */
+	private int pointValue;
+
+	// Sound Operator
+	private static SoundManager sm;
+
+	/** Speed reduction or increase multiplier (1.0 means normal speed). */
+	private double speedMultiplier;
+	private double defaultSpeedMultiplier;
+
+	/**
+	 * Constructor, establishes the ship's properties.
+	 *
+	 * @param positionX
+	 *            Initial position of the ship in the X axis.
+	 * @param positionY
+	 *            Initial position of the ship in the Y axis.
+	 * @param spriteType
+	 *            Sprite type, image corresponding to the ship.
+	 */
+
+
+	public EnemyShip(final int positionX, final int positionY,
+					 final SpriteType spriteType, int hp,int x, int y) {// Edited by Enemy
+<span class="fc" id="L71">		super(positionX, positionY, 12 * 2, 8 * 2, HpEnemyShip.determineColor(hp));</span>
+
+<span class="fc" id="L73">		this.hp = hp;// Add by team Enemy</span>
+<span class="fc" id="L74">		this.Maxhp = hp;</span>
+<span class="fc" id="L75">		this.spriteType = spriteType;</span>
+<span class="fc" id="L76">		this.animationCooldown = Core.getCooldown(500);</span>
+<span class="fc" id="L77">		this.isDestroyed = false;</span>
+<span class="fc" id="L78">		this.x = x; // Add by team enemy</span>
+<span class="fc" id="L79">		this.y = y; // Add by team enemy</span>
+<span class="fc" id="L80">		this.speedMultiplier=1.0; // default 1.0</span>
+<span class="fc" id="L81">		this.defaultSpeedMultiplier = 1.0;</span>
+
+		// 적 함선 형태에 따라 점수 및 크기(필요시) 조정
+<span class="pc bpc" id="L84" title="5 of 8 branches missed.">		switch (this.spriteType) {</span>
+			case EnemyShipA1:
+			case EnemyShipA2:
+<span class="fc" id="L87">				this.pointValue = A_TYPE_POINTS;</span>
+<span class="fc" id="L88">				break;</span>
+			case EnemyShipB1:
+			case EnemyShipB2:
+<span class="nc" id="L91">				this.pointValue = B_TYPE_POINTS;</span>
+<span class="nc" id="L92">				break;</span>
+			case EnemyShipC1:
+			case EnemyShipC2:
+<span class="nc" id="L95">				this.pointValue = C_TYPE_POINTS;</span>
+<span class="nc" id="L96">				break;</span>
+			case ExplosiveEnemyShip1: //Edited by Enemy
+			case ExplosiveEnemyShip2:
+<span class="nc" id="L99">				super.setColor(new Color(237, 28, 36)); //set ExplosiveEnemyShip Color</span>
+<span class="nc" id="L100">				this.pointValue = EXPLOSIVE_TYPE_POINTS;</span>
+<span class="nc" id="L101">				break;</span>
+			case EnemyShipD1:
+			case EnemyShipD2:
+<span class="fc" id="L104">				this.pointValue = D_TYPE_POINTS;</span>
+<span class="fc" id="L105">				this.width = 14 * 2; this.height = 14 * 2;</span>
+<span class="fc" id="L106">				break;</span>
+			case EnemyShipE1:
+			case EnemyShipE2:
+<span class="nc" id="L109">				this.pointValue = E_TYPE_POINTS;</span>
+<span class="nc" id="L110">				this.width = 14 * 2; this.height = 14 * 2;</span>
+<span class="nc" id="L111">				break;</span>
+			case EnemyShipF1:
+			case EnemyShipF2:
+<span class="nc" id="L114">				this.pointValue = F_TYPE_POINTS;</span>
+<span class="nc" id="L115">				this.width = 13 * 2; this.height = 13 * 2;</span>
+<span class="nc" id="L116">				break;</span>
+			default:
+<span class="fc" id="L118">				this.pointValue = 0;</span>
+				break;
+		}
+<span class="fc" id="L121">	}</span>
+
+	/**
+	 * Constructor, establishes the ship's properties for a special ship, with
+	 * known starting properties.
+	 */
+	public EnemyShip() {
+<span class="nc" id="L128">		super(-32, 60, 16 * 2, 7 * 2, Color.RED);</span>
+
+<span class="nc" id="L130">		this.hp = 1; // Add by team Enemy</span>
+<span class="nc" id="L131">		this.spriteType = SpriteType.EnemyShipSpecial;</span>
+<span class="nc" id="L132">		this.isDestroyed = false;</span>
+<span class="nc" id="L133">		this.pointValue = BONUS_TYPE_POINTS;</span>
+<span class="nc" id="L134">		this.x = -2;  // Add by team Enemy</span>
+<span class="nc" id="L135">		this.y = -2; // Add by team Enemy</span>
+<span class="nc" id="L136">	}</span>
+
+
+	/**
+	 * Getter for the score bonus if this ship is destroyed.
+	 *
+	 * @return Value of the ship.
+	 */
+	public final int getPointValue() {
+<span class="nc" id="L145">		return this.pointValue;</span>
+	}
+
+	/**
+	 * Moves the ship the specified distance.
+	 *
+	 * @param distanceX
+	 *            Distance to move in the X axis.
+	 * @param distanceY
+	 *            Distance to move in the Y axis.
+	 */
+	public final void move(final int distanceX, final int distanceY) {
+<span class="nc" id="L157">		this.positionX += distanceX * this.getSpeedMultiplier(); // team Inventory</span>
+<span class="nc" id="L158">		this.positionY += distanceY;</span>
+<span class="nc" id="L159">	}</span>
+
+	/**
+	 * Updates attributes, mainly used for animation purposes.
+	 */
+	public final void update() {
+<span class="nc bnc" id="L165" title="All 2 branches missed.">		if (this.animationCooldown.checkFinished()) {</span>
+<span class="nc" id="L166">			this.animationCooldown.reset();</span>
+
+<span class="nc bnc" id="L168" title="All 15 branches missed.">			switch (this.spriteType) {</span>
+				case EnemyShipA1:
+<span class="nc" id="L170">					this.spriteType = SpriteType.EnemyShipA2;</span>
+<span class="nc" id="L171">					break;</span>
+				case EnemyShipA2:
+<span class="nc" id="L173">					this.spriteType = SpriteType.EnemyShipA1;</span>
+<span class="nc" id="L174">					break;</span>
+				case EnemyShipB1:
+<span class="nc" id="L176">					this.spriteType = SpriteType.EnemyShipB2;</span>
+<span class="nc" id="L177">					break;</span>
+				case EnemyShipB2:
+<span class="nc" id="L179">					this.spriteType = SpriteType.EnemyShipB1;</span>
+<span class="nc" id="L180">					break;</span>
+				case EnemyShipC1:
+<span class="nc" id="L182">					this.spriteType = SpriteType.EnemyShipC2;</span>
+<span class="nc" id="L183">					break;</span>
+				case EnemyShipC2:
+<span class="nc" id="L185">					this.spriteType = SpriteType.EnemyShipC1;</span>
+<span class="nc" id="L186">					break;</span>
+				case ExplosiveEnemyShip1: //Edited by Enemy
+<span class="nc" id="L188">					this.spriteType = SpriteType.ExplosiveEnemyShip2;</span>
+<span class="nc" id="L189">					break;</span>
+				case ExplosiveEnemyShip2: //Edited by Enemy
+<span class="nc" id="L191">					this.spriteType = SpriteType.ExplosiveEnemyShip1;</span>
+<span class="nc" id="L192">					break;</span>
+				case EnemyShipD1:
+<span class="nc" id="L194">					this.spriteType = SpriteType.EnemyShipD2;</span>
+<span class="nc" id="L195">					break;</span>
+				case EnemyShipD2:
+<span class="nc" id="L197">					this.spriteType = SpriteType.EnemyShipD1;</span>
+<span class="nc" id="L198">					break;</span>
+				case EnemyShipE1:
+<span class="nc" id="L200">					this.spriteType = SpriteType.EnemyShipE2;</span>
+<span class="nc" id="L201">					break;</span>
+				case EnemyShipE2:
+<span class="nc" id="L203">					this.spriteType = SpriteType.EnemyShipE1;</span>
+<span class="nc" id="L204">					break;</span>
+				case EnemyShipF1:
+<span class="nc" id="L206">					this.spriteType = SpriteType.EnemyShipF2;</span>
+<span class="nc" id="L207">					break;</span>
+				case EnemyShipF2:
+<span class="nc" id="L209">					this.spriteType = SpriteType.EnemyShipF1;</span>
+<span class="nc" id="L210">					break;</span>
+				default:
+					break;
+			}
+		}
+<span class="nc" id="L215">	}</span>
+
+	/**
+	 * Destroys the ship, causing an explosion.
+	 */
+	public final void destroy() {
+<span class="fc" id="L221">		this.isDestroyed = true;</span>
+<span class="fc bfc" id="L222" title="All 2 branches covered.">		if(this.spriteType == SpriteType.EnemyShipSpecial){</span>
+<span class="fc" id="L223">			sm.playES(&quot;special_enemy_die&quot;);</span>
+		}
+
+		// story mode enemy
+<span class="pc bpc" id="L227" title="1 of 4 branches missed.">		if (this.spriteType == SpriteType.EnemyShipD1 || this.spriteType == SpriteType.EnemyShipD2){</span>
+<span class="fc" id="L228">			this.spriteType = SpriteType.ExplosionD3;</span>
+<span class="fc" id="L229">			sm.playES(&quot;story_enemy_die&quot;);	// 임시</span>
+		}
+<span class="pc bpc" id="L231" title="2 of 4 branches missed.">		else if(this.spriteType == SpriteType.EnemyShipE1 || this.spriteType == SpriteType.EnemyShipE2){</span>
+<span class="nc" id="L232">			this.spriteType = SpriteType.ExplosionE3;</span>
+<span class="nc" id="L233">			sm.playES(&quot;story_enemy_die&quot;);	// 임시</span>
+		}
+<span class="pc bpc" id="L235" title="2 of 4 branches missed.">		else if(this.spriteType == SpriteType.EnemyShipF1 || this.spriteType == SpriteType.EnemyShipF2) {</span>
+<span class="nc" id="L236">			this.spriteType = SpriteType.ExplosionF3;	// 임시</span>
+<span class="nc" id="L237">			sm.playES(&quot;story_enemy_die&quot;);	// 임시</span>
+		} else {
+<span class="fc" id="L239">			this.spriteType = SpriteType.Explosion;</span>
+<span class="fc" id="L240">			sm.playES(&quot;basic_enemy_die&quot;);</span>
+		}
+
+<span class="fc" id="L243">	}</span>
+
+	/**
+	 * Checks if the ship has been destroyed.
+	 *
+	 * @return True if the ship has been destroyed.
+	 */
+	public final boolean isDestroyed() {
+<span class="fc" id="L251">		return this.isDestroyed;</span>
+	}
+
+
+	/** Constructor for original EnemyShip that did not have hp.
+	 * That enemyShip is moved to a constructor with the hp default of 1*/
+	public EnemyShip(final int positionX, final int positionY,
+					 final SpriteType spriteType){
+<span class="fc" id="L259">		this(positionX,positionY,spriteType,1,-2,-2);</span>
+<span class="fc" id="L260">	}// Edited by Enemy</span>
+
+	/**
+	 * Getter for the Hp of this Enemy ship.
+	 *
+	 * @return Hp of the ship.
+	 */
+	public final int getHp() {
+<span class="nc" id="L268">		return this.hp;</span>
+	}// Added by team Enemy
+
+	/**
+	 * Setter for the Hp of the Enemy ship.
+	 *
+	 * @param hp
+	 *          New hp of the Enemy ship.
+	 */
+	public void setHp(int hp) {
+<span class="nc" id="L278">		this.hp = hp;</span>
+<span class="nc" id="L279">	}// Added by team Enemy</span>
+
+	/**
+	 * Getter for the Initial x-coordinate of this EnemyShip.
+	 *
+	 * @return Initial x-coordinate of the ship.
+	 */
+<span class="nc" id="L286">	public int getX(){ return this.x;} // Add by team Enemy</span>
+
+	/**
+	 * Getter for the Initial y-coordinate of this EnemyShip.
+	 *
+	 * @return Initial x-coordinate of the ship.
+	 */
+<span class="nc" id="L293">	public int getY(){ return this.y;} // Add by team Enemy</span>
+
+	/**
+	 * Destroys ship, causing a chain explode.
+	 */
+	public final void chainExplode() { // Added by team Enemy
+<span class="nc" id="L299">		destroy();</span>
+<span class="nc" id="L300">		setChainExploded(true);</span>
+<span class="nc" id="L301">		setHp(0);</span>
+<span class="nc" id="L302">	}</span>
+
+	/**
+	 * Checks if the ship has been chain exploded.
+	 *
+	 * @return True if the ship has been chain exploded.
+	 */
+	public final boolean isChainExploded() {
+<span class="nc" id="L310">		return this.isChainExploded;</span>
+	} // Added by team Enemy
+
+	/**
+	 * Setter for enemy ship's isChainExploded to false.
+	 */
+	public final void setChainExploded(boolean isChainExploded) {
+<span class="nc" id="L317">		this.isChainExploded = isChainExploded;</span>
+<span class="nc" id="L318">	} // Added by team Enemy</span>
+
+	/**
+	 * Getter for the current speed multiplier.
+	 *
+	 * @return The current speed multiplier.
+	 */
+	public void setSpeedMultiplier(double speedMultiplier) {
+<span class="nc" id="L326">		this.speedMultiplier = speedMultiplier;</span>
+<span class="nc" id="L327">	}</span>
+	public void resetSpeedMultiplier() {
+<span class="nc" id="L329">		this.speedMultiplier = this.defaultSpeedMultiplier;</span>
+<span class="nc" id="L330">	}</span>
+	public double getSpeedMultiplier() {
+<span class="nc" id="L332">		return this.speedMultiplier;</span>
+	}
+	public int getMaxhp() {
+<span class="nc" id="L335">		return Maxhp;</span>
+	}
+	// for test
+	public static void setSoundManager(SoundManager sm) {
+<span class="fc" id="L339">		EnemyShip.sm = sm;</span>
+<span class="fc" id="L340">	}</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.10.202304240956</span></div></body></html>

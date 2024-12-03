@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="ko"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>DrawAchievementHud.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">my-java-project</a> &gt; <a href="index.source.html" class="el_package">HUDTeam</a> &gt; <span class="el_source">DrawAchievementHud.java</span></div><h1>DrawAchievementHud.java</h1><pre class="source lang-java linenums">package HUDTeam;
+
+// Sound Operator
+import Sound_Operator.SoundManager;
+
+public class DrawAchievementHud {
+    // Sound Operator
+    private static SoundManager sm;
+<span class="nc" id="L9">    static int timer = 100;</span>
+<span class="nc" id="L10">    static String achievementText = null;</span>
+
+<span class="nc" id="L12">    public DrawAchievementHud() {}</span>
+
+<span class="nc" id="L14">    public static int getTimer(){return timer;}</span>
+
+<span class="nc" id="L16">    public static String getAchievementText(){return achievementText;}</span>
+
+<span class="nc" id="L18">    public static void addTimer(){timer++;}</span>
+
+    /**
+     * Input accomplished achievement text.
+     *
+     * @param Text
+     *            Accomplished achievement text.
+     */
+    public static void achieve(String Text){
+<span class="nc" id="L27">        timer = 0;</span>
+<span class="nc" id="L28">        achievementText = Text;</span>
+        // Sound Operator
+<span class="nc" id="L30">        sm = SoundManager.getInstance();</span>
+<span class="nc" id="L31">        sm.playES(&quot;achievement&quot;);</span>
+<span class="nc" id="L32">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.10.202304240956</span></div></body></html>

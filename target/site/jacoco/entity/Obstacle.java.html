@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="ko"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Obstacle.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">my-java-project</a> &gt; <a href="index.source.html" class="el_package">entity</a> &gt; <span class="el_source">Obstacle.java</span></div><h1>Obstacle.java</h1><pre class="source lang-java linenums">package entity;
+
+import java.awt.Color;
+
+import engine.Cooldown;
+import engine.Core;
+import engine.DrawManager.SpriteType;
+
+/**
+* Implements an obstacle, to be destroyed by the player.
+*/
+public class Obstacle extends Entity {
+    
+    /** Cooldown for obstacle movement or other features. */
+    private Cooldown movementCooldown;
+    /** Cooldown for the explosion animation. */
+    private Cooldown explosionCooldown;
+    /** Checks if the obstacle has been destroyed by a bullet. */
+    private boolean isDestroyed;
+    
+    /**
+    * Constructor, establishes the obstacle's properties.
+    * 
+    * @param positionX Initial position of the obstacle in the X axis.
+    * @param positionY Initial position of the obstacle in the Y axis.
+    */
+    public Obstacle(final int positionX, final int positionY) {
+<span class="nc" id="L28">        super(positionX, positionY, 14 * 2, 7 * 2, new Color(161, 142, 108)); // Use different size/color than EnemyShip</span>
+<span class="nc" id="L29">        this.spriteType = SpriteType.Obstacle; // Ensure it's an obstacle shape sprite type</span>
+<span class="nc" id="L30">        this.isDestroyed = false;</span>
+<span class="nc" id="L31">        this.movementCooldown = Core.getCooldown(500); // Adjust the cooldown for obstacle movement</span>
+<span class="nc" id="L32">    }</span>
+    
+    /**
+    * Moves the obstacle a certain distance.
+    * 
+    * @param distanceX Distance to move in the X axis.
+    * @param distanceY Distance to move in the Y axis.
+    */
+    public final void move(final int distanceX, final int distanceY) {
+<span class="nc" id="L41">        this.positionX += distanceX;</span>
+<span class="nc" id="L42">        this.positionY += distanceY;</span>
+<span class="nc" id="L43">    }</span>
+    
+    /**
+    * Updates the obstacle's movement or other attributes.
+    */
+    public final void update(int level) {
+<span class="nc bnc" id="L49" title="All 2 branches missed.">        if (!this.isDestroyed) {</span>
+            // Set speed based on the level
+<span class="nc" id="L51">            int speed = 2 + (level / 2);  // Adjust so it increases by 1 every two levels</span>
+<span class="nc" id="L52">            this.positionY += speed; // Moves the obstacle down continuously</span>
+<span class="nc" id="L53">        } else {</span>
+            // If destroyed, check if the explosion animation should finish
+<span class="nc bnc" id="L55" title="All 4 branches missed.">            if (this.explosionCooldown != null &amp;&amp; this.explosionCooldown.checkFinished()) {</span>
+<span class="nc" id="L56">                this.spriteType = null; // Mark this obstacle to be removed</span>
+            }
+        }
+<span class="nc" id="L59">    }</span>
+    
+    /**
+    * Destroys the obstacle, causing it to explode.
+    */
+    public final void destroy() {
+<span class="nc bnc" id="L65" title="All 2 branches missed.">        if (!this.isDestroyed) {</span>
+<span class="nc" id="L66">            this.isDestroyed = true;</span>
+<span class="nc" id="L67">            this.spriteType = SpriteType.Explosion;  // Set sprite to explosion</span>
+<span class="nc" id="L68">            this.explosionCooldown = Core.getCooldown(500);  // Explosion lasts for 500 ms (adjust as needed)</span>
+<span class="nc" id="L69">            this.explosionCooldown.reset();</span>
+        }
+<span class="nc" id="L71">    }</span>
+    
+    /**
+    * Checks if the obstacle has been destroyed.
+    * 
+    * @return True if the obstacle has been destroyed.
+    */
+    public final boolean isDestroyed() {
+<span class="nc" id="L79">        return this.isDestroyed;</span>
+    }
+    
+    /**
+    * Checks if the obstacle should be removed after explosion animation.
+    * 
+    * @return True if the obstacle can be removed.
+    */
+    public final boolean shouldBeRemoved() {
+<span class="nc bnc" id="L88" title="All 2 branches missed.">        return this.spriteType == null;  // Remove when spriteType is null after explosion</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.10.202304240956</span></div></body></html>

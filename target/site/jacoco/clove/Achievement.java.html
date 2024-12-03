@@ -1,0 +1,195 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="ko"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Achievement.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">my-java-project</a> &gt; <a href="index.source.html" class="el_package">clove</a> &gt; <span class="el_source">Achievement.java</span></div><h1>Achievement.java</h1><pre class="source lang-java linenums">package clove;
+
+public class Achievement {
+
+<span class="nc" id="L5">    public enum AchievementType {</span>
+<span class="nc" id="L6">        KILLS,</span>
+<span class="nc" id="L7">        KILLSTREAKS,</span>
+<span class="nc" id="L8">        LIVES,</span>
+<span class="nc" id="L9">        STAGE,</span>
+<span class="nc" id="L10">        TRIALS,</span>
+<span class="nc" id="L11">        FASTKILL,</span>
+<span class="nc" id="L12">        SCORE</span>
+    }
+
+    private String achievementName;
+    private String achievementDescription;
+    private int requiredKills;
+    private int requiredKillStreaks;
+    private int requiredScore;
+    private int requiredStages;
+    private int requiredLives;
+    private static int requiredFastKills;
+    private int requiredTrials;
+    private boolean isCompleted;
+    private AchievementType achievementType;
+<span class="nc" id="L26">    private int gem = 0;</span>
+
+<span class="nc" id="L28">    public Achievement(String achievementName, String achievementDescription, int requiredValue, AchievementType type) {</span>
+<span class="nc" id="L29">        this.achievementName = achievementName;</span>
+<span class="nc" id="L30">        this.achievementDescription = achievementDescription;</span>
+<span class="nc" id="L31">        this.isCompleted = false;</span>
+<span class="nc" id="L32">        this.achievementType = type;</span>
+
+        // Assign values to appropriate fields based on type
+<span class="nc bnc" id="L35" title="All 8 branches missed.">        switch (type) {</span>
+            case KILLS:
+<span class="nc" id="L37">                requiredKills = requiredValue;</span>
+<span class="nc" id="L38">                break;</span>
+            case KILLSTREAKS:
+<span class="nc" id="L40">                this.requiredKillStreaks = requiredValue;</span>
+<span class="nc" id="L41">                break;</span>
+            case SCORE:
+<span class="nc" id="L43">                this.requiredScore = requiredValue;</span>
+<span class="nc" id="L44">                break;</span>
+            case STAGE:
+<span class="nc" id="L46">                this.requiredStages = requiredValue;</span>
+            case TRIALS:
+<span class="nc" id="L48">                this.requiredTrials = requiredValue;</span>
+<span class="nc" id="L49">                break;</span>
+            case FASTKILL:
+<span class="nc" id="L51">                this.requiredFastKills = requiredValue;</span>
+<span class="nc" id="L52">                break;</span>
+            case LIVES:
+<span class="nc" id="L54">                this.requiredLives = requiredValue;</span>
+<span class="nc" id="L55">                break;</span>
+            default:
+<span class="nc" id="L57">                throw new IllegalArgumentException(&quot;Unsupported AchievementType: &quot; + type);</span>
+        }
+<span class="nc" id="L59">    }</span>
+    public Achievement(String achievementName, String achievementDescription, int requiredValue, AchievementType type, int gem) {
+<span class="nc" id="L61">        this(achievementName, achievementDescription, requiredValue, type);</span>
+<span class="nc" id="L62">        this.gem = gem;</span>
+<span class="nc" id="L63">    }</span>
+
+    public void logCompleteAchievement() {
+<span class="nc" id="L66">        this.isCompleted = true;</span>
+<span class="nc" id="L67">        System.out.println(&quot;Achievement completed: &quot; + achievementName);</span>
+<span class="nc" id="L68">    }</span>
+
+    public AchievementType getType() {
+<span class="nc" id="L71">        return achievementType;</span>
+    }
+
+    public int getRequiredScore() {
+<span class="nc" id="L75">        return requiredScore;</span>
+    }
+
+    public int getRequiredKills() {
+<span class="nc" id="L79">        return requiredKills;</span>
+    }
+
+    public int getRequiredKillStreaks() {
+<span class="nc" id="L83">        return requiredKillStreaks;</span>
+    }
+
+    public int getRequiredTrials() {
+<span class="nc" id="L87">        return requiredTrials;</span>
+    }
+
+    public int getRequiredStages() {
+<span class="nc" id="L91">        return requiredStages;</span>
+    }
+
+    public static int getRequiredFastKills() {
+<span class="nc" id="L95">        return requiredFastKills;</span>
+    }
+
+    public String getAchievementDescription() {
+<span class="nc" id="L99">        return achievementDescription;</span>
+    }
+
+    public String getAchievementName() {
+<span class="nc" id="L103">        return achievementName;</span>
+    }
+
+    public boolean isCompleted() {
+<span class="nc" id="L107">        return isCompleted;</span>
+    }
+
+    public boolean checkKillConditions(Achievement achievement, int currentKills) {
+<span class="nc" id="L111">        System.out.println(&quot;Checking kill conditions for achievement: &quot; + achievement.getAchievementName());</span>
+<span class="nc bnc" id="L112" title="All 2 branches missed.">        if (achievement.getType() == Achievement.AchievementType.KILLS) {</span>
+<span class="nc" id="L113">            System.out.println(&quot;Current kills: &quot; + currentKills + &quot;, Required kills: &quot; + achievement.getRequiredKills());</span>
+<span class="nc bnc" id="L114" title="All 2 branches missed.">            return currentKills &gt;= achievement.getRequiredKills();</span>
+        }
+<span class="nc" id="L116">        return false;</span>
+    }
+
+    public boolean checkKillStreakConditions(Achievement achievement, int currentKillStreak) {
+<span class="nc" id="L120">        System.out.println(&quot;Checking killstreak conditions for achievement: &quot; + achievement.getAchievementName());</span>
+<span class="nc bnc" id="L121" title="All 2 branches missed.">        if (achievement.getType() == AchievementType.KILLSTREAKS) {</span>
+<span class="nc" id="L122">            System.out.println(&quot;Current killstreaks: &quot; + currentKillStreak + &quot;, Required killstreaks: &quot; + achievement.getRequiredKillStreaks());</span>
+<span class="nc bnc" id="L123" title="All 2 branches missed.">            return currentKillStreak &gt;= achievement.getRequiredKills();</span>
+        }
+<span class="nc" id="L125">        return false;</span>
+    }
+
+    public boolean checkRequiredTrials(Achievement achievement, int currentTrials) {
+<span class="nc" id="L129">        System.out.println(&quot;Checking trial conditions for achievement &quot; + achievement.getAchievementName());</span>
+<span class="nc bnc" id="L130" title="All 2 branches missed.">        if (achievement.getType() == Achievement.AchievementType.TRIALS) {</span>
+<span class="nc" id="L131">            System.out.println(&quot;Current trials: &quot; + currentTrials + &quot;, Required trials: &quot; + achievement.getRequiredTrials());</span>
+<span class="nc bnc" id="L132" title="All 2 branches missed.">            return currentTrials &gt;= achievement.getRequiredTrials();</span>
+        }
+<span class="nc" id="L134">        return false;</span>
+    }
+
+    public boolean checkStageConditions(Achievement achievement, int currentStages) {
+<span class="nc" id="L138">        System.out.println(&quot;Checking stage conditions for achievement: &quot; + achievement.getAchievementName());</span>
+<span class="nc bnc" id="L139" title="All 2 branches missed.">        if (achievement.getType() == Achievement.AchievementType.STAGE) {</span>
+<span class="nc" id="L140">            System.out.println(&quot;Current stages: &quot; + currentStages + &quot;, Required stages: &quot; + achievement.getRequiredStages());</span>
+<span class="nc bnc" id="L141" title="All 2 branches missed.">            return currentStages &gt;= achievement.getRequiredStages();</span>
+        }
+<span class="nc" id="L143">        return false;</span>
+    }
+
+    public boolean checkScoreConditions(Achievement achievement, int currentScore) {
+<span class="nc" id="L147">        System.out.println(&quot;Checking score conditions for achievement: &quot; + achievement.getAchievementName());</span>
+<span class="nc bnc" id="L148" title="All 2 branches missed.">        if (achievement.getType() == Achievement.AchievementType.SCORE) {</span>
+<span class="nc" id="L149">            System.out.println(&quot;Current score: &quot; + currentScore + &quot;, Required score: &quot; + achievement.getRequiredScore());</span>
+<span class="nc bnc" id="L150" title="All 2 branches missed.">            return currentScore &gt;= achievement.getRequiredScore();</span>
+        }
+<span class="nc" id="L152">        return false;</span>
+    }
+
+    public boolean checkLivesCondition(int currentLives) {
+<span class="nc bnc" id="L156" title="All 2 branches missed.">        if (this.achievementType == AchievementType.LIVES) {</span>
+<span class="nc bnc" id="L157" title="All 2 branches missed.">            return currentLives &gt;= requiredLives;</span>
+        }
+<span class="nc" id="L159">        return false;</span>
+    }
+
+    public boolean checkFastKillConditions(int currentFastKills) {
+<span class="nc bnc" id="L163" title="All 2 branches missed.">        if (this.achievementType == AchievementType.FASTKILL) {</span>
+<span class="nc bnc" id="L164" title="All 2 branches missed.">            return currentFastKills &gt;= requiredFastKills;</span>
+        }
+<span class="nc" id="L166">        return false;</span>
+    }
+
+    public void completeAchievement() {
+<span class="nc bnc" id="L170" title="All 2 branches missed.">        if (!isCompleted) {</span>
+<span class="nc" id="L171">            isCompleted = true;</span>
+        }
+<span class="nc" id="L173">    }</span>
+
+<span class="nc" id="L175">    public int getGem() { return gem; }</span>
+
+    @Override
+    public boolean equals(Object o) {
+<span class="nc bnc" id="L179" title="All 2 branches missed.">        if (this == o) return true;</span>
+<span class="nc bnc" id="L180" title="All 4 branches missed.">        if (o == null || getClass() != o.getClass()) return false;</span>
+<span class="nc" id="L181">        Achievement that = (Achievement) o;</span>
+<span class="nc" id="L182">        return achievementName.equals(that.achievementName);</span>
+    }
+
+    @Override
+    public int hashCode() {
+<span class="nc" id="L187">        return achievementName.hashCode();</span>
+    }
+
+    @Override
+    public String toString() {
+<span class="nc" id="L192">        return &quot;Achievement{&quot; + &quot;Achieved: &quot; + achievementName + &quot; - &quot; + achievementDescription + &quot;}&quot;;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.10.202304240956</span></div></body></html>

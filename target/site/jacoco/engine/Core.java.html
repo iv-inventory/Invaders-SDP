@@ -1,0 +1,646 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="ko"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Core.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">my-java-project</a> &gt; <a href="index.source.html" class="el_package">engine</a> &gt; <span class="el_source">Core.java</span></div><h1>Core.java</h1><pre class="source lang-java linenums">package engine;
+
+import java.awt.image.BufferedImage;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.logging.ConsoleHandler;
+import java.util.logging.FileHandler;
+import java.util.logging.Handler;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import CtrlS.CurrencyManager;
+import CtrlS.RoundState;
+import CtrlS.ReceiptScreen;
+import CtrlS.UpgradeManager;
+import Sound_Operator.SoundManager;
+import clove.Statistics;
+import entity.EnemyShip;
+import inventory_develop.StoryModeTrait;
+import level_design.Background;
+import clove.AchievementManager;
+import screen.*;
+
+import javax.imageio.ImageIO;
+
+
+/**
+ * Implements core game logic.
+ * 
+ * @author &lt;a href=&quot;mailto:RobertoIA1987@gmail.com&quot;&gt;Roberto Izquierdo Amo&lt;/a&gt;
+ * 
+ */
+public final class Core {
+
+	/** Width of current screen. */
+	private static final int WIDTH = 630;
+	/** Height of current screen. */
+	private static final int HEIGHT = 720;
+	/** Max fps of current screen. */
+	private static final int FPS = 60;
+
+	/** Max lives. */
+	public static final int MAX_LIVES = 3; // TEAM CLOVER: Fixed MAX_LIVES from private to public for usage in achievement
+	/** Levels between extra life. */
+	private static final int EXTRA_LIFE_FRECUENCY = 3;
+	/** Total number of levels. */
+	public static final int NUM_LEVELS = 7; // TEAM CLOVER : Fixed NUM_LEVELS from privated to public for usage in achievement
+	
+	/** Difficulty settings for level 1. */
+<span class="fc" id="L52">	private static final GameSettings SETTINGS_LEVEL_1 =</span>
+			new GameSettings(5, 4, 60, 200, 1);
+	/** Difficulty settings for level 2. */
+<span class="fc" id="L55">	private static final GameSettings SETTINGS_LEVEL_2 =</span>
+			new GameSettings(5, 5, 50, 2500, 1);
+	/** Difficulty settings for level 3. */
+<span class="fc" id="L58">	private static final GameSettings SETTINGS_LEVEL_3 =</span>
+			new GameSettings(1, 1, -8, 500, 1);
+	/** Difficulty settings for level 4. */
+<span class="fc" id="L61">	private static final GameSettings SETTINGS_LEVEL_4 =</span>
+			new GameSettings(6, 6, 30, 1500, 2);
+	/** Difficulty settings for level 5. */
+<span class="fc" id="L64">	private static final GameSettings SETTINGS_LEVEL_5 =</span>
+			new GameSettings(7, 6, 20, 1000, 2);
+	/** Difficulty settings for level 6. */
+<span class="fc" id="L67">	private static final GameSettings SETTINGS_LEVEL_6 =</span>
+			new GameSettings(7, 7, 10, 1000, 3);
+	/** Difficulty settings for level 7. */
+<span class="fc" id="L70">	private static final GameSettings SETTINGS_LEVEL_7 =</span>
+			new GameSettings(8,  7, 2, 500, 1);
+
+	// Story 모드
+	/** Difficulty settings for Story mode level 1. */
+<span class="fc" id="L75">	private static final GameSettings SETTINGS_LEVEL_S1 =</span>
+			new GameSettings(20, 1500, 600, 1500);
+	/** Difficulty settings for Story mode level 2. */
+<span class="fc" id="L78">	private static final GameSettings SETTINGS_LEVEL_S2 =</span>
+			new GameSettings(15, 1500, 575, 1500);
+	/** Difficulty settings for Story mode level 3. */
+<span class="fc" id="L81">	private static final GameSettings SETTINGS_LEVEL_S3 =</span>
+			new GameSettings(15, 1500, 550, 1500);
+	/** Difficulty settings for Story mode level 4. */
+<span class="fc" id="L84">	private static final GameSettings SETTINGS_LEVEL_S4 =</span>
+			new GameSettings(15, 1500, 500, 1500);
+	/** Difficulty settings for Story mode level 5. */
+<span class="fc" id="L87">	private static final GameSettings SETTINGS_LEVEL_S5 =</span>
+			new GameSettings(15, 1500, 500, 1000);
+	/** Difficulty settings for Story mode level 6. */
+<span class="fc" id="L90">	private static final GameSettings SETTINGS_LEVEL_S6 =</span>
+			new GameSettings(15, 1500, 4750, 1000);
+	/** Difficulty settings for Story mode level 7. */
+<span class="fc" id="L93">	private static final GameSettings SETTINGS_LEVEL_S7 =</span>
+			new GameSettings(15, 1500, 450, 500);
+	/** Difficulty settings for Story mode level 8. */
+<span class="fc" id="L96">	private static final GameSettings SETTINGS_LEVEL_S8 =</span>
+			new GameSettings(15, 1500, 1000, 2000);
+
+
+	/** Frame to draw the screen on. */
+	private static Frame frame;
+	/** Screen currently shown. */
+	private static Screen currentScreen;
+	/** Difficulty settings list. */
+	private static List&lt;GameSettings&gt; gameSettings;
+	private static List&lt;GameSettings&gt; storyModeSettings;
+	/** Application logger. */
+<span class="fc" id="L108">	private static final Logger LOGGER = Logger.getLogger(Core.class</span>
+<span class="fc" id="L109">			.getSimpleName());</span>
+	/** Logger handler for printing to disk. */
+	private static Handler fileHandler;
+	/** Logger handler for printing to console. */
+	private static ConsoleHandler consoleHandler;
+	// Sound Operator
+	private static SoundManager sm;
+    private static AchievementManager achievementManager; // Team CLOVER
+
+	/**
+	 * Test implementation.
+	 * 
+	 * @param args
+	 *            Program args, ignored.
+	 */
+	public static void main(final String[] args) {
+		try {
+<span class="nc" id="L126">			LOGGER.setUseParentHandlers(false);</span>
+
+<span class="nc" id="L128">			fileHandler = new FileHandler(&quot;log&quot;);</span>
+<span class="nc" id="L129">			fileHandler.setFormatter(new MinimalFormatter());</span>
+
+<span class="nc" id="L131">			consoleHandler = new ConsoleHandler();</span>
+<span class="nc" id="L132">			consoleHandler.setFormatter(new MinimalFormatter());</span>
+			// Sound Operator
+<span class="nc" id="L134">			sm = SoundManager.getInstance();</span>
+<span class="nc" id="L135">			EnemyShip.setSoundManager(sm);</span>
+
+<span class="nc" id="L137">			LOGGER.addHandler(fileHandler);</span>
+<span class="nc" id="L138">			LOGGER.addHandler(consoleHandler);</span>
+<span class="nc" id="L139">			LOGGER.setLevel(Level.ALL);</span>
+
+			// TEAM CLOVER : Added log to check if function is working
+<span class="nc" id="L142">			System.out.println(&quot;Initializing AchievementManager...&quot;);</span>
+<span class="nc" id="L143">			achievementManager = new AchievementManager(DrawManager.getInstance());</span>
+<span class="nc" id="L144">			System.out.println(&quot;AchievementManager initialized!&quot;);</span>
+
+			// CtrlS: Make instance of Upgrade Manager
+<span class="nc" id="L147">			Core.getUpgradeManager();</span>
+
+			//Clove. Reset Player Statistics After the Game Starts
+<span class="nc" id="L150">			Statistics statistics = new Statistics();</span>
+<span class="nc" id="L151">			statistics.resetStatistics();</span>
+<span class="nc" id="L152">			LOGGER.info(&quot;Reset Player Statistics&quot;);</span>
+
+<span class="nc" id="L154">		} catch (Exception e) {</span>
+			// TODO handle exception
+<span class="nc" id="L156">			e.printStackTrace();</span>
+<span class="nc" id="L157">		}</span>
+
+<span class="nc" id="L159">		frame = new Frame(WIDTH, HEIGHT);</span>
+<span class="nc" id="L160">		DrawManager.getInstance().setFrame(frame);</span>
+<span class="nc" id="L161">		int width = frame.getWidth();</span>
+<span class="nc" id="L162">		int height = frame.getHeight();</span>
+
+		/** ### TEAM INTERNATIONAL ###*/
+		/** Initialize singleton instance of a background*/
+<span class="nc" id="L166">		Background.getInstance().initialize(frame);</span>
+
+<span class="nc" id="L168">		gameSettings = new ArrayList&lt;GameSettings&gt;();</span>
+<span class="nc" id="L169">		gameSettings.add(SETTINGS_LEVEL_1);</span>
+<span class="nc" id="L170">		gameSettings.add(SETTINGS_LEVEL_2);</span>
+<span class="nc" id="L171">		gameSettings.add(SETTINGS_LEVEL_3);</span>
+<span class="nc" id="L172">		gameSettings.add(SETTINGS_LEVEL_4);</span>
+<span class="nc" id="L173">		gameSettings.add(SETTINGS_LEVEL_5);</span>
+<span class="nc" id="L174">		gameSettings.add(SETTINGS_LEVEL_6);</span>
+<span class="nc" id="L175">		gameSettings.add(SETTINGS_LEVEL_7);</span>
+
+		// Story 모드 전용 gameSettings 리스트
+<span class="nc" id="L178">		storyModeSettings = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L179">		storyModeSettings.add(SETTINGS_LEVEL_S1);</span>
+<span class="nc" id="L180">		storyModeSettings.add(SETTINGS_LEVEL_S2);</span>
+<span class="nc" id="L181">		storyModeSettings.add(SETTINGS_LEVEL_S3);</span>
+<span class="nc" id="L182">		storyModeSettings.add(SETTINGS_LEVEL_S4);</span>
+<span class="nc" id="L183">		storyModeSettings.add(SETTINGS_LEVEL_S5);</span>
+<span class="nc" id="L184">		storyModeSettings.add(SETTINGS_LEVEL_S6);</span>
+<span class="nc" id="L185">		storyModeSettings.add(SETTINGS_LEVEL_S7);</span>
+<span class="nc" id="L186">		storyModeSettings.add(SETTINGS_LEVEL_S8);</span>
+		
+		GameState gameState;
+		RoundState roundState;
+
+<span class="nc" id="L191">		int returnCode = 1;</span>
+		do {
+			// Add playtime parameter - Soomin Lee / TeamHUD
+			// Add hitCount parameter - Ctrl S
+			// Add coinItemsCollected parameter - Ctrl S
+<span class="nc" id="L196">			gameState = new GameState(1, 0</span>
+					, MAX_LIVES, 0,0, 0, 0, 0, 0, 0, 0);
+<span class="nc bnc" id="L198" title="All 7 branches missed.">			switch (returnCode) {</span>
+			case 1:
+				// Main menu.
+<span class="nc" id="L201">                currentScreen = new TitleScreen(width, height, FPS);</span>
+<span class="nc" id="L202">				LOGGER.info(&quot;Starting &quot; + WIDTH + &quot;x&quot; + HEIGHT</span>
+						+ &quot; title screen at &quot; + FPS + &quot; fps.&quot;);
+<span class="nc" id="L204">				returnCode = frame.setScreen(currentScreen);</span>
+<span class="nc" id="L205">				LOGGER.info(&quot;Closing title screen.&quot;);</span>
+<span class="nc" id="L206">				break;</span>
+			case 2: // normal mode
+				// Game &amp; score.
+<span class="nc" id="L209">				LOGGER.info(&quot;Starting inGameBGM&quot;);</span>
+				// Sound Operator
+<span class="nc" id="L211">				sm.playES(&quot;start_button_ES&quot;);</span>
+<span class="nc" id="L212">				sm.playBGM(&quot;inGame_bgm&quot;);</span>
+
+				try {
+<span class="nc" id="L215">					getUpgradeManager().resetUpgrades();		// storyMode에서 업그레이드되었던 부분 초기화</span>
+<span class="nc" id="L216">					getUpgradeManager().setShipShoot360(true);	// 360도 발사만 가능하게</span>
+<span class="nc" id="L217">				} catch (IOException e) {throw new RuntimeException(e);}</span>
+
+				do {
+					// One extra live every few levels.
+<span class="nc bnc" id="L221" title="All 2 branches missed.">					boolean bonusLife = gameState.getLevel()</span>
+							% EXTRA_LIFE_FRECUENCY == 0
+<span class="nc bnc" id="L223" title="All 2 branches missed.">							&amp;&amp; gameState.getLivesRemaining() &lt; MAX_LIVES;</span>
+
+<span class="nc" id="L225">					GameState prevState = gameState;</span>
+<span class="nc" id="L226">					currentScreen = new GameScreen(gameState,</span>
+<span class="nc" id="L227">							gameSettings.get(gameState.getLevel() - 1),</span>
+							bonusLife, width, height, FPS,2);
+<span class="nc" id="L229">					LOGGER.info(&quot;Starting &quot; + WIDTH + &quot;x&quot; + HEIGHT</span>
+							+ &quot; game screen at &quot; + FPS + &quot; fps.&quot;);
+<span class="nc" id="L231">					frame.setScreen(currentScreen);</span>
+<span class="nc" id="L232">					LOGGER.info(&quot;Closing game screen.&quot;);</span>
+
+
+<span class="nc" id="L235">					achievementManager.updateAchievements(currentScreen); // TEAM CLOVER : Achievement</span>
+
+<span class="nc" id="L237">					Statistics statistics = new Statistics(); //Clove</span>
+
+<span class="nc" id="L239">					gameState = ((GameScreen) currentScreen).getGameState();</span>
+
+<span class="nc" id="L241">					roundState = new RoundState(prevState, gameState);</span>
+
+					// Add playtime parameter - Soomin Lee / TeamHUD
+<span class="nc" id="L244">					gameState = new GameState(gameState.getLevel() + 1,</span>
+<span class="nc" id="L245">							gameState.getScore(),</span>
+<span class="nc" id="L246">							gameState.getLivesRemaining(),</span>
+<span class="nc" id="L247">							gameState.getLivesTwoRemaining(),</span>
+<span class="nc" id="L248">							gameState.getBulletsShot(),</span>
+<span class="nc" id="L249">							gameState.getShipsDestroyed(),</span>
+<span class="nc" id="L250">							gameState.getTime(),</span>
+<span class="nc" id="L251">							gameState.getCoin() + roundState.getRoundCoin(),</span>
+<span class="nc" id="L252">							gameState.getGem(),</span>
+<span class="nc" id="L253">							gameState.getHitCount(),</span>
+<span class="nc" id="L254">							gameState.getCoinItemsCollected());</span>
+<span class="nc" id="L255">          			LOGGER.info(&quot;Round Coin: &quot; + roundState.getRoundCoin());</span>
+<span class="nc" id="L256">					LOGGER.info(&quot;Round Hit Rate: &quot; + roundState.getRoundHitRate());</span>
+<span class="nc" id="L257">					LOGGER.info(&quot;Round Time: &quot; + roundState.getRoundTime());</span>
+
+					try { //Clove
+<span class="nc" id="L260">						statistics.addTotalPlayTime(roundState.getRoundTime());</span>
+<span class="nc" id="L261">						LOGGER.info(&quot;RoundTime Saving&quot;);</span>
+<span class="nc" id="L262">					} catch (IOException e){</span>
+<span class="nc" id="L263">						LOGGER.info(&quot;Failed to Save RoundTime&quot;);</span>
+<span class="nc" id="L264">					}</span>
+
+					// Show receiptScreen
+					// If it is not the last round and the game is not over
+					// Ctrl-S
+<span class="nc bnc" id="L269" title="All 4 branches missed.">					if (gameState.getLevel() &lt;= 7 &amp;&amp; gameState.getLivesRemaining() &gt; 0) {</span>
+<span class="nc" id="L270">						LOGGER.info(&quot;loading receiptScreen&quot;);</span>
+<span class="nc" id="L271">						currentScreen = new ReceiptScreen(width, height, FPS, roundState, gameState);</span>
+
+<span class="nc" id="L273">						LOGGER.info(&quot;Starting &quot; + WIDTH + &quot;x&quot; + HEIGHT</span>
+								+ &quot; receipt screen at &quot; + FPS + &quot; fps.&quot;);
+<span class="nc" id="L275">						frame.setScreen(currentScreen);</span>
+<span class="nc" id="L276">						LOGGER.info(&quot;Closing receiptScreen.&quot;);</span>
+					}
+
+<span class="nc bnc" id="L279" title="All 2 branches missed.">                    if (achievementManager != null) { // TEAM CLOVER : Added code</span>
+<span class="nc" id="L280">                        achievementManager.updateAchievements(currentScreen);</span>
+                    }
+
+<span class="nc bnc" id="L283" title="All 2 branches missed.">				} while (gameState.getLivesRemaining() &gt; 0</span>
+<span class="nc bnc" id="L284" title="All 2 branches missed.">						&amp;&amp; gameState.getLevel() &lt;= NUM_LEVELS);</span>
+
+<span class="nc" id="L286">				LOGGER.info(&quot;Stop InGameBGM&quot;);</span>
+				// Sound Operator
+<span class="nc" id="L288">				sm.stopAllBGM();</span>
+
+<span class="nc" id="L290">				LOGGER.info(&quot;Starting &quot; + WIDTH + &quot;x&quot; + HEIGHT</span>
+						+ &quot; score screen at &quot; + FPS + &quot; fps, with a score of &quot;
+<span class="nc" id="L292">						+ gameState.getScore() + &quot;, &quot;</span>
+<span class="nc" id="L293">						+ gameState.getLivesRemaining() + &quot; lives remaining, &quot;</span>
+<span class="nc" id="L294">						+ gameState.getBulletsShot() + &quot; bullets shot and &quot;</span>
+<span class="nc" id="L295">						+ gameState.getShipsDestroyed() + &quot; ships destroyed.&quot;);</span>
+<span class="nc" id="L296">				currentScreen = new ScoreScreen(width, height, FPS, gameState, returnCode);</span>
+<span class="nc" id="L297">				returnCode = frame.setScreen(currentScreen);</span>
+<span class="nc" id="L298">				LOGGER.info(&quot;Closing score screen.&quot;);</span>
+<span class="nc" id="L299">				break;</span>
+
+			case 3:
+				// Infinity modes.
+
+<span class="nc" id="L304">				break;</span>
+
+			case 4:
+				// Story modes.
+<span class="nc" id="L308">				LOGGER.info(&quot;Starting Story mode cutscenes&quot;);</span>
+<span class="nc" id="L309">				DrawManager drawManager = DrawManager.getInstance();</span>
+
+<span class="nc" id="L311">				BufferedImage[] cutsceneImages = new BufferedImage[8];</span>
+<span class="nc bnc" id="L312" title="All 2 branches missed.">				for (int i = 0; i &lt; 8; i++) {</span>
+<span class="nc" id="L313">					InputStream imageStream = Background.getStoryModeBackgroundImageStream(i + 1);</span>
+					try {
+<span class="nc" id="L315">						cutsceneImages[i] = ImageIO.read(imageStream);</span>
+<span class="nc" id="L316">					} catch (IOException e) {</span>
+<span class="nc" id="L317">						throw new RuntimeException(&quot;Failed to load cutscene image &quot; + (i + 1), e);</span>
+<span class="nc" id="L318">					}</span>
+				}
+
+<span class="nc bnc" id="L321" title="All 2 branches missed.">				for (BufferedImage cutsceneImage : cutsceneImages) {</span>
+<span class="nc" id="L322">					DrawManager.getInstance().initDrawing(currentScreen);</span>
+<span class="nc" id="L323">					DrawManager.backBufferGraphics.drawImage(cutsceneImage, 0, 0, frame.getWidth(), frame.getHeight(), null);</span>
+<span class="nc" id="L324">					DrawManager.getInstance().completeDrawing(currentScreen);</span>
+
+					try {
+<span class="nc" id="L327">						Thread.sleep(2000);</span>
+<span class="nc" id="L328">					} catch (InterruptedException e) {</span>
+<span class="nc" id="L329">						Thread.currentThread().interrupt();</span>
+<span class="nc" id="L330">						LOGGER.warning(&quot;Cutscene interrupted&quot;);</span>
+<span class="nc" id="L331">					}</span>
+				}
+
+
+<span class="nc" id="L335">				LOGGER.info(&quot;Starting Story mode game&quot;);</span>
+				// Sound Operator - 배경음악 시작
+				//+음악추가
+<span class="nc" id="L338">				long roundStartTime = System.currentTimeMillis();</span>
+				
+				// StoryModeTrait생성 - player의 특성이 기본값으로 변경됨(StatusConfig.properties)
+<span class="nc" id="L341">				StoryModeTrait storyModeTrait = new StoryModeTrait();	</span>
+
+				do {
+<span class="nc bnc" id="L344" title="All 2 branches missed.">					boolean bonusLife = gameState.getLevel()</span>
+							% EXTRA_LIFE_FRECUENCY == 0
+<span class="nc bnc" id="L346" title="All 2 branches missed.">							&amp;&amp; gameState.getLivesRemaining() &lt; MAX_LIVES;</span>
+
+<span class="nc" id="L348">					GameState prevState = gameState;</span>
+					// GameScreen을 사용하여 단일 플레이어 모드 실행
+<span class="nc" id="L350">					currentScreen = new GameScreen(gameState,</span>
+<span class="nc" id="L351">							storyModeSettings.get(gameState.getLevel() - 1),</span>
+							bonusLife, width, height, FPS, 4);
+<span class="nc" id="L353">					LOGGER.info(&quot;Starting story mode stage &quot; + gameState.getLevel() + &quot; with &quot; + WIDTH + &quot;x&quot; + HEIGHT + &quot; at &quot; + FPS + &quot; fps.&quot;);</span>
+<span class="nc" id="L354">					frame.setScreen(currentScreen);</span>
+<span class="nc" id="L355">					LOGGER.info(&quot;Closing game screen.&quot;);</span>
+
+
+<span class="nc" id="L358">					achievementManager.updateAchievements(currentScreen);</span>
+<span class="nc" id="L359">					Statistics statistics = new Statistics();</span>
+
+<span class="nc" id="L361">					gameState = ((GameScreen) currentScreen).getGameState();</span>
+
+<span class="nc" id="L363">					roundState = new RoundState(prevState, gameState);</span>
+
+					// Show TraitScreen
+<span class="nc bnc" id="L366" title="All 4 branches missed.">					if (gameState.getLevel() &lt;= 7 &amp;&amp; gameState.getLivesRemaining() &gt; 0) {</span>
+<span class="nc" id="L367">						String[] traits = storyModeTrait.getRandomTraits(gameState.getLevel());</span>
+<span class="nc" id="L368">						LOGGER.info(&quot;loading traitScreen&quot;);</span>
+<span class="nc" id="L369">						currentScreen = new TraitScreen(width, height, FPS, gameState, storyModeTrait, traits);</span>
+<span class="nc" id="L370">						frame.setScreen(currentScreen);</span>
+<span class="nc" id="L371">						LOGGER.info(&quot;Closing traitScreen.&quot;);</span>
+					}
+
+					// Add playtime parameter
+<span class="nc" id="L375">					gameState = new GameState(gameState.getLevel() + 1,</span>
+<span class="nc" id="L376">							gameState.getScore(),</span>
+<span class="nc" id="L377">							gameState.getLivesRemaining(),</span>
+<span class="nc" id="L378">							gameState.getLivesTwoRemaining(),</span>
+<span class="nc" id="L379">							gameState.getBulletsShot(),</span>
+<span class="nc" id="L380">							gameState.getShipsDestroyed(),</span>
+<span class="nc" id="L381">							gameState.getTime(),</span>
+<span class="nc" id="L382">							gameState.getCoin() + roundState.getRoundCoin(),</span>
+<span class="nc" id="L383">							gameState.getGem(),</span>
+<span class="nc" id="L384">							gameState.getHitCount(),</span>
+<span class="nc" id="L385">							gameState.getCoinItemsCollected());</span>
+<span class="nc" id="L386">					LOGGER.info(&quot;Round Coin: &quot; + roundState.getRoundCoin());</span>
+<span class="nc" id="L387">					LOGGER.info(&quot;Round Hit Rate: &quot; + roundState.getRoundHitRate());</span>
+<span class="nc" id="L388">					LOGGER.info(&quot;Round Time: &quot; + roundState.getRoundTime());</span>
+
+					try {
+<span class="nc" id="L391">						statistics.addTotalPlayTime(roundState.getRoundTime());</span>
+<span class="nc" id="L392">						LOGGER.info(&quot;RoundTime Saving&quot;);</span>
+<span class="nc" id="L393">					} catch (IOException e) {</span>
+<span class="nc" id="L394">						LOGGER.info(&quot;Failed to Save RoundTime&quot;);</span>
+<span class="nc" id="L395">					}</span>
+
+
+					// Show receiptScreen
+					// If it is not the last round and the game is not over
+					// 스토리모드에는 필요없는 화면인 것 같아서 제거
+//					if (gameState.getLevel() &lt;= 8 &amp;&amp; gameState.getLivesRemaining() &gt; 0) {
+//						LOGGER.info(&quot;loading receiptScreen&quot;);
+//						currentScreen = new ReceiptScreen(width, height, FPS, roundState, gameState);
+//
+//						LOGGER.info(&quot;Starting &quot; + WIDTH + &quot;x&quot; + HEIGHT + &quot; receipt screen at &quot; + FPS + &quot; fps.&quot;);
+//						frame.setScreen(currentScreen);
+//						LOGGER.info(&quot;Closing receiptScreen.&quot;);
+//					}
+<span class="nc bnc" id="L409" title="All 2 branches missed.">					if (achievementManager != null) {</span>
+<span class="nc" id="L410">						achievementManager.updateAchievements(currentScreen);</span>
+					}
+
+<span class="nc bnc" id="L413" title="All 2 branches missed.">				} while (gameState.getLivesRemaining() &gt; 0</span>
+<span class="nc bnc" id="L414" title="All 2 branches missed.">						&amp;&amp; gameState.getLevel() &lt;= 8);</span>
+
+
+<span class="nc" id="L417">					LOGGER.info(&quot;Stop InGameBGM&quot;);</span>
+					// Sound Operator - 배경음악 종료
+					//+음악추가
+
+<span class="nc" id="L421">					LOGGER.info(&quot;Starting &quot; + WIDTH + &quot;x&quot; + HEIGHT + &quot; score screen at &quot; + FPS + &quot; fps, with a score of &quot;</span>
+<span class="nc" id="L422">							+ gameState.getScore() + &quot;, &quot;</span>
+<span class="nc" id="L423">							+ gameState.getLivesRemaining() + &quot; lives remaining, &quot;</span>
+<span class="nc" id="L424">							+ gameState.getBulletsShot() + &quot; bullets shot and &quot;</span>
+<span class="nc" id="L425">							+ gameState.getShipsDestroyed() + &quot; ships destroyed.&quot;);</span>
+<span class="nc" id="L426">					currentScreen = new ScoreScreen(width, height, FPS, gameState, returnCode);</span>
+<span class="nc" id="L427">					returnCode = frame.setScreen(currentScreen);</span>
+<span class="nc" id="L428">					LOGGER.info(&quot;Closing score screen.&quot;);</span>
+<span class="nc" id="L429">				break;</span>
+
+			case 5:
+				// High scores.
+<span class="nc" id="L433">				currentScreen = new HighScoreScreen(width, height, FPS);</span>
+<span class="nc" id="L434">				LOGGER.info(&quot;Starting &quot; + WIDTH + &quot;x&quot; + HEIGHT</span>
+						+ &quot; high score screen at &quot; + FPS + &quot; fps.&quot;);
+<span class="nc" id="L436">				returnCode = frame.setScreen(currentScreen);</span>
+<span class="nc" id="L437">				LOGGER.info(&quot;Closing high score screen.&quot;);</span>
+<span class="nc" id="L438">				break;</span>
+//			case 4:
+//				LOGGER.info(&quot;Starting inGameBGM&quot;);
+//				// Sound Operator
+//				sm.playES(&quot;start_button_ES&quot;);
+//				sm.playBGM(&quot;inGame_bgm&quot;);
+//
+//				do {
+//					if (gameSettings == null || gameSettings.isEmpty()) {
+//						gameSettings = new ArrayList&lt;&gt;();
+//						gameSettings.add(SETTINGS_LEVEL_1);
+//						gameSettings.add(SETTINGS_LEVEL_2);
+//						gameSettings.add(SETTINGS_LEVEL_3);
+//						gameSettings.add(SETTINGS_LEVEL_4);
+//						gameSettings.add(SETTINGS_LEVEL_5);
+//						gameSettings.add(SETTINGS_LEVEL_6);
+//						gameSettings.add(SETTINGS_LEVEL_7);
+//					}
+//
+//					GameSettings currentGameSettings = gameSettings.get(gameState.getLevel() - 1);
+//
+//					int fps = FPS;
+//					boolean bonusLife = gameState.getLevel() % EXTRA_LIFE_FRECUENCY == 0 &amp;&amp;
+//							(gameState.getLivesRemaining() &lt; MAX_LIVES || gameState.getLivesTwoRemaining() &lt; MAX_LIVES);
+//
+//					GameState prevState = gameState;
+//
+//					// TwoPlayerMode의 생성자를 호출할 때 필요한 매개변수를 모두 전달
+//					currentScreen = new TwoPlayerMode(gameState, currentGameSettings, bonusLife, width, height, fps);
+//
+//					Statistics statistics = new Statistics(); //Clove
+//
+//
+//					LOGGER.info(&quot;Starting &quot; + WIDTH + &quot;x&quot; + HEIGHT
+//							+ &quot; game screen at &quot; + FPS + &quot; fps.&quot;);
+//					frame.setScreen(currentScreen);
+//					LOGGER.info(&quot;Closing game screen.&quot;);
+//
+//
+//					achievementManager.updateAchievements(currentScreen); // TEAM CLOVER : Achievement
+//
+//					gameState = ((TwoPlayerMode) currentScreen).getGameState();
+//
+//					roundState = new RoundState(prevState, gameState);
+//
+//					// Add playtime parameter - Soomin Lee / TeamHUD
+//					gameState = new GameState(gameState.getLevel() + 1,
+//							gameState.getScore(),
+//							gameState.getLivesRemaining(),
+//							gameState.getLivesTwoRemaining(),
+//							gameState.getBulletsShot(),
+//							gameState.getShipsDestroyed(),
+//							gameState.getTime(),
+//							gameState.getCoin() + roundState.getRoundCoin(),
+//							gameState.getGem(),
+//							gameState.getHitCount(),
+//							gameState.getCoinItemsCollected());
+//					LOGGER.info(&quot;Round Coin: &quot; + roundState.getRoundCoin());
+//					LOGGER.info(&quot;Round Hit Rate: &quot; + roundState.getRoundHitRate());
+//					LOGGER.info(&quot;Round Time: &quot; + roundState.getRoundTime());
+//
+//					try { //Clove
+//						statistics.addTotalPlayTime(roundState.getRoundTime());
+//						LOGGER.info(&quot;RoundTime Saving&quot;);
+//					} catch (IOException e){
+//						LOGGER.info(&quot;Failed to Save RoundTime&quot;);
+//					}
+//
+//					// Show receiptScreen
+//					// If it is not the last round and the game is not over
+//					// Ctrl-S
+//					if (gameState.getLevel() &lt;= 7 &amp;&amp; gameState.getLivesRemaining() &gt; 0) {
+//						LOGGER.info(&quot;loading receiptScreen&quot;);
+//						currentScreen = new ReceiptScreen(width, height, FPS, roundState, gameState);
+//
+//						LOGGER.info(&quot;Starting &quot; + WIDTH + &quot;x&quot; + HEIGHT
+//								+ &quot; receipt screen at &quot; + FPS + &quot; fps.&quot;);
+//						frame.setScreen(currentScreen);
+//						LOGGER.info(&quot;Closing receiptScreen.&quot;);
+//					}
+//
+//					if (achievementManager != null) { // TEAM CLOVER : Added code
+//						achievementManager.updateAchievements(currentScreen);
+//					}
+//
+//				} while ((gameState.getLivesRemaining() &gt; 0 || gameState.getLivesTwoRemaining() &gt; 0) &amp;&amp; gameState.getLevel() &lt;= NUM_LEVELS);
+//
+//				LOGGER.info(&quot;Stop InGameBGM&quot;);
+//				// Sound Operator
+//				sm.stopAllBGM();
+//
+//				LOGGER.info(&quot;Starting &quot; + WIDTH + &quot;x&quot; + HEIGHT
+//						+ &quot; score screen at &quot; + FPS + &quot; fps, with a score of &quot;
+//						+ gameState.getScore() + &quot;, &quot;
+//						+ gameState.getLivesRemaining() + &quot; lives remaining, &quot;
+//						+ gameState.getBulletsShot() + &quot; bullets shot and &quot;
+//						+ gameState.getShipsDestroyed() + &quot; ships destroyed.&quot;);
+//				currentScreen = new ScoreScreen(width, height, FPS, gameState);
+//				returnCode = frame.setScreen(currentScreen);
+//				LOGGER.info(&quot;Closing score screen.&quot;);
+//				break;
+			case 6:
+				// Recent Records.
+<span class="nc" id="L541">				currentScreen = new RecordScreen(width, height, FPS);</span>
+<span class="nc" id="L542">				LOGGER.info(&quot;Starting &quot; + WIDTH + &quot;x&quot; + HEIGHT</span>
+						+ &quot; recent record screen at &quot; + FPS + &quot; fps.&quot;);
+<span class="nc" id="L544">				returnCode = frame.setScreen(currentScreen);</span>
+<span class="nc" id="L545">				LOGGER.info(&quot;Closing recent record screen.&quot;);</span>
+<span class="nc" id="L546">				break;</span>
+			default:
+				break;
+			}
+
+<span class="nc bnc" id="L551" title="All 2 branches missed.">		} while (returnCode != 0);</span>
+
+<span class="nc" id="L553">		fileHandler.flush();</span>
+<span class="nc" id="L554">		fileHandler.close();</span>
+<span class="nc" id="L555">		System.exit(0);</span>
+<span class="nc" id="L556">	}</span>
+
+	/**
+	 * Constructor, not called.
+	 */
+	private Core() {
+
+	}
+
+	/**
+	 * Controls access to the logger.
+	 * 
+	 * @return Application logger.
+	 */
+	public static Logger getLogger() {
+<span class="fc" id="L571">		return LOGGER;</span>
+	}
+
+	/**
+	 * Controls access to the drawing manager.
+	 * 
+	 * @return Application draw manager.
+	 */
+	public static DrawManager getDrawManager() {
+<span class="nc" id="L580">		return DrawManager.getInstance();</span>
+	}
+
+	/**
+	 * Controls access to the input manager.
+	 * 
+	 * @return Application input manager.
+	 */
+	public static InputManager getInputManager() {
+<span class="nc" id="L589">		return InputManager.getInstance();</span>
+	}
+
+	/**
+	 * Controls access to the file manager.
+	 * 
+	 * @return Application file manager.
+	 */
+	public static FileManager getFileManager() {
+<span class="fc" id="L598">		return FileManager.getInstance();</span>
+	}
+
+	/**
+	 * Controls creation of new cooldowns.
+	 * 
+	 * @param milliseconds
+	 *            Duration of the cooldown.
+	 * @return A new cooldown.
+	 */
+	public static Cooldown getCooldown(final int milliseconds) {
+<span class="fc" id="L609">		return new Cooldown(milliseconds);</span>
+	}
+
+	/**
+	 * Controls creation of new cooldowns with variance.
+	 * 
+	 * @param milliseconds
+	 *            Duration of the cooldown.
+	 * @param variance
+	 *            Variation in the cooldown duration.
+	 * @return A new cooldown with variance.
+	 */
+	public static Cooldown getVariableCooldown(final int milliseconds,
+			final int variance) {
+<span class="nc" id="L623">		return new Cooldown(milliseconds, variance);</span>
+	}
+
+	/**
+	 * Controls access to the currency manager.
+	 *
+	 * @return Application currency manager.
+	 */
+	// Team-Ctrl-S(Currency)
+	public static CurrencyManager getCurrencyManager() {
+<span class="nc" id="L633">		return CurrencyManager.getInstance();</span>
+	}
+
+	/**
+	 * Controls access to the currency manager.
+	 *
+	 * @return Application currency manager.
+	 */
+	// Team-Ctrl-S(Currency)
+	public static UpgradeManager getUpgradeManager() {
+<span class="fc" id="L643">		return UpgradeManager.getInstance();</span>
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.10.202304240956</span></div></body></html>

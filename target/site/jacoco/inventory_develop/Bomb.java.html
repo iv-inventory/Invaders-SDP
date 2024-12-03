@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="ko"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Bomb.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">my-java-project</a> &gt; <a href="index.source.html" class="el_package">inventory_develop</a> &gt; <span class="el_source">Bomb.java</span></div><h1>Bomb.java</h1><pre class="source lang-java linenums">package inventory_develop;
+
+import Enemy.ItemManager;
+import Sound_Operator.SoundManager; //Sound_Operator
+import engine.DrawManager;
+import entity.EnemyShip;
+import entity.EnemyShipFormation;
+import entity.Entity;
+import java.awt.Color;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.logging.Logger;
+import clove.ScoreManager; //CLOVE
+
+public class Bomb{
+    // Sound Operator
+    private static SoundManager sm;
+    private int BombSpeed;
+
+<span class="nc" id="L21">    private static boolean IsBomb = false;</span>
+<span class="nc" id="L22">    private static boolean CanShoot = false;</span>
+<span class="nc" id="L23">    private static int IndexRange = 1;</span>
+<span class="nc" id="L24">    private static int PositionRange = 60;</span>
+<span class="nc" id="L25">    private static int PositionRange_isCircle = 60;</span>
+
+<span class="nc" id="L27">    private static boolean isBombExploded = false; //CLOVE</span>
+
+<span class="nc" id="L29">    private static int totalPoint = 0; //CLOVE</span>
+
+<span class="nc" id="L31">    private static Set&lt;EnemyShip&gt; DestroyedshipByBomb = new HashSet&lt;&gt;();    // for dicide next shooter</span>
+
+<span class="nc" id="L33">    public Bomb() {</span>
+<span class="nc" id="L34">    }</span>
+
+    // if EnemyShipFormation is not Circle
+    public static int[] destroyByBomb(List&lt;List&lt;EnemyShip&gt;&gt; enemyShips, EnemyShip destroyedShip, ItemManager itemManager, Logger logger) {
+<span class="nc" id="L38">        int count = 0;   // number of destroyed enemy by Bomb</span>
+<span class="nc" id="L39">        int point = 0;  // point of destroyed enemy by Bomb</span>
+
+<span class="nc bnc" id="L41" title="All 2 branches missed.">        for (List&lt;EnemyShip&gt; column : enemyShips)</span>
+<span class="nc bnc" id="L42" title="All 2 branches missed.">            for (int i = 0; i &lt; column.size(); i++) {</span>
+<span class="nc bnc" id="L43" title="All 2 branches missed.">                if (column.get(i).equals(destroyedShip)) {</span>
+
+                    // middle
+<span class="nc" id="L46">                    DestroyedshipByBomb.add(column.get(i));</span>
+<span class="nc bnc" id="L47" title="All 2 branches missed.">                    if (column.get(i).getColor().equals(Color.MAGENTA)) { //add by team enemy</span>
+<span class="nc" id="L48">                        itemManager.dropItem(column.get(i), 1, 1);</span>
+                    }
+                    //point += column.get(i).getPointValue(); //CLOVE-duplicate calculation
+<span class="nc" id="L51">                    column.get(i).destroy();</span>
+<span class="nc" id="L52">                    count++;</span>
+
+<span class="nc" id="L54">                    int columnIndex = enemyShips.indexOf(column);</span>
+                    //Sound_Operator
+<span class="nc" id="L56">                    sm = SoundManager.getInstance();</span>
+<span class="nc" id="L57">                    sm.playES(&quot;enemy_explosion&quot;);</span>
+
+                    // Operate according to IndexRange
+<span class="nc bnc" id="L60" title="All 2 branches missed.">                    for (int dx = -IndexRange; dx &lt;= IndexRange; dx++) {</span>
+<span class="nc bnc" id="L61" title="All 2 branches missed.">                        for (int dy = -IndexRange; dy &lt;= IndexRange; dy++) {</span>
+<span class="nc bnc" id="L62" title="All 4 branches missed.">                            if (dx == 0 &amp;&amp; dy == 0) continue;</span>
+
+<span class="nc" id="L64">                            int newColumnIndex = columnIndex + dx;</span>
+<span class="nc" id="L65">                            int newRowIndex = i + dy;</span>
+
+<span class="nc bnc" id="L67" title="All 4 branches missed.">                            if (newColumnIndex &gt;= 0 &amp;&amp; newColumnIndex &lt; enemyShips.size()) {</span>
+<span class="nc" id="L68">                                List&lt;EnemyShip&gt; targetColumn = enemyShips.get(newColumnIndex);</span>
+<span class="nc bnc" id="L69" title="All 6 branches missed.">                                if (newRowIndex &gt;= 0 &amp;&amp; newRowIndex &lt; targetColumn.size() &amp;&amp; inposition(column, targetColumn, i, newRowIndex, PositionRange)) {</span>
+<span class="nc" id="L70">                                    EnemyShip targetShip = targetColumn.get(newRowIndex);</span>
+<span class="nc" id="L71">                                    DestroyedshipByBomb.add(targetShip);</span>
+<span class="nc bnc" id="L72" title="All 2 branches missed.">                                    if (targetShip.getColor().equals(Color.MAGENTA)) { //add by team enemy</span>
+<span class="nc" id="L73">                                        itemManager.dropItem(targetShip, 1, 1);</span>
+                                    }
+//                                    point += targetShip.getPointValue();
+<span class="nc" id="L76">                                    targetShip.destroy();</span>
+<span class="nc" id="L77">                                    count++;</span>
+<span class="nc" id="L78">                                    logger.info(&quot;Destroyed ship at (&quot; + newColumnIndex + &quot;,&quot; + newRowIndex + &quot;)&quot;);</span>
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+      
+<span class="nc" id="L86">        isBombExploded = true; //CLOVE</span>
+<span class="nc" id="L87">        totalPoint += point; //CLOVE</span>
+
+<span class="nc" id="L89">        Bomb.setIsbomb(false);</span>
+<span class="nc" id="L90">        int[] returnValue = {count, point};</span>
+
+<span class="nc" id="L92">        return returnValue;</span>
+    }
+
+    // if EnemyShipFormation is Circle
+    public static int[] destroyByBomb_isCircle(List&lt;List&lt;EnemyShip&gt;&gt; enemyShips, EnemyShip destroyedShip, ItemManager itemManager, Logger logger) {
+<span class="nc" id="L97">        int count = 0;   // number of destroyed enemy by Bomb</span>
+<span class="nc" id="L98">        int point = 0;   // point of destroyed enemy by Bomb</span>
+
+<span class="nc bnc" id="L100" title="All 2 branches missed.">        for (List&lt;EnemyShip&gt; column : enemyShips)</span>
+<span class="nc bnc" id="L101" title="All 2 branches missed.">            for (int i = 0; i &lt; column.size(); i++) {</span>
+<span class="nc bnc" id="L102" title="All 2 branches missed.">                if (column.get(i).equals(destroyedShip)) {</span>
+
+<span class="nc" id="L104">                    DestroyedshipByBomb.add(column.get(i));</span>
+                    //point += column.get(i).getPointValue(); //CLOVE-duplicate calculation
+<span class="nc" id="L106">                    column.get(i).destroy();</span>
+<span class="nc" id="L107">                    count++;</span>
+
+<span class="nc" id="L109">                    int columnIndex = enemyShips.indexOf(column);</span>
+
+<span class="nc bnc" id="L111" title="All 2 branches missed.">                    for (List&lt;EnemyShip&gt; column2 : enemyShips)</span>
+<span class="nc bnc" id="L112" title="All 2 branches missed.">                        for (int j = 0; j &lt; column.size(); j++) {</span>
+
+<span class="nc bnc" id="L114" title="All 6 branches missed.">                            if (j &gt;= 0 &amp;&amp; j &lt; column2.size() &amp;&amp; inposition(column, column2, i, j, PositionRange_isCircle)) {</span>
+<span class="nc" id="L115">                                int newColumnIndex = enemyShips.indexOf(column2);</span>
+<span class="nc" id="L116">                                EnemyShip targetShip = column2.get(j);</span>
+<span class="nc" id="L117">                                DestroyedshipByBomb.add(targetShip);</span>
+<span class="nc bnc" id="L118" title="All 2 branches missed.">                                if (targetShip.getColor().equals(Color.MAGENTA)) {</span>
+<span class="nc" id="L119">                                    itemManager.dropItem(targetShip, 1, 1);</span>
+                                }
+<span class="nc" id="L121">                                targetShip.destroy();</span>
+<span class="nc" id="L122">                                count++;</span>
+<span class="nc" id="L123">                                logger.info(&quot;Destroyed ship at (&quot; + newColumnIndex + &quot;,&quot; + j + &quot;)&quot;);</span>
+                            }
+                        }
+
+                }
+            }
+
+<span class="nc" id="L130">        isBombExploded = true; //CLOVE</span>
+<span class="nc" id="L131">        totalPoint += point; //CLOVE</span>
+
+<span class="nc" id="L133">        int[] returnValue = {count, point};</span>
+
+<span class="nc" id="L135">        return returnValue;</span>
+    }
+
+<span class="nc" id="L138">    public static int getTotalPoint() { return totalPoint; }</span>
+
+<span class="nc" id="L140">    public static boolean isBombExploded() { return isBombExploded; }</span>
+
+<span class="nc" id="L142">    public static void resetBombExploded() { isBombExploded = false;}</span>
+
+    public static boolean getIsBomb() {
+<span class="nc" id="L145">        return IsBomb;</span>
+    }
+
+    public static void setIsbomb(boolean isbomb) {
+<span class="nc" id="L149">        IsBomb = isbomb;</span>
+<span class="nc" id="L150">    }</span>
+
+    public static boolean getCanShoot() {
+<span class="nc" id="L153">        return CanShoot;</span>
+    }
+
+    public static void setCanShoot(boolean canshoot) {
+<span class="nc" id="L157">        CanShoot = canshoot;</span>
+<span class="nc" id="L158">    }</span>
+
+<span class="nc" id="L160">    public final void setSpeed(final int BoobSpeed) {this.BombSpeed = BoobSpeed;}</span>
+
+<span class="nc" id="L162">    public final int getSpeed() {return this.BombSpeed;}</span>
+
+    public static boolean inposition(List&lt;EnemyShip&gt; column, List&lt;EnemyShip&gt; nextcolumn, int pos, int nextpos, int range){
+<span class="nc" id="L165">        int distanceY = column.get(pos).getPositionY() - nextcolumn.get(nextpos).getPositionY();</span>
+<span class="nc" id="L166">        int distanceX = column.get(pos).getPositionX() - nextcolumn.get(nextpos).getPositionX();</span>
+
+<span class="nc bnc" id="L168" title="All 2 branches missed.">        boolean result = Math.pow(distanceX, 2) + Math.pow(distanceY, 2) &lt;= Math.pow(range, 2);</span>
+        
+<span class="nc" id="L170">        return result;</span>
+    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.10.202304240956</span></div></body></html>

@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="ko"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>PiercingBullet.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">my-java-project</a> &gt; <a href="index.source.html" class="el_package">Enemy</a> &gt; <span class="el_source">PiercingBullet.java</span></div><h1>PiercingBullet.java</h1><pre class="source lang-java linenums">package Enemy;
+
+import java.awt.Color;
+
+import engine.DrawManager;
+import entity.Bullet;
+import entity.EnemyShip;
+import entity.Entity;
+
+/**
+ * The PiercingBullet class extends the Bullet class to implement a bullet
+ * that can pierce through multiple enemies based solely on piercing count.
+ */
+public class PiercingBullet extends Bullet {
+
+    // Variable to track how many enemies the bullet can pierce.
+    private int piercingCount;
+    private Entity previousEnemy;
+
+    /**
+     * Constructor for PiercingBullet.
+     *
+     * @param positionX Initial X position of the bullet.
+     * @param positionY Initial Y position of the bullet.
+     * @param speedX SpeedX of the bullet.
+     * @param speedY SpeedY of the bullet, positive is down, negative is up.
+     * @param piercingCount Number of enemies the bullet can pierce.
+     */
+    public PiercingBullet(final int positionX, final int positionY, final int speedX, final int speedY, int piercingCount, int bulletType, double angle, int damage) {
+<span class="nc" id="L30">        super(positionX, positionY, speedX, speedY, bulletType, angle, damage);  // Piercing bullets do not use isPiercing flag anymore.</span>
+<span class="nc" id="L31">        this.piercingCount = piercingCount;</span>
+<span class="nc" id="L32">        previousEnemy = null;</span>
+<span class="nc" id="L33">        setSprite();    // team Inventory</span>
+<span class="nc" id="L34">    }</span>
+
+    /**
+     * Handles the logic when the bullet collides with an entity.
+     * Reduces the piercing count and destroys the bullet when piercing is exhausted.
+     *
+     * @param entity The entity the bullet collided with.
+     */
+    public void onCollision(Entity entity) {
+<span class="nc" id="L43">        this.piercingCount--;</span>
+<span class="nc bnc" id="L44" title="All 2 branches missed.">        if (this.piercingCount &lt;= 0) {</span>
+<span class="nc" id="L45">            this.destroy(); // Destroys the bullet when it can no longer pierce.</span>
+        }
+<span class="nc bnc" id="L47" title="All 2 branches missed.">        if (this.piercingCount &gt; 0) {</span>
+<span class="nc" id="L48">            this.previousEnemy = entity;</span>
+        }
+<span class="nc" id="L50">        HpEnemyShip.hit((EnemyShip)entity, this);</span>
+<span class="nc" id="L51">    }</span>
+
+    /**
+     * Getter for the number of remaining piercings.
+     *
+     * @return The remaining piercings.
+     */
+    public int getPiercingCount() {
+<span class="nc" id="L59">        return piercingCount;</span>
+    }
+
+    /**
+     * Setter for the piercing count.
+     *
+     * @param piercingCount The new number of piercings the bullet can perform.
+     */
+    public void setPiercingCount(int piercingCount) {
+<span class="nc" id="L68">        this.piercingCount = piercingCount;</span>
+<span class="nc" id="L69">    }</span>
+
+    /**
+     * Destroys the ship, causing an explosion.
+     */
+    public void destroy() {
+<span class="nc" id="L75">        this.spriteType = DrawManager.SpriteType.Explosion;</span>
+<span class="nc" id="L76">    }</span>
+
+    public void setPreviousEnemy(Entity previousEnemy) {
+<span class="nc" id="L79">        this.previousEnemy = previousEnemy;</span>
+<span class="nc" id="L80">    }</span>
+
+    public Entity getPreviousEnemy() {
+<span class="nc" id="L83">        return previousEnemy;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.10.202304240956</span></div></body></html>

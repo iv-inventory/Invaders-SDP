@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="ko"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Screen.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">my-java-project</a> &gt; <a href="index.source.html" class="el_package">screen</a> &gt; <span class="el_source">Screen.java</span></div><h1>Screen.java</h1><pre class="source lang-java linenums">package screen;
+
+import java.awt.Insets;
+import java.util.concurrent.TimeUnit;
+import java.util.logging.Logger;
+
+import HUDTeam.DrawAchievementHud;
+import HUDTeam.DrawManagerImpl;
+import engine.Cooldown;
+import engine.Core;
+import engine.DrawManager;
+import engine.InputManager;
+
+/**
+ * Implements a generic screen.
+ * 
+ * @author &lt;a href=&quot;mailto:RobertoIA1987@gmail.com&quot;&gt;Roberto Izquierdo Amo&lt;/a&gt;
+ * 
+ */
+public class Screen {
+	
+	/** Milliseconds until the screen accepts user input. */
+	private static final int INPUT_DELAY = 1000;
+
+	/** Draw Manager instance. */
+	protected DrawManager drawManager;
+	/** Input Manager instance. */
+	protected InputManager inputManager;
+	/** Application logger. */
+	protected Logger logger;
+
+	/** Screen width. */
+	protected int width;
+	/** Screen height. */
+	protected int height;
+	/** Frames per second shown on the screen. */
+	protected int fps;
+	/** Screen insets. */
+	protected Insets insets;
+	/** Time until the screen accepts user input. */
+	protected Cooldown inputDelay;
+
+	/** If the screen is running. */
+	protected boolean isRunning;
+	/** What kind of screen goes next. */
+	protected int returnCode;
+	/** Checks if the game is in 2 player mode **/
+	private boolean isTwoPlayerMode;
+
+	/**
+	 * Constructor, establishes the properties of the screen.
+	 * 
+	 * @param width
+	 *            Screen width.
+	 * @param height
+	 *            Screen height.
+	 * @param fps
+	 *            Frames per second, frame rate at which the game is run.
+	 */
+<span class="nc" id="L60">	public Screen(final int width, final int height, final int fps) {</span>
+<span class="nc" id="L61">		this.width = width;</span>
+<span class="nc" id="L62">		this.height = height;</span>
+<span class="nc" id="L63">		this.fps = fps;</span>
+
+<span class="nc" id="L65">		this.drawManager = Core.getDrawManager();</span>
+<span class="nc" id="L66">		this.inputManager = Core.getInputManager();</span>
+<span class="nc" id="L67">		this.logger = Core.getLogger();</span>
+<span class="nc" id="L68">		this.inputDelay = Core.getCooldown(INPUT_DELAY);</span>
+<span class="nc" id="L69">		this.inputDelay.reset();</span>
+<span class="nc" id="L70">		this.returnCode = 0;</span>
+<span class="nc" id="L71">	}</span>
+
+	/**
+	 * Initializes basic screen properties.
+	 */
+	public void initialize() {
+
+<span class="nc" id="L78">	}</span>
+
+	/**
+	 * Activates the screen.
+	 * 
+	 * @return Next screen code.
+	 */
+	public int run() {
+<span class="nc" id="L86">		this.isRunning = true;</span>
+
+<span class="nc bnc" id="L88" title="All 2 branches missed.">		while (this.isRunning) {</span>
+<span class="nc" id="L89">			long time = System.currentTimeMillis();</span>
+
+<span class="nc" id="L91">			update();</span>
+
+<span class="nc" id="L93">			time = (1000 / this.fps) - (System.currentTimeMillis() - time);</span>
+<span class="nc bnc" id="L94" title="All 2 branches missed.">			if (time &gt; 0) {</span>
+				try {
+<span class="nc" id="L96">					TimeUnit.MILLISECONDS.sleep(time);</span>
+<span class="nc" id="L97">				} catch (InterruptedException e) {</span>
+<span class="nc" id="L98">					return 0;</span>
+<span class="nc" id="L99">				}</span>
+			}
+<span class="nc" id="L101">		}</span>
+
+<span class="nc" id="L103">		return 0;</span>
+	}
+
+	/**
+	 * Updates the elements on screen and checks for events.
+	 */
+	protected void update() {
+<span class="nc" id="L110">	}</span>
+
+	/**
+	 * Update the elements on screen after update all child screen
+	 */
+	protected void drawPost() {
+		// Jo minseo / HUD team
+<span class="nc bnc" id="L117" title="All 2 branches missed.">		if(DrawAchievementHud.getTimer() &lt; 100) {</span>
+<span class="nc" id="L118">			DrawManagerImpl.drawAchievement(this, DrawAchievementHud.getAchievementText());</span>
+<span class="nc" id="L119">			DrawAchievementHud.addTimer();</span>
+		}
+<span class="nc" id="L121">	}</span>
+	/**
+	 * Getter for screen width.
+	 * 
+	 * @return Screen width.
+	 */
+	public final int getWidth() {
+<span class="nc" id="L128">		return this.width;</span>
+	}
+
+	/**
+	 * Getter for screen height.
+	 * 
+	 * @return Screen height.
+	 */
+	public final int getHeight() {
+<span class="nc" id="L137">		return this.height;</span>
+	}
+	public final boolean isTwoPlayerMode() {
+<span class="nc" id="L140">		return this.isTwoPlayerMode;</span>
+	}
+	public final void setTwoPlayerMode(boolean isTwoPlayerMode) {
+<span class="nc" id="L143">		this.isTwoPlayerMode = isTwoPlayerMode;</span>
+<span class="nc" id="L144">	}</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.10.202304240956</span></div></body></html>

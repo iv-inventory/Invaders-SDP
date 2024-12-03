@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="ko"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Cooldown.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">my-java-project</a> &gt; <a href="index.source.html" class="el_package">engine</a> &gt; <span class="el_source">Cooldown.java</span></div><h1>Cooldown.java</h1><pre class="source lang-java linenums">package engine;
+
+/**
+ * Imposes a cooldown period between two actions.
+ * 
+ * @author &lt;a href=&quot;mailto:RobertoIA1987@gmail.com&quot;&gt;Roberto Izquierdo Amo&lt;/a&gt;
+ * 
+ */
+public class Cooldown {
+
+	/** Cooldown duration. */
+	private int milliseconds;
+	/** Maximum difference between durations. */
+	private int variance;
+	/** Duration of this run, varies between runs if variance &gt; 0. */
+	private int duration;
+	/** Beginning time. */
+	private long time;
+
+	/**
+	 * Constructor, established the time until the action can be performed
+	 * again.
+	 * 
+	 * @param milliseconds
+	 *            Time until cooldown period is finished.
+	 */
+<span class="fc" id="L27">	protected Cooldown(final int milliseconds) {</span>
+<span class="fc" id="L28">		this.milliseconds = milliseconds;</span>
+<span class="fc" id="L29">		this.variance = 0;</span>
+<span class="fc" id="L30">		this.duration = milliseconds;</span>
+<span class="fc" id="L31">		this.time = 0;</span>
+<span class="fc" id="L32">	}</span>
+
+	/**
+	 * Constructor, established the time until the action can be performed
+	 * again, with a variation of +/- variance.
+	 * 
+	 * @param milliseconds
+	 *            Time until cooldown period is finished.
+	 * @param variance
+	 *            Variance in the cooldown period.
+	 */
+<span class="nc" id="L43">	protected Cooldown(final int milliseconds, final int variance) {</span>
+<span class="nc" id="L44">		this.milliseconds = milliseconds;</span>
+<span class="nc" id="L45">		this.variance = variance;</span>
+<span class="nc" id="L46">		this.time = 0;</span>
+<span class="nc" id="L47">	}</span>
+
+	/**
+	 * Checks if the cooldown is finished.
+	 * 
+	 * @return Cooldown state.
+	 */
+	public final boolean checkFinished() {
+<span class="nc bnc" id="L55" title="All 2 branches missed.">		if ((this.time == 0)</span>
+<span class="nc bnc" id="L56" title="All 2 branches missed.">				|| this.time + this.duration &lt; System.currentTimeMillis())</span>
+<span class="nc" id="L57">			return true;</span>
+<span class="nc" id="L58">		return false;</span>
+	}
+
+	/**
+	 * Restarts the cooldown.
+	 */
+	public final void reset() {
+<span class="nc" id="L65">		this.time = System.currentTimeMillis();</span>
+<span class="nc bnc" id="L66" title="All 2 branches missed.">		if (this.variance != 0)</span>
+<span class="nc" id="L67">			this.duration = (this.milliseconds - this.variance)</span>
+<span class="nc" id="L68">					+ (int) (Math.random()</span>
+							* (this.milliseconds + this.variance));
+<span class="nc" id="L70">	}</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.10.202304240956</span></div></body></html>

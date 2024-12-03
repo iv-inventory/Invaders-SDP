@@ -1,0 +1,253 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="ko"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>SoundManager.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">my-java-project</a> &gt; <a href="index.source.html" class="el_package">Sound_Operator</a> &gt; <span class="el_source">SoundManager.java</span></div><h1>SoundManager.java</h1><pre class="source lang-java linenums">package Sound_Operator;
+
+import engine.Core;
+
+import javax.sound.sampled.*;
+import java.io.*;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
+import java.util.logging.Logger;
+
+public class SoundManager {
+    private static SoundManager instance;
+    static Map&lt;String, String[]&gt; EffectSounds;
+    static Map&lt;String, Clip&gt; BGMs;
+    static String[][] ESFiles;
+    static String[][] BGMFiles;
+    private static Logger logger;
+/**
+* Code Description
+* Base: BGM files are stored in res/sound/BGM
+*       ES files are stored in res/sound/ES, and should be specified in res/ES file in the format: [Type];[Alias];[File Name];[Volume]
+        *         -&gt; Type: bgm, es
+*         -&gt; Volume: A value between -80.0 and 6.0
+        * Usage
+* Manager Call: Use getInstance() to call the manager
+* BGM Call: Use playBGM(String fileName) to play BGM. It will loop indefinitely, and you can stop it by calling stopBGM()
+* ES Call: Use playES(String effectName) to play sound effects. The same ES can be called simultaneously.
+* Change BGM Volume: Use modifyBGMVolume(String name, float volume) to modify the volume
+* Change ES Volume: Use modifyESVolume(String name, float volume) to modify the volume
+*
+* All the above functionalities have been implemented and tested successfully.
+*/
+
+
+<span class="nc" id="L36">    private SoundManager() {</span>
+        try {
+<span class="nc" id="L38">            logger = Core.getLogger();</span>
+<span class="nc" id="L39">            BufferedReader br = new BufferedReader(new FileReader(&quot;res/sound&quot;));</span>
+<span class="nc" id="L40">            int ESFileCount = Objects.requireNonNull((new File(&quot;res/Sound.assets/ES&quot;)).listFiles()).length;</span>
+<span class="nc" id="L41">            int BGMFileCount = Objects.requireNonNull((new File(&quot;res/Sound.assets/BGM&quot;)).listFiles()).length;</span>
+
+<span class="nc" id="L43">            EffectSounds = new HashMap&lt;String, String[]&gt;(ESFileCount);</span>
+<span class="nc" id="L44">            BGMs = new HashMap&lt;String, Clip&gt;(BGMFileCount);</span>
+<span class="nc" id="L45">            ESFiles = new String[ESFileCount][3];</span>
+<span class="nc" id="L46">            BGMFiles = new String[BGMFileCount][3];</span>
+
+<span class="nc" id="L48">            int idx = 0;</span>
+<span class="nc" id="L49">            int idy = 0;</span>
+            String line;
+
+<span class="nc bnc" id="L52" title="All 2 branches missed.">            while ((line = br.readLine()) != null) {</span>
+                // 세미콜론(;)로 구분된 데이터를 파싱
+<span class="nc" id="L54">                String[] data = line.split(&quot;;&quot;);</span>
+<span class="nc bnc" id="L55" title="All 2 branches missed.">                if(data[0].equals(&quot;es&quot;)){</span>
+<span class="nc" id="L56">                    ESFiles[idx][0] = data[1];</span>
+<span class="nc" id="L57">                    ESFiles[idx][1] = data[2];</span>
+<span class="nc" id="L58">                    ESFiles[idx][2] = data[3];</span>
+<span class="nc" id="L59">                    this.presetEffectSound(ESFiles[idx][0], &quot;res/Sound.assets/ES/&quot;+ESFiles[idx][1], Float.parseFloat(ESFiles[idx][2]));</span>
+<span class="nc" id="L60">                    idx += 1;</span>
+<span class="nc bnc" id="L61" title="All 2 branches missed.">                }else if(data[0].equals(&quot;bgm&quot;)){</span>
+<span class="nc" id="L62">                    BGMFiles[idy][0] = data[1];</span>
+<span class="nc" id="L63">                    BGMFiles[idy][1] = data[2];</span>
+<span class="nc" id="L64">                    BGMFiles[idy][2] = data[3];</span>
+<span class="nc" id="L65">                    this.preloadBGM(BGMFiles[idy][0], &quot;res/Sound.assets/BGM/&quot;+BGMFiles[idy][1], Float.parseFloat(BGMFiles[idy][2]));</span>
+<span class="nc" id="L66">                    idy += 1;</span>
+                }
+<span class="nc" id="L68">            }</span>
+<span class="nc" id="L69">        } catch (IOException e) {</span>
+<span class="nc" id="L70">            logger.info(String.valueOf(e));</span>
+<span class="nc" id="L71">        }</span>
+<span class="nc" id="L72">    }</span>
+
+    public static SoundManager getInstance() {
+<span class="nc bnc" id="L75" title="All 2 branches missed.">        if (instance == null) {</span>
+<span class="nc" id="L76">            instance = new SoundManager();</span>
+        }
+<span class="nc" id="L78">        return instance;</span>
+    }
+
+    public void stopAllBGM() {
+<span class="nc bnc" id="L82" title="All 2 branches missed.">        for (Clip c : BGMs.values()) {</span>
+<span class="nc bnc" id="L83" title="All 2 branches missed.">            if (c != null)</span>
+<span class="nc" id="L84">                c.stop();</span>
+<span class="nc" id="L85">        }</span>
+<span class="nc" id="L86">    }</span>
+
+    public void preloadBGM(String name, String filePath, float volume){
+        try {
+<span class="nc bnc" id="L90" title="All 2 branches missed.">            if (!BGMs.containsKey(name)) {</span>
+<span class="nc" id="L91">                File soundFile = new File(filePath);</span>
+<span class="nc" id="L92">                logger.info(soundFile.getName()+&quot; is loading&quot;);</span>
+<span class="nc" id="L93">                AudioInputStream audioStream = AudioSystem.getAudioInputStream(soundFile);</span>
+<span class="nc" id="L94">                AudioFormat baseFormat = audioStream.getFormat();</span>
+<span class="nc" id="L95">                AudioFormat targetFormat = new AudioFormat(</span>
+                        AudioFormat.Encoding.PCM_SIGNED,
+                        44100,
+                        16,
+<span class="nc" id="L99">                        baseFormat.getChannels(),</span>
+<span class="nc" id="L100">                        baseFormat.getChannels() * 2,</span>
+                        44100,
+                        false
+                );
+<span class="nc" id="L104">                AudioInputStream convertedStream = AudioSystem.getAudioInputStream(targetFormat, audioStream);</span>
+
+<span class="nc" id="L106">                Clip clip = AudioSystem.getClip();</span>
+<span class="nc" id="L107">                clip.open(convertedStream);</span>
+
+//                볼륨 조절
+<span class="nc" id="L110">                FloatControl volumeControl = (FloatControl) clip.getControl(FloatControl.Type.MASTER_GAIN);</span>
+<span class="nc" id="L111">                volumeControl.setValue(volume);</span>
+
+//                해쉬멥에 추가
+<span class="nc" id="L114">                BGMs.put(name, clip); // 미리 로드하여 맵에 저장</span>
+<span class="nc" id="L115">                logger.info(soundFile.getName()+&quot; load complete&quot;);</span>
+            }
+<span class="nc" id="L117">        } catch (UnsupportedAudioFileException | IOException | LineUnavailableException e) {</span>
+<span class="nc" id="L118">            logger.info(String.valueOf(e));</span>
+<span class="nc" id="L119">        }</span>
+<span class="nc" id="L120">    }</span>
+
+    public int playPreloadedBGM(String name){
+<span class="nc" id="L123">        Clip clip = BGMs.get(name);</span>
+<span class="nc bnc" id="L124" title="All 2 branches missed.">        if(clip != null){</span>
+<span class="nc" id="L125">            clip.setFramePosition(0);</span>
+<span class="nc" id="L126">            clip.start();</span>
+<span class="nc" id="L127">            clip.loop(Clip.LOOP_CONTINUOUSLY);</span>
+<span class="nc" id="L128">            return 1;</span>
+        }else{
+<span class="nc" id="L130">            return 0;</span>
+        }
+    }
+
+    public void presetEffectSound(String name, String filePath, float volume) {
+        try {
+<span class="nc bnc" id="L136" title="All 2 branches missed.">            if (!EffectSounds.containsKey(name)) {</span>
+<span class="nc" id="L137">                String[] tmp = {filePath, String.valueOf(volume)};</span>
+<span class="nc" id="L138">                EffectSounds.put(name, tmp);</span>
+<span class="nc" id="L139">                logger.info(name+ &quot;is set&quot;);</span>
+            }
+<span class="nc" id="L141">        } catch (Exception e) {</span>
+<span class="nc" id="L142">            logger.info(String.valueOf(e));</span>
+<span class="nc" id="L143">        }</span>
+<span class="nc" id="L144">    }</span>
+
+    public int playEffectSound(String name) {
+        try {
+<span class="nc bnc" id="L148" title="All 2 branches missed.">            if (EffectSounds.containsKey(name)) {</span>
+<span class="nc" id="L149">                String[] tmp = EffectSounds.get(name);</span>
+<span class="nc" id="L150">                File soundFile = new File(tmp[0]);</span>
+<span class="nc" id="L151">                logger.fine(soundFile.getName() + &quot; is loading&quot;);</span>
+<span class="nc" id="L152">                AudioInputStream audioStream = AudioSystem.getAudioInputStream(soundFile);</span>
+<span class="nc" id="L153">                AudioFormat baseFormat = audioStream.getFormat();</span>
+<span class="nc" id="L154">                AudioFormat targetFormat = new AudioFormat(</span>
+                        AudioFormat.Encoding.PCM_SIGNED,
+                        44100,
+                        16,
+<span class="nc" id="L158">                        baseFormat.getChannels(),</span>
+<span class="nc" id="L159">                        baseFormat.getChannels() * 2,</span>
+                        44100,
+                        false
+                );
+<span class="nc" id="L163">                AudioInputStream convertedStream = AudioSystem.getAudioInputStream(targetFormat, audioStream);</span>
+
+<span class="nc" id="L165">                Clip clip = AudioSystem.getClip();</span>
+<span class="nc" id="L166">                clip.open(convertedStream);</span>
+
+//                볼륨 조절
+<span class="nc" id="L169">                FloatControl volumeControl = (FloatControl) clip.getControl(FloatControl.Type.MASTER_GAIN);</span>
+<span class="nc" id="L170">                volumeControl.setValue(Float.parseFloat(tmp[1]));</span>
+
+<span class="nc" id="L172">                clip.start();</span>
+<span class="nc" id="L173">                clip.addLineListener(event -&gt; {</span>
+<span class="nc bnc" id="L174" title="All 2 branches missed.">                            if(event.getType() == LineEvent.Type.STOP){</span>
+<span class="nc" id="L175">                                clip.close();</span>
+                            }
+<span class="nc" id="L177">                        }</span>
+                );
+<span class="nc" id="L179">                logger.info(soundFile.getName() + &quot; load complete&quot;);</span>
+<span class="nc" id="L180">                return 1;</span>
+            }
+<span class="nc" id="L182">            logger.info(&quot;there is no ES : &quot; + name);</span>
+<span class="nc" id="L183">            return 0;</span>
+<span class="nc" id="L184">        } catch (UnsupportedAudioFileException | IOException | LineUnavailableException e) {</span>
+<span class="nc" id="L185">            logger.info(String.valueOf(e));</span>
+<span class="nc" id="L186">            return 0;</span>
+        }
+    }
+
+    public int playBGM(String name){
+        try {
+<span class="nc" id="L192">            stopAllBGM();</span>
+<span class="nc" id="L193">            new Thread(() -&gt; playPreloadedBGM(name)).start();</span>
+<span class="nc" id="L194">            return 1;</span>
+<span class="nc" id="L195">        }catch (Exception e){</span>
+<span class="nc" id="L196">            logger.info(String.valueOf(e));</span>
+<span class="nc" id="L197">            return 0;</span>
+        }
+    }
+
+    public int playES(String name){
+        try {
+<span class="nc" id="L203">            new Thread(() -&gt; playEffectSound(name)).start();</span>
+<span class="nc" id="L204">            return 1;</span>
+<span class="nc" id="L205">        }catch (Exception e){</span>
+<span class="nc" id="L206">            logger.info(String.valueOf(e));</span>
+<span class="nc" id="L207">            return 0;</span>
+        }
+    }
+
+    public int modifyBGMVolume(String name, float volume){
+<span class="nc bnc" id="L212" title="All 4 branches missed.">        if(volume &gt; 2 || volume &lt; -60){</span>
+<span class="nc" id="L213">            logger.info(&quot;Error : volume is out of index!!!!!&quot;);</span>
+<span class="nc" id="L214">            logger.info(&quot;input volume : &quot;+ volume);</span>
+<span class="nc" id="L215">            return 0;</span>
+        }
+<span class="nc bnc" id="L217" title="All 2 branches missed.">        if(BGMs.containsKey(name)){</span>
+<span class="nc" id="L218">            Clip clip = BGMs.get(name);</span>
+<span class="nc" id="L219">            FloatControl volumeControl = (FloatControl) clip.getControl(FloatControl.Type.MASTER_GAIN);</span>
+<span class="nc" id="L220">            volumeControl.setValue(volume);</span>
+<span class="nc" id="L221">            return 1;</span>
+        }
+<span class="nc" id="L223">        return 0;</span>
+    }
+
+    public int modifyESVolume(String name, float volume){
+<span class="nc bnc" id="L227" title="All 4 branches missed.">        if(volume &gt; 2 || volume &lt; -60){</span>
+<span class="nc" id="L228">            logger.info(&quot;Error : volume is out of index!!!!!&quot;);</span>
+<span class="nc" id="L229">            logger.info(&quot;input volume : &quot;+ volume);</span>
+<span class="nc" id="L230">            return 0;</span>
+        }
+<span class="nc bnc" id="L232" title="All 2 branches missed.">        if(EffectSounds.containsKey(name)){</span>
+<span class="nc" id="L233">            EffectSounds.get(name)[1] = String.valueOf(volume);</span>
+<span class="nc" id="L234">            return 1;</span>
+        }else{
+<span class="nc" id="L236">            return 0;</span>
+        }
+    }
+
+    // ksm
+    public void playShipDieSounds() {
+<span class="nc" id="L242">        playES(&quot;ally_airship_destroy_explosion&quot;);</span>
+<span class="nc" id="L243">        new Thread(() -&gt; {</span>
+            try {
+<span class="nc" id="L245">                Thread.sleep(1000);</span>
+<span class="nc" id="L246">            } catch (InterruptedException e) {</span>
+<span class="nc" id="L247">                logger.info(String.valueOf(e));</span>
+<span class="nc" id="L248">            }</span>
+<span class="nc" id="L249">            playES(&quot;ally_airship_destroy_die&quot;);</span>
+<span class="nc" id="L250">        }).start();</span>
+<span class="nc" id="L251">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.10.202304240956</span></div></body></html>

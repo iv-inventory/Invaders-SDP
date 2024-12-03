@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="ko"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>CurrencyManager.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">my-java-project</a> &gt; <a href="index.source.html" class="el_package">CtrlS</a> &gt; <span class="el_source">CurrencyManager.java</span></div><h1>CurrencyManager.java</h1><pre class="source lang-java linenums">package CtrlS;
+
+import engine.Core;
+import engine.FileManager;
+import engine.GameState;
+
+import java.io.IOException;
+import java.util.logging.Logger;
+
+
+
+public final class CurrencyManager {
+
+    /** Singleton instance of the class. */
+    private static CurrencyManager instance;
+    /** Application logger. */
+    private static Logger logger;
+    private static FileManager fileManager;
+
+    /**
+     * private constructor.
+     */
+<span class="nc" id="L23">    private CurrencyManager() {</span>
+<span class="nc" id="L24">        fileManager = Core.getFileManager();</span>
+<span class="nc" id="L25">        logger = Core.getLogger();</span>
+<span class="nc" id="L26">    }</span>
+
+    /**
+     * Returns shared instance of FileManager.
+     *
+     * @return Shared instance of FileManager.
+     */
+    public static CurrencyManager getInstance() {
+<span class="nc bnc" id="L34" title="All 2 branches missed.">        if (instance == null)</span>
+<span class="nc" id="L35">             instance = new CurrencyManager();</span>
+<span class="nc" id="L36">        return instance;</span>
+    }
+
+    /**
+     * Add an amount of money to the current coin.
+     */
+    public void addCoin(int amount) throws IOException {
+<span class="nc" id="L43">        int current_coin = fileManager.loadCoin();</span>
+<span class="nc" id="L44">        amount += current_coin;</span>
+<span class="nc" id="L45">        fileManager.saveCoin(amount);</span>
+<span class="nc" id="L46">    }</span>
+
+    /**
+     * Consume as much coin as the amount you have (cannot spend more than you currently have).
+     */
+    public boolean spendCoin(int amount) throws IOException {
+<span class="nc" id="L52">        int current_coin = fileManager.loadCoin();</span>
+<span class="nc bnc" id="L53" title="All 2 branches missed.">        if (amount &lt;= current_coin) {</span>
+<span class="nc" id="L54">            current_coin -= amount;</span>
+<span class="nc" id="L55">            fileManager.saveCoin(current_coin);</span>
+<span class="nc" id="L56">            return true;</span>
+        }
+        else {
+<span class="nc" id="L59">            return false;</span>
+        }
+    }
+
+    public int getCoin() throws IOException {
+<span class="nc" id="L64">        return fileManager.loadCoin();</span>
+    }
+
+    /**
+     * Add an amount of gem to the current gem.
+     */
+    // Team-Ctrl-S(Currency)
+    public void addGem(int amount) throws IOException {
+<span class="nc" id="L72">        int current_gem = fileManager.loadGem();</span>
+<span class="nc" id="L73">        amount += current_gem;</span>
+<span class="nc" id="L74">        fileManager.saveGem(amount);</span>
+<span class="nc" id="L75">    }</span>
+
+    /**
+     * Consume as much gem as the amount you have (cannot spend more than you currently have).
+     */
+    // Team-Ctrl-S(Currency)
+    public boolean spendGem(int amount) throws IOException {
+<span class="nc" id="L82">        int current_gem = fileManager.loadGem();</span>
+<span class="nc bnc" id="L83" title="All 2 branches missed.">        if (amount &lt;= current_gem) {</span>
+<span class="nc" id="L84">            current_gem -= amount;</span>
+<span class="nc" id="L85">            fileManager.saveGem(current_gem);</span>
+<span class="nc" id="L86">            return true;</span>
+        }
+        else {
+<span class="nc" id="L89">            return false;</span>
+        }
+    }
+
+    // Team-Ctrl-S(Currency)
+    public int getGem() throws IOException {
+<span class="nc" id="L95">        return fileManager.loadGem();</span>
+    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.10.202304240956</span></div></body></html>

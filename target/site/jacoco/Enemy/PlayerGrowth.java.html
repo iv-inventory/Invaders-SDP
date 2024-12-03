@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="ko"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>PlayerGrowth.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">my-java-project</a> &gt; <a href="index.source.html" class="el_package">Enemy</a> &gt; <span class="el_source">PlayerGrowth.java</span></div><h1>PlayerGrowth.java</h1><pre class="source lang-java linenums">package Enemy;
+
+import engine.Core;
+import java.io.IOException;
+
+public class PlayerGrowth {
+
+    //Player's base stats
+    private int health;          //Health
+<span class="nc" id="L10">    private static double moveSpeed = 1.5;       //Movement speed</span>
+<span class="nc" id="L11">    private static int bulletSpeed = 15;     // Bullet speedY</span>
+<span class="nc" id="L12">    private static int shootingDelay = 750;   // Shooting delay</span>
+    private static boolean canShoot360;     // 360도로 쏠 수 있는지 없는지
+
+    //Constructor to set initial values
+<span class="nc" id="L16">    public PlayerGrowth() {//  Base shooting delay is 750ms</span>
+
+        // CtrlS: set player growth based on upgrade_status.properties
+        try {
+<span class="nc" id="L20">            moveSpeed = Core.getUpgradeManager().getMovementSpeed();</span>
+<span class="nc" id="L21">            bulletSpeed = Core.getUpgradeManager().getBulletSpeed();</span>
+<span class="nc" id="L22">            shootingDelay = Core.getUpgradeManager().getAttackSpeed();</span>
+<span class="nc" id="L23">            canShoot360 = Core.getUpgradeManager().getShipShoot360();</span>
+<span class="nc" id="L24">        } catch (IOException e) {</span>
+<span class="nc" id="L25">            throw new RuntimeException(e);</span>
+<span class="nc" id="L26">        }</span>
+<span class="nc" id="L27">    }</span>
+
+    // Increases health
+    public void increaseHealth(int increment) {
+<span class="nc" id="L31">        this.health += increment;</span>
+<span class="nc" id="L32">    }</span>
+
+    //Increases movement speed
+    public void increaseMoveSpeed(double increment) {
+<span class="nc" id="L36">        this.moveSpeed += increment;</span>
+<span class="nc" id="L37">    }</span>
+
+    // Increases bullet speed (makes bullets faster)
+    public void increaseBulletSpeed(int increment) {
+<span class="nc" id="L41">        this.bulletSpeed += increment; // Increase by subtracting (since negative speed)</span>
+<span class="nc" id="L42">    }</span>
+
+    // Decreases shooting delay (makes shooting faster)
+    public void decreaseShootingDelay(int decrement) {
+<span class="nc" id="L46">        this.shootingDelay -= decrement; //  Decrease delay for faster shooting</span>
+<span class="nc bnc" id="L47" title="All 2 branches missed.">        if (this.shootingDelay &lt; 100) {</span>
+<span class="nc" id="L48">            this.shootingDelay = 100; // Minimum shooting delay is 100ms</span>
+        }
+<span class="nc" id="L50">    }</span>
+
+    // reset bullet speed
+    //Edit by inventory
+    public void ResetBulletSpeed() {
+<span class="nc" id="L55">        bulletSpeed = 5;</span>
+<span class="nc" id="L56">    }</span>
+
+    // Returns current health
+    public int getHealth() {
+<span class="nc" id="L60">        return this.health;</span>
+    }
+
+    //  Returns current movement speed
+    public double getMoveSpeed() {
+<span class="nc" id="L65">        return this.moveSpeed;</span>
+    }
+
+    // Returns current bullet speed
+    public int getBulletSpeed() {
+<span class="nc" id="L70">        return this.bulletSpeed;</span>
+    }
+
+    //  Returns current shooting delay
+    public int getShootingDelay() {
+<span class="nc" id="L75">        return this.shootingDelay;</span>
+    }
+
+    public boolean getCanShoot360() {
+<span class="nc" id="L79">        return this.canShoot360;</span>
+    }
+
+    // Prints player stats (for debugging)
+    public void printStats() {
+<span class="nc" id="L84">        System.out.println(&quot;Health: &quot; + this.health);</span>
+<span class="nc" id="L85">        System.out.println(&quot;MoveSpeed: &quot; + this.moveSpeed);</span>
+<span class="nc" id="L86">        System.out.println(&quot;BulletSpeed: &quot; + this.bulletSpeed);</span>
+<span class="nc" id="L87">        System.out.println(&quot;ShootingDelay: &quot; + this.shootingDelay + &quot;ms&quot;);</span>
+<span class="nc" id="L88">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.10.202304240956</span></div></body></html>

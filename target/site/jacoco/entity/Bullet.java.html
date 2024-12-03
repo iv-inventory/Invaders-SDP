@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="ko"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Bullet.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">my-java-project</a> &gt; <a href="index.source.html" class="el_package">entity</a> &gt; <span class="el_source">Bullet.java</span></div><h1>Bullet.java</h1><pre class="source lang-java linenums">package entity;
+
+import java.awt.Color;
+
+import engine.DrawManager;
+import engine.DrawManager.SpriteType;
+import inventory_develop.Bomb;
+
+/**
+ * Implements a bullet that moves vertically up or down.
+ * 
+ * @author &lt;a href=&quot;mailto:RobertoIA1987@gmail.com&quot;&gt;Roberto Izquierdo Amo&lt;/a&gt;
+ * 
+ */
+public class Bullet extends Entity {
+
+	/**
+	 * Speed of the bulletX
+	 */
+	private int speedX;
+	/**
+	 * Speed of the bulletY, positive or negative depending on direction -
+	 * positive is down.
+	 */
+	private int speedY;
+	// Ctrl S
+	/**
+	 * Check if there is count on the bullet.
+	 * if hit occur then checkCount will be false
+	 */
+	protected boolean checkCount;
+	// Ctrl S
+	/**
+	 * give unique id for certain shot of bullets
+	 */
+	protected int fire_id;
+
+	protected int BulletType;
+	protected double angle;
+	private int damage;
+
+	/**
+	 * Constructor, establishes the bullet's properties.
+	 * 
+	 * @param positionX
+	 *            Initial position of the bullet in the X axis.
+	 * @param positionY
+	 *            Initial position of the bullet in the Y axis.
+	 * @param speedX
+	 *			  Speed of the bullet in the X axis
+	 * @param speedY
+	 *            Speed of the bullet in the Y axis, positive or negative depending on
+	 *            direction - positive is down.
+	 */
+	public Bullet(final int positionX, final int positionY, final int speedX, final int speedY, final int bulletType, final double angle, final int damage) {
+<span class="nc" id="L56">		super(positionX, positionY, 3 * 2, 5 * 2, Color.WHITE);</span>
+		// CtrlS
+<span class="nc" id="L58">		this.checkCount = true;</span>
+		// CtrlS
+<span class="nc" id="L60">		this.speedX = speedX;</span>
+<span class="nc" id="L61">		this.speedY = speedY;</span>
+<span class="nc" id="L62">		this.BulletType = bulletType;</span>
+<span class="nc" id="L63">		this.angle = angle;</span>
+<span class="nc" id="L64">		this.damage = damage;</span>
+<span class="nc" id="L65">		setSprite();</span>
+<span class="nc" id="L66">	}</span>
+
+
+	/**
+	 * Sets correct sprite for the bullet, based on speed.
+	 */
+	public final void setSprite() {
+
+<span class="nc bnc" id="L74" title="All 2 branches missed.">		if (BulletType == 0) {</span>
+<span class="nc bnc" id="L75" title="All 4 branches missed.">			if(Bomb.getIsBomb() &amp;&amp; Bomb.getCanShoot())</span>
+<span class="nc" id="L76">				this.spriteType = SpriteType.ItemBomb;</span>
+			else
+<span class="nc" id="L78">				this.spriteType = SpriteType.Bullet;</span>
+		}
+		else
+<span class="nc" id="L81">			this.spriteType = SpriteType.EnemyBullet;</span>
+<span class="nc" id="L82">	}</span>
+
+	/**
+	 * Updates the bullet's position.
+	 */
+	public final void update() {
+<span class="nc" id="L88">		this.positionX += this.speedX;</span>
+<span class="nc" id="L89">		this.positionY += this.speedY;</span>
+<span class="nc" id="L90">	}</span>
+
+	/**
+	 * Setter of the speed of the bullet.
+	 *
+	 * @param speedX
+	 * 	 *        New speed of the bullet in the X axis.
+	 * @param speedY
+	 *            New speed of the bullet in the Y axis.
+	 */
+	public final void setSpeed(final int speedX, final int speedY) {
+<span class="nc" id="L101">		this.speedX = speedX;</span>
+<span class="nc" id="L102">		this.speedY = speedY;</span>
+<span class="nc" id="L103">	}</span>
+
+	/**
+	 * Getter for the speedX of the bullet.
+	 *
+	 * @return Speed of the bullet in the X axis.
+	 */
+	public final int getSpeedX() {
+<span class="nc" id="L111">		return this.speedX;</span>
+	}
+
+	/**
+	 * Getter for the speedY of the bullet.
+	 * 
+	 * @return Speed of the bullet in the Y axis.
+	 */
+	public final int getSpeedY() {
+<span class="nc" id="L120">		return this.speedY;</span>
+	}
+
+	/**
+	 * Getter for the checkCount of the bullet.
+	 *
+	 * @return checkCount of the bullet.
+	 */
+<span class="nc" id="L128">	public final boolean isCheckCount() { return this.checkCount; }</span>
+
+	/**
+	 * Setter for the checkCount of the bullet.
+	 *
+	 *  @param checkCount
+	 * 	          New checkCount of the bullet.
+	 */
+<span class="nc" id="L136">	public final void setCheckCount(final boolean checkCount) { this.checkCount = checkCount; }</span>
+
+	/**
+	 * Getter for the fire_id of the bullet
+	 *
+	 * @return Get fire_id of the bullet.
+	 */
+<span class="nc" id="L143">	public final int getFire_id() { return this.fire_id; }</span>
+	/**
+	 * Setter for the fire_id of the bullet.
+	 *
+	 *  @param id
+	 * 	          New fire_id of the bullet.
+	 */
+<span class="nc" id="L150">	public final void setFire_id(final int id) { this.fire_id = id; }</span>
+
+<span class="nc" id="L152">	public void setBulletType(int bulletType) { BulletType = bulletType; }</span>
+<span class="nc" id="L153">	public int getBulletType() { return BulletType; }</span>
+
+<span class="nc" id="L155">	public void setAngle(double angle) {this.angle = angle;}</span>
+<span class="nc" id="L156">	public double getAngle() {return angle;}</span>
+
+<span class="nc" id="L158">	public void setDamage(int damage) {this.damage = damage;}</span>
+<span class="nc" id="L159">	public int getDamage() {return damage;}</span>
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.10.202304240956</span></div></body></html>

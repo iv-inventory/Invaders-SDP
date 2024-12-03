@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="ko"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Background.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">my-java-project</a> &gt; <a href="index.source.html" class="el_package">level_design</a> &gt; <span class="el_source">Background.java</span></div><h1>Background.java</h1><pre class="source lang-java linenums">package level_design;
+
+import java.awt.*;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
+
+import engine.DrawManager;
+import engine.Frame;
+import screen.GameScreen;
+
+import javax.swing.*;
+
+public class Background {
+    private static Background instance;
+    protected DrawManager drawManager;
+    public static Graphics backBufferGraphics;
+
+    private int backgroundWidth;
+    private int backgroundHeight;
+    private int screenWidth;
+    private int screenHeight;
+    private int horizontalOffset;
+    private int verticalOffset;
+    private int scrollSpeedHorizontal;
+    private int scrollSpeedVertical;
+    private int offsetUpdateInterval;
+    private int storyModeScrollSpeedVertical;
+
+    private Background() {
+        // Empty constructor
+    }
+
+    public static synchronized Background getInstance() {
+<span class="nc bnc" id="L35" title="All 2 branches missed.">        if (instance == null) {</span>
+<span class="nc" id="L36">            instance = new Background();</span>
+        }
+<span class="nc" id="L38">        return instance;</span>
+    }
+
+    public void initialize(Frame frame) {
+<span class="nc" id="L42">        this.screenWidth = frame.getWidth();</span>
+<span class="nc" id="L43">        this.screenHeight = frame.getHeight();</span>
+<span class="nc" id="L44">    }</span>
+
+    public void backgroundReset(int imageHeight, int imageWidth) {
+<span class="nc" id="L47">        this.backgroundWidth = imageWidth;</span>
+<span class="nc" id="L48">        this.backgroundHeight = imageHeight;</span>
+<span class="nc" id="L49">        this.horizontalOffset = -screenWidth;</span>
+<span class="nc" id="L50">        this.verticalOffset = 0;</span>
+<span class="nc" id="L51">        this.scrollSpeedHorizontal = 3;</span>
+<span class="nc" id="L52">        this.scrollSpeedVertical = 10;</span>
+<span class="nc" id="L53">        this.offsetUpdateInterval = 0;</span>
+<span class="nc" id="L54">        this.storyModeScrollSpeedVertical = 20;</span>
+<span class="nc" id="L55">    }</span>
+
+    public static List&lt;String&gt; levelBackgrounds;
+    private static final List&lt;String&gt; storyModeBackgrounds;
+    // Static block to initialize levelBackgrounds
+    static {
+<span class="nc" id="L61">        levelBackgrounds = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L62">        levelBackgrounds.add(&quot;/backgrounds/background_level_1.jpg&quot;);</span>
+<span class="nc" id="L63">        levelBackgrounds.add(&quot;/backgrounds/background_level_2.jpg&quot;);</span>
+<span class="nc" id="L64">        levelBackgrounds.add(&quot;/backgrounds/background_level_3.jpg&quot;);</span>
+<span class="nc" id="L65">        levelBackgrounds.add(&quot;/backgrounds/background_level_4.jpg&quot;);</span>
+<span class="nc" id="L66">        levelBackgrounds.add(&quot;/backgrounds/background_level_5.jpg&quot;);</span>
+<span class="nc" id="L67">        levelBackgrounds.add(&quot;/backgrounds/background_level_6.jpg&quot;);</span>
+<span class="nc" id="L68">        levelBackgrounds.add(&quot;/backgrounds/background_level_7.jpg&quot;);</span>
+<span class="nc" id="L69">        levelBackgrounds.add(&quot;/backgrounds/background_level_8.jpg&quot;);</span>
+
+<span class="nc" id="L71">        storyModeBackgrounds = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L72">        storyModeBackgrounds.add(&quot;/Storybackgrounds/Sbackgrounds1-3,5-7.png&quot;); // 예시</span>
+<span class="nc" id="L73">        storyModeBackgrounds.add(&quot;/Storybackgrounds/Sbackgrounds1-3,5-7.png&quot;); // 예시</span>
+<span class="nc" id="L74">        storyModeBackgrounds.add(&quot;/Storybackgrounds/Sbackgrounds1-3,5-7.png&quot;); // 예시</span>
+<span class="nc" id="L75">        storyModeBackgrounds.add(&quot;/Storybackgrounds/SbackgroundsBoss1.png&quot;); // 예시</span>
+<span class="nc" id="L76">        storyModeBackgrounds.add(&quot;/Storybackgrounds/Sbackgrounds1-3,5-7.png&quot;); // 예시</span>
+<span class="nc" id="L77">        storyModeBackgrounds.add(&quot;/Storybackgrounds/Sbackgrounds1-3,5-7.png&quot;); // 예시</span>
+<span class="nc" id="L78">        storyModeBackgrounds.add(&quot;/Storybackgrounds/Sbackgrounds1-3,5-7.png&quot;); // 예시</span>
+<span class="nc" id="L79">        storyModeBackgrounds.add(&quot;/Storybackgrounds/SbackgroundsBoss2.png&quot;); // 예시</span>
+
+    }
+
+<span class="nc" id="L83">    private static final List&lt;String&gt; storyModePainting = new ArrayList&lt;&gt;();</span>
+    static {
+<span class="nc" id="L85">        storyModePainting.add(&quot;/Storybackgrounds/S1.png&quot;);</span>
+<span class="nc" id="L86">        storyModePainting.add(&quot;/Storybackgrounds/S2.png&quot;);</span>
+<span class="nc" id="L87">        storyModePainting.add(&quot;/Storybackgrounds/S3.png&quot;);</span>
+<span class="nc" id="L88">        storyModePainting.add(&quot;/Storybackgrounds/S4.png&quot;);</span>
+<span class="nc" id="L89">        storyModePainting.add(&quot;/Storybackgrounds/S5.png&quot;);</span>
+<span class="nc" id="L90">        storyModePainting.add(&quot;/Storybackgrounds/S6.png&quot;);</span>
+<span class="nc" id="L91">        storyModePainting.add(&quot;/Storybackgrounds/S7.png&quot;);</span>
+<span class="nc" id="L92">        storyModePainting.add(&quot;/Storybackgrounds/S8.png&quot;);</span>
+<span class="nc" id="L93">    }</span>
+    // Static method to get background image stream
+    public static InputStream getBackgroundImageStream(int levelIndex, int returncode) {
+<span class="nc bnc" id="L96" title="All 2 branches missed.">        if (returncode == 4) { // story mode</span>
+<span class="nc bnc" id="L97" title="All 6 branches missed.">            if (storyModeBackgrounds != null &amp;&amp; levelIndex &gt;= 0 &amp;&amp; levelIndex &lt;= storyModeBackgrounds.size()) {</span>
+<span class="nc" id="L98">                return Background.class.getResourceAsStream(storyModeBackgrounds.get(levelIndex - 1));</span>
+            } else {
+<span class="nc" id="L100">                throw new IllegalArgumentException(&quot;Invalid index or storyModeBackgrounds not initialized&quot;);</span>
+            }
+        } else {
+<span class="nc bnc" id="L103" title="All 6 branches missed.">            if (levelBackgrounds != null &amp;&amp; levelIndex &gt;= 0 &amp;&amp; levelIndex &lt;= levelBackgrounds.size()) {</span>
+<span class="nc" id="L104">                return Background.class.getResourceAsStream(levelBackgrounds.get(levelIndex - 1));</span>
+            } else {
+<span class="nc" id="L106">                throw new IllegalArgumentException(&quot;Invalid index or levelBackgrounds not initialized&quot;);</span>
+            }
+        }
+    }
+    public static InputStream getStoryModeBackgroundImageStream(int storyIndex) {
+<span class="nc bnc" id="L111" title="All 6 branches missed.">        if (storyModePainting != null &amp;&amp; storyIndex &gt;= 0 &amp;&amp; storyIndex &lt;= storyModePainting.size()) {</span>
+<span class="nc" id="L112">            return Background.class.getResourceAsStream(storyModePainting.get(storyIndex - 1));</span>
+        } else {
+<span class="nc" id="L114">            throw new IllegalArgumentException(&quot;Invalid index or storyModePainting not initialized&quot;);</span>
+        }
+    }
+
+    // Dynamic method to update background image vertical offset
+    public int getVerticalOffset(int returnCode, int level) {
+<span class="nc" id="L120">        int scrollLimit = backgroundHeight - screenHeight;</span>
+
+<span class="nc bnc" id="L122" title="All 2 branches missed.">        if (scrollLimit == -verticalOffset) {</span>
+<span class="nc" id="L123">            scrollSpeedVertical = 0;</span>
+        }
+
+<span class="nc bnc" id="L126" title="All 2 branches missed.">        if (offsetUpdateInterval % 3 == 0) {</span>
+<span class="nc bnc" id="L127" title="All 2 branches missed.">            if (returnCode == 4) {</span>
+<span class="nc bnc" id="L128" title="All 4 branches missed.">                if (!(level == 4 || level == 8)) {</span>
+<span class="nc" id="L129">                    verticalOffset += scrollSpeedVertical;</span>
+                } else {
+<span class="nc" id="L131">                    verticalOffset = 0;</span>
+                }
+            } else {
+<span class="nc" id="L134">                verticalOffset -= scrollSpeedVertical;</span>
+            }
+<span class="nc" id="L136">            offsetUpdateInterval = 0;</span>
+        }
+<span class="nc" id="L138">        offsetUpdateInterval++;</span>
+
+<span class="nc" id="L140">        return verticalOffset;</span>
+    }
+
+    // Dynamic method to update background image horizontal offset
+    public int getHorizontalOffset(boolean backgroundMoveRight, boolean backgroundMoveLeft) {
+<span class="nc bnc" id="L145" title="All 2 branches missed.">        if (backgroundMoveRight) {</span>
+<span class="nc" id="L146">            horizontalOffset -= scrollSpeedHorizontal;</span>
+        }
+<span class="nc bnc" id="L148" title="All 2 branches missed.">        if (backgroundMoveLeft) {</span>
+<span class="nc" id="L149">            horizontalOffset += scrollSpeedHorizontal;</span>
+        }
+<span class="nc" id="L151">        return horizontalOffset;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.10.202304240956</span></div></body></html>

@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report-3.0.xsd" version="3.0" name="inventory_develop.StoryModeTraitTest" time="0.027" tests="4" errors="0" skipped="0" failures="0">
+  <properties>
+    <property name="java.specification.version" value="17"/>
+    <property name="sun.cpu.isalist" value="amd64"/>
+    <property name="sun.jnu.encoding" value="MS949"/>
+    <property name="java.class.path" value="C:\Users\Owner\Desktop\github\Invaders-SDP\target\test-classes;C:\Users\Owner\Desktop\github\Invaders-SDP\target\classes;C:\Users\Owner\.m2\repository\org\junit\jupiter\junit-jupiter-api\5.5.0\junit-jupiter-api-5.5.0.jar;C:\Users\Owner\.m2\repository\org\apiguardian\apiguardian-api\1.1.0\apiguardian-api-1.1.0.jar;C:\Users\Owner\.m2\repository\org\opentest4j\opentest4j\1.2.0\opentest4j-1.2.0.jar;C:\Users\Owner\.m2\repository\org\junit\platform\junit-platform-commons\1.5.0\junit-platform-commons-1.5.0.jar;C:\Users\Owner\.m2\repository\org\junit\jupiter\junit-jupiter-engine\5.5.0\junit-jupiter-engine-5.5.0.jar;C:\Users\Owner\.m2\repository\org\junit\platform\junit-platform-engine\1.5.0\junit-platform-engine-1.5.0.jar;C:\Users\Owner\.m2\repository\org\mockito\mockito-core\5.2.0\mockito-core-5.2.0.jar;C:\Users\Owner\.m2\repository\net\bytebuddy\byte-buddy\1.14.1\byte-buddy-1.14.1.jar;C:\Users\Owner\.m2\repository\net\bytebuddy\byte-buddy-agent\1.14.1\byte-buddy-agent-1.14.1.jar;C:\Users\Owner\.m2\repository\org\objenesis\objenesis\3.3\objenesis-3.3.jar;C:\Users\Owner\.m2\repository\org\mockito\mockito-inline\5.2.0\mockito-inline-5.2.0.jar;"/>
+    <property name="java.vm.vendor" value="Oracle Corporation"/>
+    <property name="sun.arch.data.model" value="64"/>
+    <property name="user.variant" value=""/>
+    <property name="java.vendor.url" value="https://java.oracle.com/"/>
+    <property name="user.timezone" value="Asia/Seoul"/>
+    <property name="os.name" value="Windows 11"/>
+    <property name="java.vm.specification.version" value="17"/>
+    <property name="sun.java.launcher" value="SUN_STANDARD"/>
+    <property name="user.country" value="KR"/>
+    <property name="sun.boot.library.path" value="C:\Program Files\Java\jdk-17\bin"/>
+    <property name="sun.java.command" value="C:\Users\Owner\AppData\Local\Temp\surefire8854702383455719790\surefirebooter13907773507775507378.jar C:\Users\Owner\AppData\Local\Temp\surefire8854702383455719790 2024-12-03T20-30-32_334-jvmRun1 surefire3077643762156369193tmp surefire_011804534380087993457tmp"/>
+    <property name="jdk.debug" value="release"/>
+    <property name="surefire.test.class.path" value="C:\Users\Owner\Desktop\github\Invaders-SDP\target\test-classes;C:\Users\Owner\Desktop\github\Invaders-SDP\target\classes;C:\Users\Owner\.m2\repository\org\junit\jupiter\junit-jupiter-api\5.5.0\junit-jupiter-api-5.5.0.jar;C:\Users\Owner\.m2\repository\org\apiguardian\apiguardian-api\1.1.0\apiguardian-api-1.1.0.jar;C:\Users\Owner\.m2\repository\org\opentest4j\opentest4j\1.2.0\opentest4j-1.2.0.jar;C:\Users\Owner\.m2\repository\org\junit\platform\junit-platform-commons\1.5.0\junit-platform-commons-1.5.0.jar;C:\Users\Owner\.m2\repository\org\junit\jupiter\junit-jupiter-engine\5.5.0\junit-jupiter-engine-5.5.0.jar;C:\Users\Owner\.m2\repository\org\junit\platform\junit-platform-engine\1.5.0\junit-platform-engine-1.5.0.jar;C:\Users\Owner\.m2\repository\org\mockito\mockito-core\5.2.0\mockito-core-5.2.0.jar;C:\Users\Owner\.m2\repository\net\bytebuddy\byte-buddy\1.14.1\byte-buddy-1.14.1.jar;C:\Users\Owner\.m2\repository\net\bytebuddy\byte-buddy-agent\1.14.1\byte-buddy-agent-1.14.1.jar;C:\Users\Owner\.m2\repository\org\objenesis\objenesis\3.3\objenesis-3.3.jar;C:\Users\Owner\.m2\repository\org\mockito\mockito-inline\5.2.0\mockito-inline-5.2.0.jar;"/>
+    <property name="sun.cpu.endian" value="little"/>
+    <property name="user.home" value="C:\Users\Owner"/>
+    <property name="user.language" value="ko"/>
+    <property name="java.specification.vendor" value="Oracle Corporation"/>
+    <property name="java.version.date" value="2024-07-16"/>
+    <property name="java.home" value="C:\Program Files\Java\jdk-17"/>
+    <property name="file.separator" value="\"/>
+    <property name="basedir" value="C:\Users\Owner\Desktop\github\Invaders-SDP"/>
+    <property name="java.vm.compressedOopsMode" value="Zero based"/>
+    <property name="line.separator" value="&#10;"/>
+    <property name="java.vm.specification.vendor" value="Oracle Corporation"/>
+    <property name="java.specification.name" value="Java Platform API Specification"/>
+    <property name="surefire.real.class.path" value="C:\Users\Owner\AppData\Local\Temp\surefire8854702383455719790\surefirebooter13907773507775507378.jar"/>
+    <property name="user.script" value=""/>
+    <property name="sun.management.compiler" value="HotSpot 64-Bit Tiered Compilers"/>
+    <property name="java.runtime.version" value="17.0.12+8-LTS-286"/>
+    <property name="user.name" value="Owner"/>
+    <property name="path.separator" value=";"/>
+    <property name="os.version" value="10.0"/>
+    <property name="java.runtime.name" value="Java(TM) SE Runtime Environment"/>
+    <property name="file.encoding" value="MS949"/>
+    <property name="java.vm.name" value="Java HotSpot(TM) 64-Bit Server VM"/>
+    <property name="localRepository" value="C:\Users\Owner\.m2\repository"/>
+    <property name="java.vendor.url.bug" value="https://bugreport.java.com/bugreport/"/>
+    <property name="java.io.tmpdir" value="C:\Users\Owner\AppData\Local\Temp\"/>
+    <property name="java.version" value="17.0.12"/>
+    <property name="user.dir" value="C:\Users\Owner\Desktop\github\Invaders-SDP"/>
+    <property name="os.arch" value="amd64"/>
+    <property name="java.vm.specification.name" value="Java Virtual Machine Specification"/>
+    <property name="sun.os.patch.level" value=""/>
+    <property name="native.encoding" value="MS949"/>
+    <property name="java.library.path" value="C:\Program Files\Java\jdk-17\bin;C:\WINDOWS\Sun\Java\bin;C:\WINDOWS\system32;C:\WINDOWS;C:\Users\Owner\bin;C:\Program Files\Git\mingw64\bin;C:\Program Files\Git\usr\local\bin;C:\Program Files\Git\usr\bin;C:\Program Files\Git\usr\bin;C:\Program Files\Git\mingw64\bin;C:\Program Files\Git\usr\bin;C:\Users\Owner\bin;C:\WINDOWS\system32;C:\WINDOWS;C:\WINDOWS\System32\Wbem;C:\WINDOWS\System32\WindowsPowerShell\v1.0;C:\WINDOWS\System32\OpenSSH;C:\Program Files (x86)\Windows Live\Shared;C:\Program Files\Git\cmd;C:\Program Files\dotnet;C:\Program Files\Streamlink\bin;C:\Users\Owner\Desktop\apache-maven-3.9.9\bin;C:\Program Files\Java\jdk-17\bin;C:\Users\Owner\AppData\Local\Programs\Python\Python310\Scripts;C:\Users\Owner\AppData\Local\Programs\Python\Python310;C:\Users\Owner\AppData\Local\Microsoft\WindowsApps;C:\Program Files\Bandizip;C:\Users\Owner\AppData\Local\Programs\Microsoft VS Code\bin;C:\Users\Owner\AppData\Local\afreeca;C:\Users\Owner\AppData\Local\GitHubDesktop\bin;C:\Users\Owner\AppData\Local\SOOP;C:\Users\Owner\AppData\Roaming\Programs\Zero Install;C:\Program Files\Git\usr\bin\vendor_perl;C:\Program Files\Git\usr\bin\core_perl;."/>
+    <property name="java.vm.info" value="mixed mode, sharing"/>
+    <property name="java.vendor" value="Oracle Corporation"/>
+    <property name="java.vm.version" value="17.0.12+8-LTS-286"/>
+    <property name="sun.io.unicode.encoding" value="UnicodeLittle"/>
+    <property name="java.class.version" value="61.0"/>
+  </properties>
+  <testcase name="constructTest" classname="inventory_develop.StoryModeTraitTest" time="0.002"/>
+  <testcase name="getRandomTraitsTest" classname="inventory_develop.StoryModeTraitTest" time="0.002">
+    <system-out><![CDATA[BulletSpeed : basic
+ShipShoot360 : common
+BulletCount : basic
+]]></system-out>
+  </testcase>
+  <testcase name="selectedTraitsTest1" classname="inventory_develop.StoryModeTraitTest" time="0.007">
+    <system-err><![CDATA[12월 03, 2024 8:30:34 오후 inventory_develop.StoryModeTrait upgradeSelectedTraits
+INFO: User's BulletDamage changed from basic to common
+12월 03, 2024 8:30:34 오후 inventory_develop.StoryModeTrait upgradeSelectedTraits
+INFO: User's BulletDamage changed from common to rare
+12월 03, 2024 8:30:34 오후 inventory_develop.StoryModeTrait upgradeSelectedTraits
+INFO: User's BulletDamage changed from rare to epic
+12월 03, 2024 8:30:34 오후 inventory_develop.StoryModeTrait upgradeSelectedTraits
+INFO: User's ShipShoot360 changed from common to rare
+]]></system-err>
+  </testcase>
+  <testcase name="selectedTraitsTest2" classname="inventory_develop.StoryModeTraitTest" time="0.012">
+    <system-err><![CDATA[12월 03, 2024 8:30:34 오후 inventory_develop.StoryModeTrait upgradeSelectedTraits
+INFO: User's BulletSpeed changed from basic to common
+12월 03, 2024 8:30:34 오후 inventory_develop.StoryModeTrait upgradeSelectedTraits
+INFO: User's BulletSpeed changed from common to rare
+12월 03, 2024 8:30:34 오후 inventory_develop.StoryModeTrait upgradeSelectedTraits
+INFO: User's BulletSpeed changed from rare to epic
+12월 03, 2024 8:30:34 오후 inventory_develop.StoryModeTrait upgradeSelectedTraits
+INFO: User's BulletSpeed changed from epic to epic
+12월 03, 2024 8:30:34 오후 inventory_develop.StoryModeTrait upgradeSelectedTraits
+INFO: User's ShipShoot360 changed from common to rare
+12월 03, 2024 8:30:34 오후 inventory_develop.StoryModeTrait upgradeSelectedTraits
+INFO: User's ShipShoot360 changed from rare to epic
+]]></system-err>
+  </testcase>
+</testsuite>

@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="ko"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>TraitScreen.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">my-java-project</a> &gt; <a href="index.source.html" class="el_package">screen</a> &gt; <span class="el_source">TraitScreen.java</span></div><h1>TraitScreen.java</h1><pre class="source lang-java linenums">package screen;
+
+import engine.Cooldown;
+import engine.Core;
+import engine.GameState;
+import inventory_develop.StoryModeTrait;
+
+import java.awt.event.KeyEvent;
+import java.util.ArrayList;
+import java.util.List;
+
+public class TraitScreen extends Screen {
+    private static final int SELECTION_TIME = 200;
+    private Cooldown selectionCooldown;
+
+    private final GameState gameState;
+    private final StoryModeTrait storyModeTrait;
+
+    private String[] traits;
+    private String[] rarities;
+    private int traitIndex;
+
+    /**
+     * Constructor, establishes the properties of the screen.
+     *
+     * @param width  Screen width.
+     * @param height Screen height.
+     * @param fps    Frames per second, frame rate at which the game is run.
+     */
+    public TraitScreen(int width, int height, int fps, GameState gameState, StoryModeTrait storyModeTrait, String[] traits) {
+<span class="nc" id="L31">        super(width, height, fps);</span>
+
+<span class="nc" id="L33">        this.gameState = gameState;</span>
+<span class="nc" id="L34">        this.storyModeTrait = storyModeTrait;</span>
+<span class="nc" id="L35">        this.returnCode = 4;</span>
+
+<span class="nc" id="L37">        this.traits = traits;</span>
+
+<span class="nc" id="L39">        List&lt;String&gt; tempRaritys = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L40" title="All 2 branches missed.">        for (int i = 0; i &lt; traits.length; i++) {</span>
+<span class="nc" id="L41">            String rarity = storyModeTrait.getTraits().get(traits[i]);</span>
+<span class="nc" id="L42">            rarity = storyModeTrait.setNextRarity(rarity);</span>
+<span class="nc" id="L43">            tempRaritys.add(rarity);</span>
+        }
+<span class="nc" id="L45">        this.rarities = tempRaritys.toArray(new String[0]);</span>
+<span class="nc" id="L46">        this.traitIndex = 0;</span>
+
+<span class="nc" id="L48">        this.selectionCooldown = Core.getCooldown(SELECTION_TIME);</span>
+<span class="nc" id="L49">        this.selectionCooldown.reset();</span>
+<span class="nc" id="L50">    }</span>
+
+    /**
+     * Starts the action.
+     *
+     * @return Next screen code.
+     */
+    public final int run() {
+<span class="nc" id="L58">        super.run();</span>
+
+<span class="nc" id="L60">        return this.returnCode;</span>
+    }
+
+    /**
+     * Updates the elements on screen and checks for events.
+     */
+    protected final void update() {
+<span class="nc" id="L67">        super.update();</span>
+
+<span class="nc" id="L69">        draw();</span>
+<span class="nc bnc" id="L70" title="All 2 branches missed.">        if (this.selectionCooldown.checkFinished()</span>
+<span class="nc bnc" id="L71" title="All 2 branches missed.">                &amp;&amp; this.inputDelay.checkFinished()) {</span>
+
+<span class="nc bnc" id="L73" title="All 2 branches missed.">            if (inputManager.isKeyDown(KeyEvent.VK_LEFT)</span>
+<span class="nc bnc" id="L74" title="All 2 branches missed.">                    || inputManager.isKeyDown(KeyEvent.VK_A)) {</span>
+<span class="nc" id="L75">                indexleft();</span>
+<span class="nc" id="L76">                this.selectionCooldown.reset();</span>
+//                SoundManager.getInstance().playES(&quot;menuSelect_es&quot;);
+            }
+
+<span class="nc bnc" id="L80" title="All 2 branches missed.">            if (inputManager.isKeyDown(KeyEvent.VK_RIGHT)</span>
+<span class="nc bnc" id="L81" title="All 2 branches missed.">                    || inputManager.isKeyDown(KeyEvent.VK_D)) {</span>
+<span class="nc" id="L82">                indexright();</span>
+<span class="nc" id="L83">                this.selectionCooldown.reset();</span>
+//                SoundManager.getInstance().playES(&quot;menuSelect_es&quot;);
+            }
+
+<span class="nc bnc" id="L87" title="All 2 branches missed.">            if (inputManager.isKeyDown(KeyEvent.VK_SPACE)</span>
+<span class="nc bnc" id="L88" title="All 2 branches missed.">                    &amp;&amp; this.inputDelay.checkFinished()) {</span>
+<span class="nc" id="L89">                this.applyTrait();</span>
+<span class="nc" id="L90">                this.isRunning = false;</span>
+            }
+        }
+<span class="nc" id="L93">    }</span>
+    
+    // space를 눌렀을 때 레벨에 따라 StoryModeTrait을 호출해서 trait 적용
+    private void applyTrait() {
+<span class="nc bnc" id="L97" title="All 2 branches missed.">        if(gameState.getLevel() == 4) { // 보스 깨면</span>
+<span class="nc" id="L98">            storyModeTrait.upgradeSelectedTraits(traits[0]);</span>
+<span class="nc" id="L99">            storyModeTrait.upgradeSelectedTraits(traits[1]);</span>
+<span class="nc" id="L100">            storyModeTrait.upgradeSelectedTraits(traits[2]);</span>
+        } else {
+<span class="nc" id="L102">            storyModeTrait.upgradeSelectedTraits(traits[traitIndex]);</span>
+        }
+<span class="nc" id="L104">    }</span>
+    
+    // 특성 인덱스 값을 변경
+    private void indexleft() {
+<span class="nc bnc" id="L108" title="All 2 branches missed.">        if(this.traitIndex &gt; 0)</span>
+<span class="nc" id="L109">            this.traitIndex--;</span>
+<span class="nc" id="L110">    }</span>
+    private void indexright() {
+<span class="nc bnc" id="L112" title="All 2 branches missed.">        if(this.traitIndex &lt; 2)</span>
+<span class="nc" id="L113">            this.traitIndex++;</span>
+<span class="nc" id="L114">    }</span>
+
+    /**
+     * Draws the elements associated with the screen.
+     */
+    private void draw() {
+<span class="nc" id="L120">        drawManager.initDrawing(this);</span>
+
+<span class="nc" id="L122">        drawManager.drawTarit(this, this.gameState, this.traits, this.rarities, this.traitIndex);</span>
+
+<span class="nc" id="L124">        super.drawPost();</span>
+<span class="nc" id="L125">        drawManager.completeDrawing(this);</span>
+
+<span class="nc" id="L127">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.10.202304240956</span></div></body></html>

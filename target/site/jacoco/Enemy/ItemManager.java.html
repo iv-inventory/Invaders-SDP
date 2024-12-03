@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="ko"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ItemManager.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">my-java-project</a> &gt; <a href="index.source.html" class="el_package">Enemy</a> &gt; <span class="el_source">ItemManager.java</span></div><h1>ItemManager.java</h1><pre class="source lang-java linenums">package Enemy;
+
+import engine.Core;
+import entity.EnemyShip;
+import entity.Ship;
+import inventory_develop.Bomb;
+import inventory_develop.FeverTimeItem;
+import screen.GameScreen;
+import engine.DrawManager;
+
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.logging.Logger;
+
+//import inventory_develop.Bomb;
+import inventory_develop.ItemBarrierAndHeart;
+import inventory_develop.NumberOfBullet;
+import inventory_develop.SpeedItem;
+
+import CtrlS.CurrencyManager;
+
+// Sound Operator
+import Sound_Operator.SoundManager;
+
+
+public class ItemManager {
+
+    public Set&lt;Item&gt; items;
+    private int screenHeight;
+    private DrawManager drawManager;
+    private GameScreen gameScreen;
+<span class="nc" id="L34">    protected Logger logger = Core.getLogger();</span>
+<span class="nc" id="L35">    private Set&lt;Item&gt; recyclableItems = new HashSet&lt;&gt;();</span>
+    private Set&lt;EnemyShip&gt; enemyShips;
+    private ItemBarrierAndHeart Item2;
+    private NumberOfBullet numberOfBullet;
+    private SpeedItem speedItem;
+    private Ship ship;
+    private PlayerGrowth growth;
+    private FeverTimeItem feverTimeItem;
+    private CurrencyManager currencyManager;
+    //private List&lt;EnemyShip&gt; enemyShips;
+    // Sound Operator
+    private static SoundManager sm;
+
+<span class="nc" id="L48">    public ItemManager(int screenHeight, DrawManager drawManager, GameScreen gameScreen) {</span>
+<span class="nc" id="L49">        this.items = new HashSet&lt;&gt;();</span>
+<span class="nc" id="L50">        this.screenHeight = screenHeight;</span>
+<span class="nc" id="L51">        this.drawManager = drawManager;</span>
+<span class="nc" id="L52">        this.gameScreen = gameScreen;</span>
+<span class="nc" id="L53">        this.ship = gameScreen.getShip();       // Team Inventory</span>
+<span class="nc" id="L54">        this.growth = ship.getPlayerGrowth();</span>
+<span class="nc" id="L55">        this.Item2 = gameScreen.getItem();</span>
+<span class="nc" id="L56">        this.feverTimeItem = gameScreen.getFeverTimeItem();</span>
+<span class="nc" id="L57">        this.numberOfBullet = new NumberOfBullet();</span>
+<span class="nc" id="L58">        this.speedItem = gameScreen.getSpeedItem();</span>
+<span class="nc" id="L59">        this.enemyShips = new HashSet&lt;&gt;();</span>
+<span class="nc" id="L60">    }</span>
+
+    public void cleanItems() {
+<span class="nc" id="L63">        Set&lt;Item&gt; recyclable = new HashSet&lt;&gt;();</span>
+<span class="nc bnc" id="L64" title="All 2 branches missed.">        for (Item item : this.items) {</span>
+<span class="nc" id="L65">            item.update();</span>
+<span class="nc bnc" id="L66" title="All 2 branches missed.">            if (item.getPositionY() &gt; screenHeight) {</span>
+<span class="nc" id="L67">                recyclable.add(item);</span>
+            }
+<span class="nc" id="L69">        }</span>
+<span class="nc" id="L70">        this.items.removeAll(recyclable);</span>
+<span class="nc" id="L71">        ItemPool.recycle(recyclable);</span>
+<span class="nc" id="L72">    }</span>
+
+    public void initialize() {
+<span class="nc" id="L75">        this.items = new HashSet&lt;&gt;();</span>
+<span class="nc" id="L76">    }</span>
+
+    public void drawItems() {
+<span class="nc bnc" id="L79" title="All 2 branches missed.">        for (Item item : this.items) {</span>
+<span class="nc" id="L80">            drawManager.drawEntity(item, item.getPositionX(), item.getPositionY());</span>
+<span class="nc" id="L81">        }</span>
+<span class="nc" id="L82">    }</span>
+
+    public void dropItem(EnemyShip enemyShip, double probability, int enemyship_type) {
+<span class="nc bnc" id="L85" title="All 2 branches missed.">        if(Math.random() &lt; probability) {</span>
+<span class="nc" id="L86">            Item item = ItemPool.getItem(enemyShip.getPositionX(), enemyShip.getPositionY(), 3, enemyship_type);</span>
+<span class="nc" id="L87">            this.items.add(item);</span>
+        }
+<span class="nc" id="L89">    }</span>
+
+    public void setEnemyShips(Set&lt;EnemyShip&gt; enemyShips) {
+<span class="nc" id="L92">        this.enemyShips = enemyShips;</span>
+<span class="nc" id="L93">    }</span>
+
+    // team Inventory
+    public void OperateItem(Item item) {
+<span class="nc bnc" id="L97" title="All 2 branches missed.">        if(item!= null) {</span>
+
+<span class="nc" id="L99">            DrawManager.SpriteType whatItem = item.getSpriteType();</span>
+
+<span class="nc bnc" id="L101" title="All 9 branches missed.">            switch (whatItem) {     // Operates according to the SpriteType of the item.</span>
+                case ItemBomb:
+<span class="nc" id="L103">                    Bomb.setIsbomb(true);</span>
+<span class="nc" id="L104">                    Bomb.setCanShoot(true);</span>
+                    //Sound_Operator
+<span class="nc" id="L106">                    sm = SoundManager.getInstance();</span>
+<span class="nc" id="L107">                    sm.playES(&quot;get_item&quot;);</span>
+<span class="nc" id="L108">                    break;</span>
+                case ItemBarrier:
+<span class="nc" id="L110">                    Item2.activatebarrier();</span>
+                    //Sound_Operator
+<span class="nc" id="L112">                    sm = SoundManager.getInstance();</span>
+<span class="nc" id="L113">                    sm.playES(&quot;get_item&quot;);</span>
+<span class="nc" id="L114">                    break;</span>
+                case ItemHeart:
+<span class="nc" id="L116">                    Item2.activeheart(gameScreen);</span>
+                    //Sound_Operator
+<span class="nc" id="L118">                    sm = SoundManager.getInstance();</span>
+<span class="nc" id="L119">                    sm.playES(&quot;get_item&quot;);</span>
+<span class="nc" id="L120">                    break;</span>
+                case ItemFeverTime:
+<span class="nc" id="L122">                    feverTimeItem.activate();</span>
+<span class="nc" id="L123">                    break;</span>
+                case ItemPierce:
+<span class="nc" id="L125">                    numberOfBullet.pierceup();</span>
+<span class="nc" id="L126">                    ship.increaseBulletSpeedY();</span>
+                    //Sound_Operator
+<span class="nc" id="L128">                    sm = SoundManager.getInstance();</span>
+<span class="nc" id="L129">                    sm.playES(&quot;get_item&quot;);</span>
+<span class="nc" id="L130">                    break;</span>
+                case ItemCoin:
+<span class="nc" id="L132">                    this.logger.info(&quot;You get coin!&quot;);</span>
+<span class="nc" id="L133">                    break;</span>
+                case ItemSpeedUp:
+<span class="nc" id="L135">                    speedItem.activate(true, enemyShips);</span>
+<span class="nc" id="L136">                    break;</span>
+                case ItemSpeedSlow:
+<span class="nc" id="L138">                    speedItem.activate(false, enemyShips);</span>
+                    break;
+            }
+
+<span class="nc" id="L142">            addItemRecycle(item);</span>
+        }
+<span class="nc" id="L144">    }</span>
+
+    public void addItemRecycle(Item item) {
+<span class="nc" id="L147">        recyclableItems.add(item);</span>
+<span class="nc" id="L148">        String itemLog = item.getSpriteType().toString().toLowerCase().substring(4);</span>
+        // Sound Operator
+<span class="nc bnc" id="L150" title="All 2 branches missed.">        if (itemLog.equals(&quot;coin&quot;)){</span>
+<span class="nc" id="L151">            sm = SoundManager.getInstance();</span>
+<span class="nc" id="L152">            sm.playES(&quot;item_coin&quot;);</span>
+        }
+
+<span class="nc bnc" id="L155" title="All 2 branches missed.">        if (!itemLog.equals(&quot;coin&quot;)) {</span>
+<span class="nc" id="L156">            this.logger.info(&quot;get &quot; + itemLog + &quot; item&quot;);   // Change log for each item</span>
+        }
+<span class="nc" id="L158">    }</span>
+
+    public void removeAllReItems(){
+<span class="nc" id="L161">        this.items.removeAll(recyclableItems);</span>
+<span class="nc" id="L162">        ItemPool.recycle(recyclableItems);</span>
+<span class="nc" id="L163">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.10.202304240956</span></div></body></html>

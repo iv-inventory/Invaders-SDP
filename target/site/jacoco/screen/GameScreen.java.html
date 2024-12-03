@@ -1,0 +1,966 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="ko"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>GameScreen.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">my-java-project</a> &gt; <a href="index.source.html" class="el_package">screen</a> &gt; <span class="el_source">GameScreen.java</span></div><h1>GameScreen.java</h1><pre class="source lang-java linenums">package screen;
+
+import java.awt.*;
+import java.awt.event.KeyEvent;
+import java.awt.event.MouseEvent;
+import java.util.*;
+
+import java.io.IOException;
+
+import CtrlS.RoundState;
+import clove.AchievementConditions;
+import clove.Statistics;
+import Enemy.*;
+import HUDTeam.DrawAchievementHud;
+import HUDTeam.DrawManagerImpl;
+import engine.*;
+import entity.Bullet;
+import entity.BulletPool;
+import entity.EnemyShip;
+import entity.EnemyShipFormation;
+import entity.Entity;
+import entity.Obstacle;
+import entity.Ship;
+// shield and heart recovery
+import inventory_develop.*;
+// Sound Operator
+import Sound_Operator.SoundManager;
+import clove.ScoreManager;    // CLOVE
+import twoplayermode.TwoPlayerMode;
+
+import javax.swing.*;
+
+
+/**
+ * Implements the game screen, where the action happens.
+ *
+ * @author &lt;a href=&quot;mailto:RobertoIA1987@gmail.com&quot;&gt;Roberto Izquierdo Amo&lt;/a&gt;
+ *
+ */
+public class GameScreen extends Screen {
+
+	/** Milliseconds until the screen accepts user input. */
+	private static final int INPUT_DELAY = 6000;
+	/** Bonus score for each life remaining at the end of the level. */
+	private static final int LIFE_SCORE = 100;
+	/** Minimum time between bonus ship's appearances. */
+	private static final int BONUS_SHIP_INTERVAL = 20000;
+	/** Maximum variance in the time between bonus ship's appearances. */
+	private static final int BONUS_SHIP_VARIANCE = 10000;
+	/** Time until bonus ship explosion disappears. */
+	private static final int BONUS_SHIP_EXPLOSION = 500;
+	/** Time from finishing the level to screen change. */
+	private static final int SCREEN_CHANGE_INTERVAL = 1500;
+	/** Height of the interface separation line. */
+	private static final int SEPARATION_LINE_HEIGHT = 40;
+	private static final int SEPARATION_LINE_HEIGHT_DOWN = 635;
+
+	/** Current game difficulty settings. */
+	private GameSettings gameSettings;
+	/** Current difficulty level number. */
+	private int level;
+	/** Formation of enemy ships. */
+	private EnemyShipFormation enemyShipFormation;
+	/** Player's ship. */
+	private Ship ship;
+	public Ship player2;
+	/** Bonus enemy ship that appears sometimes. */
+	private EnemyShip enemyShipSpecial;
+	/** Minimum time between bonus ship appearances. */
+	private Cooldown enemyShipSpecialCooldown;
+	/** Time until bonus ship explosion disappears. */
+	private Cooldown enemyShipSpecialExplosionCooldown;
+	/** Time from finishing the level to screen change. */
+	private Cooldown screenFinishedCooldown;
+	/** Set of all bullets fired by on screen ships. */
+	public Set&lt;PiercingBullet&gt; bullets; //by Enemy team
+	/** Add an itemManager Instance */
+	public static ItemManager itemManager; //by Enemy team
+	/** Shield item */
+	private ItemBarrierAndHeart item;   // team Inventory
+	private FeverTimeItem feverTimeItem;
+	/** Speed item */
+	private SpeedItem speedItem;
+	/** Current score. */
+	private int score;
+	/** Player lives left. */
+	private int lives;
+	/** player2 lives left.*/
+	public int livestwo;
+	/** Total bullets shot by the player. */
+	private int bulletsShot;
+	/** Total ships destroyed by the player. */
+	private int shipsDestroyed;
+	/** Moment the game starts. */
+	private long gameStartTime;
+	/** Checks if the level is finished. */
+	private boolean levelFinished;
+	/** Checks if a bonus life is received. */
+	private boolean bonusLife;
+	/**
+	 * Added by the Level Design team
+	 *
+	 * Counts the number of waves destroyed
+	 * **/
+	private int waveCounter;
+
+	/** ### TEAM INTERNATIONAL ### */
+	/** Booleans for horizontal background movement */
+<span class="nc" id="L109">	private boolean backgroundMoveLeft = false;</span>
+<span class="nc" id="L110">	private boolean backgroundMoveRight = false;</span>
+
+
+
+	// --- OBSTACLES
+	public Set&lt;Obstacle&gt; obstacles; // Store obstacles
+	private Cooldown obstacleSpawnCooldown; //control obstacle spawn speed
+	/** Shield item */
+
+
+	// Soomin Lee / TeamHUD
+	/** Moment the user starts to play */
+	private long playStartTime;
+	/** Total time to play */
+<span class="nc" id="L124">	private int playTime = 0;</span>
+	/** Play time on previous levels */
+<span class="nc" id="L126">	private int playTimePre = 0;</span>
+
+	// Sound Operator
+	private static SoundManager sm;
+
+	// Team-Ctrl-S(Currency)
+	/** Total coin **/
+	private int coin;
+	/** Total gem **/
+	private int gem;
+	/** Total hitCount **/      //CtrlS
+	private int hitCount;
+	/** Unique id for shot of bullets **/ //CtrlS
+	private int fire_id;
+	/** Set of fire_id **/
+	private Set&lt;Integer&gt; processedFireBullet;
+
+	/** Score calculation. */
+	private ScoreManager scoreManager;    //clove
+	/** Check start-time*/
+	private long startTime;    //clove
+	/** Check end-time*/
+	private long endTime;    //clove
+
+	private Statistics statistics; //Team Clove
+	private AchievementConditions achievementConditions;
+	private int fastKill;
+
+	/** CtrlS: Count the number of coin collected in game */
+	private int coinItemsCollected;
+
+	//스토리라운드
+	private static final long ROUND_CLEAR_DURATION =(7000+15000); // 15초 (5 + 00 + 2)
+	private long roundStartTime;
+
+	/**
+	 * Constructor, establishes the properties of the screen.
+	 *
+	 * @param gameState
+	 *            Current game state.
+	 * @param gameSettings
+	 *            Current game settings.
+	 * @param bonusLife
+	 *            Checks if a bonus life is awarded this level.
+	 * @param width
+	 *            Screen width.
+	 * @param height
+	 *            Screen height.
+	 * @param fps
+	 *            Frames per second, frame rate at which the game is run.
+	 */
+	public GameScreen(final GameState gameState,
+					  final GameSettings gameSettings, final boolean bonusLife,
+					  final int width, final int height, final int fps, int returnCode) {
+<span class="nc" id="L180">		super(width, height, fps);</span>
+
+<span class="nc" id="L182">		this.gameSettings = gameSettings;</span>
+<span class="nc" id="L183">		this.bonusLife = bonusLife;</span>
+<span class="nc" id="L184">		this.level = gameState.getLevel();</span>
+<span class="nc" id="L185">		this.score = gameState.getScore();</span>
+<span class="nc" id="L186">		this.lives = gameState.getLivesRemaining();</span>
+<span class="nc bnc" id="L187" title="All 2 branches missed.">		if (this.bonusLife)</span>
+<span class="nc" id="L188">			this.lives++;</span>
+<span class="nc" id="L189">		this.livestwo = gameState.getLivesTwoRemaining();</span>
+<span class="nc bnc" id="L190" title="All 2 branches missed.">		if (this.bonusLife)</span>
+<span class="nc" id="L191">			this.livestwo++;</span>
+<span class="nc" id="L192">		this.bulletsShot = gameState.getBulletsShot();</span>
+<span class="nc" id="L193">		this.shipsDestroyed = gameState.getShipsDestroyed();</span>
+<span class="nc" id="L194">		this.item = new ItemBarrierAndHeart();   // team Inventory</span>
+<span class="nc" id="L195">		this.feverTimeItem = new FeverTimeItem(); // team Inventory</span>
+<span class="nc" id="L196">		this.speedItem = new SpeedItem();   // team Inventory</span>
+<span class="nc" id="L197">		this.coin = gameState.getCoin(); // Team-Ctrl-S(Currency)</span>
+<span class="nc" id="L198">		this.gem = gameState.getGem(); // Team-Ctrl-S(Currency)</span>
+<span class="nc" id="L199">		this.hitCount = gameState.getHitCount(); //CtrlS</span>
+<span class="nc" id="L200">		this.fire_id = 0; //CtrlS - fire_id means the id of bullet that shoot already. It starts from 0.</span>
+<span class="nc" id="L201">		this.processedFireBullet = new HashSet&lt;&gt;(); //CtrlS - initialized the processedFireBullet</span>
+		/**
+		 * Added by the Level Design team
+		 *
+		 * Sets the wave counter
+		 * **/
+<span class="nc" id="L207">		this.waveCounter = 1;</span>
+
+		// Soomin Lee / TeamHUD
+<span class="nc" id="L210">		this.playTime = gameState.getTime();</span>
+<span class="nc" id="L211">		this.scoreManager = gameState.scoreManager; //Team Clove</span>
+<span class="nc" id="L212">		this.statistics = new Statistics(); //Team Clove</span>
+<span class="nc" id="L213">		this.achievementConditions = new AchievementConditions();</span>
+<span class="nc" id="L214">		this.coinItemsCollected = gameState.getCoinItemsCollected(); // CtrlS</span>
+<span class="nc" id="L215">		this.returnCode = returnCode;</span>
+<span class="nc" id="L216">	}</span>
+
+	/**
+	 * Initializes basic screen properties, and adds necessary elements.
+	 */
+	public void initialize() {
+<span class="nc" id="L222">		super.initialize();</span>
+		/** initialize background **/
+<span class="nc" id="L224">		drawManager.loadBackground(this.level, this.returnCode);</span>
+
+<span class="nc" id="L226">		enemyShipFormation = new EnemyShipFormation(this.gameSettings);</span>
+<span class="nc" id="L227">		enemyShipFormation.setScoreManager(this.scoreManager);//add by team Enemy</span>
+<span class="nc" id="L228">		enemyShipFormation.attach(this);</span>
+<span class="nc" id="L229">		this.ship = new Ship(this.width / 2, this.height - 30, Color.RED); // add by team HUD</span>
+
+		/** initialize itemManager */
+<span class="nc" id="L232">		this.itemManager = new ItemManager(this.height, drawManager, this); //by Enemy team</span>
+<span class="nc" id="L233">		this.itemManager.initialize(); //by Enemy team</span>
+<span class="nc" id="L234">		enemyShipFormation.setItemManager(this.itemManager);//add by team Enemy</span>
+<span class="nc" id="L235">		this.player2=null;</span>
+
+<span class="nc" id="L237">		Set&lt;EnemyShip&gt; enemyShipSet = new HashSet&lt;&gt;();</span>
+<span class="nc bnc" id="L238" title="All 2 branches missed.">		for (EnemyShip enemyShip : this.enemyShipFormation) {</span>
+<span class="nc" id="L239">			enemyShipSet.add(enemyShip);</span>
+<span class="nc" id="L240">		}</span>
+<span class="nc" id="L241">		this.itemManager.setEnemyShips(enemyShipSet);</span>
+
+		// Appears each 10-30 seconds.
+<span class="nc" id="L244">		this.enemyShipSpecialCooldown = Core.getVariableCooldown(</span>
+				BONUS_SHIP_INTERVAL, BONUS_SHIP_VARIANCE);
+<span class="nc" id="L246">		this.enemyShipSpecialCooldown.reset();</span>
+<span class="nc" id="L247">		this.enemyShipSpecialExplosionCooldown = Core</span>
+<span class="nc" id="L248">				.getCooldown(BONUS_SHIP_EXPLOSION);</span>
+<span class="nc" id="L249">		this.screenFinishedCooldown = Core.getCooldown(SCREEN_CHANGE_INTERVAL);</span>
+<span class="nc" id="L250">		this.bullets = new HashSet&lt;PiercingBullet&gt;(); // Edited by Enemy</span>
+
+<span class="nc" id="L252">		this.startTime = System.currentTimeMillis();    //clove</span>
+
+		// Special input delay / countdown.
+<span class="nc" id="L255">		this.gameStartTime = System.currentTimeMillis();</span>
+<span class="nc" id="L256">		this.inputDelay = Core.getCooldown(INPUT_DELAY);</span>
+<span class="nc" id="L257">		this.inputDelay.reset();</span>
+
+		// Soomin Lee / TeamHUD
+<span class="nc" id="L260">		this.playStartTime = gameStartTime + INPUT_DELAY;</span>
+<span class="nc" id="L261">		this.playTimePre = playTime;</span>
+
+
+		//    // --- OBSTACLES - Initialize obstacles
+<span class="nc" id="L265">		this.obstacles = new HashSet&lt;&gt;();</span>
+<span class="nc" id="L266">		this.obstacleSpawnCooldown = Core.getCooldown(Math.max(2000 - (level * 200), 500)); // Minimum 0.5s</span>
+
+<span class="nc" id="L268">	}</span>
+
+	/**
+	 * Starts the action.
+	 *
+	 * @return Next screen code.
+	 */
+	public final int run() {
+<span class="nc" id="L276">		super.run();</span>
+
+<span class="nc" id="L278">		this.score += LIFE_SCORE * (this.lives - 1);</span>
+<span class="nc" id="L279">		this.logger.info(&quot;Screen cleared with a score of &quot; + this.scoreManager.getAccumulatedScore());</span>
+
+<span class="nc" id="L281">		return this.returnCode;</span>
+	}
+
+	/**
+	 * Updates the elements on screen and checks for events.
+	 */
+	protected void update() {
+<span class="nc" id="L288">		super.update();</span>
+
+<span class="nc bnc" id="L290" title="All 4 branches missed.">		if (this.inputDelay.checkFinished() &amp;&amp; !this.levelFinished) {</span>
+			// --- OBSTACLES
+<span class="nc bnc" id="L292" title="All 2 branches missed.">			if (this.obstacleSpawnCooldown.checkFinished()) {</span>
+				// Adjust spawn amount based on the level
+<span class="nc" id="L294">				int spawnAmount = Math.min(level, 3); // Spawn up to 3 obstacles at higher levels</span>
+<span class="nc bnc" id="L295" title="All 2 branches missed.">				for (int i = 0; i &lt; spawnAmount; i++) {</span>
+<span class="nc" id="L296">					int randomX = new Random().nextInt(this.width - 30);</span>
+<span class="nc" id="L297">					obstacles.add(new Obstacle(randomX, 50)); // Start each at the top of the screen</span>
+				}
+<span class="nc" id="L299">				this.obstacleSpawnCooldown.reset();</span>
+			}
+
+			// --- OBSTACLES
+<span class="nc" id="L303">			Set&lt;Obstacle&gt; obstaclesToRemove = new HashSet&lt;&gt;();</span>
+<span class="nc bnc" id="L304" title="All 2 branches missed.">			for (Obstacle obstacle : this.obstacles) {</span>
+<span class="nc" id="L305">				obstacle.update(this.level); // Make obstacles move or perform actions</span>
+<span class="nc bnc" id="L306" title="All 2 branches missed.">				if (obstacle.shouldBeRemoved()) {</span>
+<span class="nc" id="L307">					obstaclesToRemove.add(obstacle);  // Mark obstacle for removal after explosion</span>
+				}
+<span class="nc" id="L309">			}</span>
+<span class="nc" id="L310">			this.obstacles.removeAll(obstaclesToRemove);</span>
+
+<span class="nc bnc" id="L312" title="All 2 branches missed.">			if (!this.ship.isDestroyed()) {</span>
+
+<span class="nc bnc" id="L314" title="All 2 branches missed.">				boolean moveRight = inputManager.isKeyDown(KeyEvent.VK_RIGHT)</span>
+<span class="nc bnc" id="L315" title="All 2 branches missed.">						|| inputManager.isKeyDown(KeyEvent.VK_D);</span>
+<span class="nc bnc" id="L316" title="All 2 branches missed.">				boolean moveLeft = inputManager.isKeyDown(KeyEvent.VK_LEFT)</span>
+<span class="nc bnc" id="L317" title="All 2 branches missed.">						|| inputManager.isKeyDown(KeyEvent.VK_A);</span>
+<span class="nc bnc" id="L318" title="All 2 branches missed.">				boolean moveUp = inputManager.isKeyDown(KeyEvent.VK_UP)</span>
+<span class="nc bnc" id="L319" title="All 2 branches missed.">						|| inputManager.isKeyDown(KeyEvent.VK_W);</span>
+<span class="nc bnc" id="L320" title="All 2 branches missed.">				boolean moveDown = inputManager.isKeyDown(KeyEvent.VK_DOWN)</span>
+<span class="nc bnc" id="L321" title="All 2 branches missed.">						|| inputManager.isKeyDown(KeyEvent.VK_S);</span>
+
+<span class="nc" id="L323">				boolean isRightBorder = this.ship.getPositionX()</span>
+<span class="nc bnc" id="L324" title="All 2 branches missed.">						+ this.ship.getWidth() + this.ship.getSpeed() &gt; this.width - 1;</span>
+<span class="nc" id="L325">				boolean isLeftBorder = this.ship.getPositionX()</span>
+<span class="nc bnc" id="L326" title="All 2 branches missed.">						- this.ship.getSpeed() &lt; 1;</span>
+<span class="nc" id="L327">				boolean isUpBorder = this.ship.getPositionY()</span>
+<span class="nc bnc" id="L328" title="All 2 branches missed.">						- this.ship.getSpeed() &lt; SEPARATION_LINE_HEIGHT + 1;</span>
+<span class="nc" id="L329">				boolean isDownBorder = this.ship.getPositionY()</span>
+<span class="nc bnc" id="L330" title="All 2 branches missed.">						+ this.ship.getHeight() + this.ship.getSpeed() &gt; SEPARATION_LINE_HEIGHT_DOWN - 1;</span>
+
+<span class="nc bnc" id="L332" title="All 4 branches missed.">				if (moveRight &amp;&amp; !isRightBorder) {</span>
+<span class="nc" id="L333">					this.ship.moveRight();</span>
+<span class="nc" id="L334">					this.backgroundMoveRight = true;</span>
+				}
+<span class="nc bnc" id="L336" title="All 4 branches missed.">				if (moveLeft &amp;&amp; !isLeftBorder) {</span>
+<span class="nc" id="L337">					this.ship.moveLeft();</span>
+<span class="nc" id="L338">					this.backgroundMoveLeft = true;</span>
+				}
+<span class="nc bnc" id="L340" title="All 4 branches missed.">				if (moveUp &amp;&amp; !isUpBorder) {</span>
+<span class="nc" id="L341">					this.ship.moveUp();</span>
+				}
+<span class="nc bnc" id="L343" title="All 4 branches missed.">				if (moveDown &amp;&amp; !isDownBorder) {</span>
+<span class="nc" id="L344">					this.ship.moveDown();</span>
+				}
+				
+				// 마우스 추적(화면 밖으로 나가도 추적하고 싶으면 사용 - 거의 사용X 일듯 나중에 지우기)
+//				Point mousePosition = MouseInfo.getPointerInfo().getLocation();
+//				SwingUtilities.convertPointFromScreen(mousePosition, drawManager.getFrame());
+
+				// 함선과의 상대거리 계산
+<span class="nc" id="L352">				double deltaX = inputManager.getMouseX() - (this.ship.getPositionX() + this.ship.getWidth() * 3 / 4);</span>
+<span class="nc" id="L353">				double deltaY = inputManager.getMouseY() - (this.ship.getPositionY() + this.ship.getHeight() * 2);</span>
+
+				// 각도 계산 (라디안 값)
+<span class="nc" id="L356">				double angle = Math.atan2(deltaY, deltaX);</span>
+<span class="nc" id="L357">				this.ship.setAngle(angle);</span>
+
+<span class="nc bnc" id="L359" title="All 4 branches missed.">				if (inputManager.isKeyDown(KeyEvent.VK_SPACE) || inputManager.isMouseButtonDown(MouseEvent.BUTTON1))</span>
+<span class="nc bnc" id="L360" title="All 4 branches missed.">					if (this.ship.getCanShoot360() &amp;&amp; this.ship.shoot360(this.bullets)) {	// 무한모드일 때 작동(임시로 일반모드일 때 작동하게 설정)</span>
+<span class="nc" id="L361">						this.bulletsShot++;</span>
+<span class="nc" id="L362">						this.fire_id++;</span>
+<span class="nc" id="L363">						this.logger.info(&quot;Bullet's fire_id is &quot; + fire_id);</span>
+<span class="nc bnc" id="L364" title="All 2 branches missed.">					} else if (this.ship.shoot(this.bullets)) {</span>
+<span class="nc" id="L365">						this.bulletsShot++;</span>
+<span class="nc" id="L366">						this.fire_id++;</span>
+<span class="nc" id="L367">						this.logger.info(&quot;Bullet's fire_id is &quot; + fire_id);</span>
+					}
+			}
+
+<span class="nc bnc" id="L371" title="All 2 branches missed.">			if (this.enemyShipSpecial != null) {</span>
+<span class="nc bnc" id="L372" title="All 2 branches missed.">				if (!this.enemyShipSpecial.isDestroyed())</span>
+<span class="nc" id="L373">					this.enemyShipSpecial.move(2, 0);</span>
+<span class="nc bnc" id="L374" title="All 2 branches missed.">				else if (this.enemyShipSpecialExplosionCooldown.checkFinished())</span>
+<span class="nc" id="L375">					this.enemyShipSpecial = null;</span>
+
+			}
+<span class="nc bnc" id="L378" title="All 2 branches missed.">			if (this.enemyShipSpecial == null</span>
+<span class="nc bnc" id="L379" title="All 2 branches missed.">					&amp;&amp; this.enemyShipSpecialCooldown.checkFinished()) {</span>
+<span class="nc" id="L380">				this.enemyShipSpecial = new EnemyShip();</span>
+<span class="nc" id="L381">				this.enemyShipSpecialCooldown.reset();</span>
+				//Sound Operator
+<span class="nc" id="L383">				sm = SoundManager.getInstance();</span>
+<span class="nc" id="L384">				sm.playES(&quot;UFO_come_up&quot;);</span>
+<span class="nc" id="L385">				this.logger.info(&quot;A special ship appears&quot;);</span>
+			}
+<span class="nc bnc" id="L387" title="All 2 branches missed.">			if (this.enemyShipSpecial != null</span>
+<span class="nc bnc" id="L388" title="All 2 branches missed.">					&amp;&amp; this.enemyShipSpecial.getPositionX() &gt; this.width) {</span>
+<span class="nc" id="L389">				this.enemyShipSpecial = null;</span>
+<span class="nc" id="L390">				this.logger.info(&quot;The special ship has escaped&quot;);</span>
+			}
+
+<span class="nc" id="L393">			this.item.updateBarrierAndShip(this.ship);   // team Inventory</span>
+<span class="nc" id="L394">			this.speedItem.update();         // team Inventory</span>
+<span class="nc" id="L395">			this.feverTimeItem.update();</span>
+
+<span class="nc" id="L397">			this.enemyShipFormation.setShipposition(this.ship.getPositionX(), this.ship.getPositionY());</span>
+<span class="nc" id="L398">			this.enemyShipFormation.update();</span>
+<span class="nc" id="L399">			this.enemyShipFormation.shoot(this.bullets);</span>
+		}
+		//manageCollisions();
+<span class="nc" id="L402">		manageCollisions_add_item(); //by Enemy team</span>
+<span class="nc" id="L403">		cleanBullets();</span>
+<span class="nc" id="L404">		cleanObstacles();</span>
+<span class="nc" id="L405">		this.itemManager.cleanItems(); //by Enemy team</span>
+
+<span class="nc bnc" id="L407" title="All 2 branches missed.">		if (player2 != null) {</span>
+			// Player 2 movement and shooting
+<span class="nc" id="L409">			boolean moveRight2 = inputManager.isKeyDown(KeyEvent.VK_C);</span>
+<span class="nc" id="L410">			boolean moveLeft2 = inputManager.isKeyDown(KeyEvent.VK_Z);</span>
+
+<span class="nc bnc" id="L412" title="All 4 branches missed.">			if (moveRight2 &amp;&amp; player2.getPositionX() + player2.getWidth() &lt; width) {</span>
+<span class="nc" id="L413">				player2.moveRight();</span>
+			}
+<span class="nc bnc" id="L415" title="All 4 branches missed.">			if (moveLeft2 &amp;&amp; player2.getPositionX() &gt; 0) {</span>
+<span class="nc" id="L416">				player2.moveLeft();</span>
+			}
+<span class="nc bnc" id="L418" title="All 2 branches missed.">			if (inputManager.isKeyDown(KeyEvent.VK_X)) {</span>
+<span class="nc" id="L419">				player2.shoot(bullets);</span>
+			}
+
+			// Player 2 bullet collision handling
+<span class="nc" id="L423">			TwoPlayerMode.handleBulletCollisionsForPlayer2(this.bullets, player2);</span>
+
+			// 장애물과 아이템 상호작용 추가
+<span class="nc" id="L426">			TwoPlayerMode.handleObstacleCollisionsForPlayer2(this.obstacles, player2);</span>
+<span class="nc" id="L427">			TwoPlayerMode.handleItemCollisionsForPlayer2(player2);</span>
+		}
+<span class="nc" id="L429">		draw();</span>
+
+		/**
+		 * Added by the Level Design team and edit by team Enemy
+		 * Changed the conditions for the game to end  by team Enemy
+		 *
+		 * Counts and checks if the number of waves destroyed match the intended number of waves for this level
+		 * Spawn another wave
+		 **/
+<span class="nc bnc" id="L438" title="All 4 branches missed.">		if (getRemainingEnemies() == 0 &amp;&amp; waveCounter &lt; this.gameSettings.getWavesNumber()) {</span>
+
+<span class="nc" id="L440">			waveCounter++;</span>
+<span class="nc" id="L441">			this.initialize();</span>
+
+		}
+
+		/**
+		* Wave counter condition added by the Level Design team*
+		* Changed the conditions for the game to end  by team Enemy
+		*
+		* Checks if the intended number of waves for this level was destroyed
+		* **/
+<span class="nc bnc" id="L451" title="All 4 branches missed.">		if ((getRemainingEnemies() == 0</span>
+		&amp;&amp; !this.levelFinished
+<span class="nc bnc" id="L453" title="All 6 branches missed.">		&amp;&amp; waveCounter == this.gameSettings.getWavesNumber()</span>
+		&amp;&amp; this.returnCode != 4)
+		|| (this.lives == 0)
+<span class="nc bnc" id="L456" title="All 2 branches missed.">		|| isRoundClearedByTime()</span>
+		) {
+<span class="nc" id="L458">			this.levelFinished = true;</span>
+			//this.screenFinishedCooldown.reset(); It works now -- With love, Level Design Team
+		}
+
+<span class="nc bnc" id="L462" title="All 4 branches missed.">		if (this.levelFinished &amp;&amp; this.screenFinishedCooldown.checkFinished()) {</span>
+			//this.logger.info(&quot;Final Playtime: &quot; + playTime + &quot; seconds&quot;);    //clove
+<span class="nc" id="L464">			achievementConditions.checkNoDeathAchievements(lives);</span>
+<span class="nc" id="L465">			achievementConditions.score(score);</span>
+			try { //Team Clove
+<span class="nc" id="L467">				statistics.comHighestLevel(level);</span>
+<span class="nc" id="L468">				statistics.addBulletShot(bulletsShot);</span>
+<span class="nc" id="L469">				statistics.addShipsDestroyed(shipsDestroyed);</span>
+
+<span class="nc" id="L471">				achievementConditions.onKill();</span>
+<span class="nc" id="L472">				achievementConditions.onStage();</span>
+<span class="nc" id="L473">				achievementConditions.trials();</span>
+<span class="nc" id="L474">				achievementConditions.killStreak();</span>
+<span class="nc" id="L475">				achievementConditions.fastKill(fastKill);</span>
+<span class="nc" id="L476">				achievementConditions.score(score);</span>
+
+<span class="nc" id="L478">			} catch (IOException e) {</span>
+<span class="nc" id="L479">				throw new RuntimeException(e);</span>
+<span class="nc" id="L480">			}</span>
+
+<span class="nc" id="L482">			this.isRunning = false;</span>
+		}
+<span class="nc" id="L484">	}</span>
+
+	/**
+	 * Draws the elements associated with the screen.
+	 */
+	public void draw() {
+<span class="nc" id="L490">		drawManager.initDrawing(this);</span>
+
+		/** ### TEAM INTERNATIONAL ### */
+<span class="nc" id="L493">		drawManager.drawBackground(backgroundMoveRight, backgroundMoveLeft, returnCode, level);</span>
+<span class="nc" id="L494">		this.backgroundMoveRight = false;</span>
+<span class="nc" id="L495">		this.backgroundMoveLeft = false;</span>
+
+<span class="nc" id="L497">		DrawManagerImpl.drawRect(0, 0, this.width, SEPARATION_LINE_HEIGHT, Color.BLACK);</span>
+<span class="nc" id="L498">		DrawManagerImpl.drawRect(0, this.height - 70, this.width, 70, Color.BLACK); // by Saeum Jung - TeamHUD</span>
+
+<span class="nc bnc" id="L500" title="All 2 branches missed.">		if (this.ship.getCanShoot360()) {    // 임시</span>
+<span class="nc" id="L501">			drawManager.drawRotateEntity(this.ship, this.ship.getPositionX(),</span>
+<span class="nc" id="L502">					this.ship.getPositionY(), this.ship.getAngle());</span>
+		} else {
+<span class="nc" id="L504">			drawManager.drawEntity(this.ship, this.ship.getPositionX(),</span>
+<span class="nc" id="L505">					this.ship.getPositionY());</span>
+		}
+
+<span class="nc bnc" id="L508" title="All 2 branches missed.">		if (player2 != null) {</span>
+<span class="nc" id="L509">			drawManager.drawEntity(player2, player2.getPositionX(), player2.getPositionY());</span>
+		}
+<span class="nc bnc" id="L511" title="All 2 branches missed.">		if (this.enemyShipSpecial != null)</span>
+<span class="nc" id="L512">			drawManager.drawEntity(this.enemyShipSpecial,</span>
+<span class="nc" id="L513">					this.enemyShipSpecial.getPositionX(),</span>
+<span class="nc" id="L514">					this.enemyShipSpecial.getPositionY());</span>
+
+<span class="nc" id="L516">		enemyShipFormation.draw();</span>
+
+<span class="nc" id="L518">		DrawManagerImpl.drawSpeed(this, ship.getSpeed()); // Ko jesung / HUD team</span>
+<span class="nc" id="L519">		DrawManagerImpl.drawSeparatorLine(this,  this.height-65); // Ko jesung / HUD team</span>
+
+
+<span class="nc bnc" id="L522" title="All 2 branches missed.">		for (PiercingBullet bullet : this.bullets)</span>
+<span class="nc bnc" id="L523" title="All 6 branches missed.">			if ((this.ship.getCanShoot360() &amp;&amp; bullet.getBulletType() == 0) || bullet.getBulletType() == 1)</span>
+<span class="nc" id="L524">				drawManager.drawRotateEntity(bullet, bullet.getPositionX(),</span>
+<span class="nc" id="L525">								bullet.getPositionY(), bullet.getAngle());</span>
+			else
+<span class="nc" id="L527">				drawManager.drawEntity(bullet, bullet.getPositionX(),</span>
+<span class="nc" id="L528">						bullet.getPositionY());</span>
+
+<span class="nc" id="L530">		this.itemManager.drawItems(); //by Enemy team</span>
+
+		// --- OBSTACLES - Draw Obstaacles
+<span class="nc bnc" id="L533" title="All 2 branches missed.">		if (!this.levelFinished) {</span>
+<span class="nc bnc" id="L534" title="All 2 branches missed.">			for (Obstacle obstacle : this.obstacles) {</span>
+<span class="nc" id="L535">				drawManager.drawEntity(obstacle, obstacle.getPositionX(), obstacle.getPositionY());</span>
+<span class="nc" id="L536">			}</span>
+		}
+
+
+		// Interface.
+//		drawManager.drawScore(this, this.scoreManager.getAccumulatedScore());    //clove -&gt; edit by jesung ko - TeamHUD(to udjust score)
+//		drawManager.drawScore(this, this.score); // by jesung ko - TeamHUD
+<span class="nc" id="L543">		DrawManagerImpl.drawScore2(this,this.score); // by jesung ko - TeamHUD</span>
+<span class="nc" id="L544">		drawManager.drawLives(this, this.lives);	</span>
+<span class="nc" id="L545">		drawManager.drawHorizontalLine(this, SEPARATION_LINE_HEIGHT - 1);</span>
+<span class="nc" id="L546">		DrawManagerImpl.drawRemainingEnemies(this, getRemainingEnemies()); // by HUD team SeungYun</span>
+<span class="nc" id="L547">		DrawManagerImpl.drawLevel(this, this.level);</span>
+<span class="nc" id="L548">		DrawManagerImpl.drawBulletSpeed(this, ship.getBulletSpeedY());</span>
+		// Call the method in DrawManagerImpl - Lee Hyun Woo TeamHud
+<span class="nc" id="L550">		DrawManagerImpl.drawTime(this, this.playTime);</span>
+		// Call the method in DrawManagerImpl - Soomin Lee / TeamHUD
+<span class="nc" id="L552">		drawManager.drawItem(this); // HUD team - Jo Minseo</span>
+<span class="nc bnc" id="L553" title="All 2 branches missed.">		double percent = (System.currentTimeMillis() - playStartTime) &gt; 0 ?</span>
+<span class="nc" id="L554">			 (double) ((System.currentTimeMillis() - playStartTime) * 100) / (1000 * 15) : 0;</span>
+<span class="nc bnc" id="L555" title="All 2 branches missed.">		if(returnCode == 4) DrawManagerImpl.drawPercentage(this, percent);	// story모드 time에 따른 percent 적용 필요</span>
+
+<span class="nc bnc" id="L557" title="All 2 branches missed.">		if(player2 != null){</span>
+<span class="nc" id="L558">			DrawManagerImpl.drawBulletSpeed2P(this, player2.getBulletSpeedY());</span>
+<span class="nc" id="L559">			DrawManagerImpl.drawSpeed2P(this, player2.getSpeed());</span>
+<span class="nc" id="L560">			DrawManagerImpl.drawLives2P(this, ((TwoPlayerMode) this).getLivestwo());</span>
+<span class="nc bnc" id="L561" title="All 2 branches missed.">			if (((TwoPlayerMode) this).getLivestwo() == 0) {</span>
+<span class="nc" id="L562">				player2 = null;</span>
+			}
+		} // by HUD team HyunWoo
+
+		// Countdown to game start.
+<span class="nc bnc" id="L567" title="All 2 branches missed.">		if (!this.inputDelay.checkFinished()) {</span>
+<span class="nc" id="L568">			int countdown = (int) ((INPUT_DELAY</span>
+<span class="nc" id="L569">					- (System.currentTimeMillis()</span>
+					- this.gameStartTime)) / 1000);
+
+			/**
+			 * Wave counter condition added by the Level Design team
+			 *
+			 * Display the wave number instead of the level number
+			 * **/
+<span class="nc bnc" id="L577" title="All 2 branches missed.">			if (waveCounter != 1) {</span>
+<span class="nc" id="L578">				drawManager.drawWave(this, waveCounter, countdown);</span>
+			} else {
+<span class="nc" id="L580">				drawManager.drawCountDown(this, this.level, countdown,</span>
+						this.bonusLife);
+			}
+
+<span class="nc" id="L584">			drawManager.drawHorizontalLine(this, this.height / 2 - this.height</span>
+					/ 12);
+<span class="nc" id="L586">			drawManager.drawHorizontalLine(this, this.height / 2 + this.height</span>
+					/ 12);
+		}
+
+		// Soomin Lee / TeamHUD
+<span class="nc bnc" id="L591" title="All 2 branches missed.">		if (this.inputDelay.checkFinished()) {</span>
+<span class="nc" id="L592">			playTime = (int) ((System.currentTimeMillis() - playStartTime) / 1000) + playTimePre;</span>
+		}
+
+<span class="nc" id="L595">		super.drawPost();</span>
+<span class="nc" id="L596">		drawManager.completeDrawing(this);</span>
+<span class="nc" id="L597">	}</span>
+
+	/**
+	 * Cleans bullets that go off screen.
+	 */
+	private void cleanBullets() {
+<span class="nc" id="L603">		Set&lt;PiercingBullet&gt; recyclable = new HashSet&lt;PiercingBullet&gt;(); // Edited by Enemy</span>
+<span class="nc bnc" id="L604" title="All 2 branches missed.">		for (PiercingBullet bullet : this.bullets) { // Edited by Enemy</span>
+<span class="nc" id="L605">			bullet.update();</span>
+<span class="nc bnc" id="L606" title="All 2 branches missed.">			if (bullet.getPositionY() &lt; SEPARATION_LINE_HEIGHT</span>
+<span class="nc bnc" id="L607" title="All 2 branches missed.">					|| bullet.getPositionY() + bullet.getHeight() &gt; SEPARATION_LINE_HEIGHT_DOWN) // ko jesung / HUD team</span>
+			{
+				//Ctrl-S : set true of CheckCount if the bullet is planned to recycle.
+<span class="nc" id="L610">				bullet.setCheckCount(true);</span>
+<span class="nc" id="L611">				recyclable.add(bullet);</span>
+			}
+<span class="nc" id="L613">		}</span>
+<span class="nc" id="L614">		this.bullets.removeAll(recyclable);</span>
+<span class="nc" id="L615">		PiercingBulletPool.recycle(recyclable); // Edited by Enemy</span>
+<span class="nc" id="L616">	}</span>
+
+	/**
+	 * Clean obstacles that go off screen.
+	 */
+	private void cleanObstacles() { //added by Level Design Team
+<span class="nc" id="L622">		Set&lt;Obstacle&gt; removableObstacles = new HashSet&lt;&gt;();</span>
+<span class="nc bnc" id="L623" title="All 2 branches missed.">		for (Obstacle obstacle : this.obstacles) {</span>
+<span class="nc" id="L624">			obstacle.update(this.level);</span>
+<span class="nc bnc" id="L625" title="All 2 branches missed.">			if ( obstacle.getPositionY() &lt; SEPARATION_LINE_HEIGHT ||</span>
+<span class="nc bnc" id="L626" title="All 2 branches missed.">					obstacle.getPositionY() + obstacle.getHeight() &gt; SEPARATION_LINE_HEIGHT_DOWN - 10) {</span>
+<span class="nc" id="L627">				removableObstacles.add(obstacle);</span>
+			}
+<span class="nc" id="L629">		}</span>
+<span class="nc" id="L630">		this.obstacles.removeAll(removableObstacles);</span>
+<span class="nc" id="L631">	}</span>
+
+	/**
+	 * Manages collisions between bullets and ships. -original code
+	 */
+	private void manageCollisions() {
+<span class="nc" id="L637">		Set&lt;Bullet&gt; recyclable = new HashSet&lt;Bullet&gt;();</span>
+<span class="nc bnc" id="L638" title="All 2 branches missed.">		for (Bullet bullet : this.bullets)</span>
+<span class="nc bnc" id="L639" title="All 2 branches missed.">			if (bullet.getSpeedY() &gt; 0) {</span>
+<span class="nc bnc" id="L640" title="All 4 branches missed.">				if (checkCollision(bullet, this.ship) &amp;&amp; !this.levelFinished) {</span>
+<span class="nc" id="L641">					recyclable.add(bullet);</span>
+<span class="nc bnc" id="L642" title="All 4 branches missed.">					if (!this.ship.isDestroyed() &amp;&amp; !this.item.isbarrierActive()) {   // team Inventory</span>
+<span class="nc" id="L643">						this.ship.destroy();</span>
+<span class="nc" id="L644">						this.lives--;</span>
+<span class="nc" id="L645">						this.logger.info(&quot;Hit on player ship, &quot; + this.lives</span>
+								+ &quot; lives remaining.&quot;);
+					}
+				}
+			} else {
+<span class="nc bnc" id="L650" title="All 2 branches missed.">				for (EnemyShip enemyShip : this.enemyShipFormation)</span>
+<span class="nc bnc" id="L651" title="All 2 branches missed.">					if (!enemyShip.isDestroyed()</span>
+<span class="nc bnc" id="L652" title="All 2 branches missed.">							&amp;&amp; checkCollision(bullet, enemyShip)) {</span>
+<span class="nc" id="L653">						this.scoreManager.addScore(enemyShip.getPointValue());    //clove</span>
+<span class="nc" id="L654">						this.shipsDestroyed++;</span>
+						// CtrlS - increase the hitCount for 1 kill
+<span class="nc" id="L656">						this.hitCount++;</span>
+<span class="nc" id="L657">						this.enemyShipFormation.destroy(enemyShip);</span>
+<span class="nc" id="L658">						recyclable.add(bullet);</span>
+					}
+<span class="nc bnc" id="L660" title="All 2 branches missed.">				if (this.enemyShipSpecial != null</span>
+<span class="nc bnc" id="L661" title="All 2 branches missed.">						&amp;&amp; !this.enemyShipSpecial.isDestroyed()</span>
+<span class="nc bnc" id="L662" title="All 2 branches missed.">						&amp;&amp; checkCollision(bullet, this.enemyShipSpecial)) {</span>
+<span class="nc" id="L663">					this.scoreManager.addScore(this.enemyShipSpecial.getPointValue());    //clove</span>
+<span class="nc" id="L664">					this.shipsDestroyed++;</span>
+					// CtrlS - increase the hitCount for 1 kill
+<span class="nc" id="L666">					this.hitCount++;</span>
+<span class="nc" id="L667">					this.enemyShipSpecial.destroy();</span>
+<span class="nc" id="L668">					this.enemyShipSpecialExplosionCooldown.reset();</span>
+<span class="nc" id="L669">					recyclable.add(bullet);</span>
+				}
+			}
+<span class="nc" id="L672">		this.bullets.removeAll(recyclable);</span>
+<span class="nc" id="L673">		BulletPool.recycle(recyclable);</span>
+<span class="nc" id="L674">	}</span>
+
+
+	/**
+	 * Manages collisions between bullets and ships. -Edited code for Drop Item
+	 * Manages collisions between bullets and ships. -Edited code for Piercing Bullet
+	 */
+	private void adjustShipPositionAfterCollision(Ship ship, EnemyShip enemyShip) {
+<span class="nc" id="L682">		int adjustmentDistance = 10; // 충돌 후 벌어질 거리</span>
+
+
+<span class="nc bnc" id="L685" title="All 2 branches missed.">		if (ship.getPositionX() &lt; enemyShip.getPositionX()) {</span>
+<span class="nc" id="L686">			ship.setPositionX(ship.getPositionX() - adjustmentDistance);</span>
+		} else {
+<span class="nc" id="L688">			ship.setPositionX(ship.getPositionX() + adjustmentDistance);</span>
+		}
+
+<span class="nc bnc" id="L691" title="All 2 branches missed.">		if (ship.getPositionY() &lt; enemyShip.getPositionY()) {</span>
+<span class="nc" id="L692">			ship.setPositionY(ship.getPositionY() - adjustmentDistance);</span>
+		} else {
+<span class="nc" id="L694">			ship.setPositionY(ship.getPositionY() + adjustmentDistance);</span>
+		}
+
+<span class="nc" id="L697">		System.out.println(&quot;Ship position adjusted to avoid repeated collisions.&quot;);</span>
+<span class="nc" id="L698">	}</span>
+
+	public void manageCollisions_add_item() {
+<span class="nc bnc" id="L701" title="All 2 branches missed.">		for (EnemyShip enemyShip : this.enemyShipFormation) {</span>
+<span class="nc bnc" id="L702" title="All 4 branches missed.">			if (!enemyShip.isDestroyed() &amp;&amp; checkCollision(this.ship, enemyShip)) {</span>
+<span class="nc bnc" id="L703" title="All 2 branches missed.">				if (this.ship.isInvincible()) {</span>
+<span class="nc" id="L704">					System.out.println(&quot;Collision ignored due to invincibility.&quot;);</span>
+<span class="nc bnc" id="L705" title="All 2 branches missed.">				} else if (this.item.isbarrierActive()) {</span>
+<span class="nc" id="L706">					this.ship.activateFrozen();</span>
+<span class="nc" id="L707">					adjustShipPositionAfterCollision(this.ship, enemyShip);</span>
+<span class="nc" id="L708">					System.out.println(&quot;Collision blocked by shield.&quot;);</span>
+
+				} else {
+<span class="nc" id="L711">					System.out.println(&quot;Collision detected. Player lives decreased.&quot;);</span>
+<span class="nc bnc" id="L712" title="All 2 branches missed.">					if (this.ship.isInvincible()) {</span>
+<span class="nc" id="L713">						System.out.println(&quot;Collision ignored due to invincibility.&quot;);</span>
+					} else {
+<span class="nc" id="L715">						this.lives--;</span>
+<span class="nc" id="L716">						System.out.println(&quot;Collision detected. Player lives decreased.&quot;);</span>
+					}
+<span class="nc" id="L718">					this.ship.activateInvincibility();</span>
+<span class="nc" id="L719">					this.ship.destroy();</span>
+<span class="nc" id="L720">					this.logger.info(&quot;Player ship collided with enemy. Lives remaining: &quot; + this.lives);</span>
+
+<span class="nc bnc" id="L722" title="All 2 branches missed.">					if (this.lives &lt;= 0) {</span>
+<span class="nc" id="L723">						sm = SoundManager.getInstance();</span>
+<span class="nc" id="L724">						sm.playShipDieSounds();</span>
+<span class="nc" id="L725">						System.out.println(&quot;Player is out of lives.&quot;);</span>
+					}
+				}
+			}
+<span class="nc" id="L729">		}</span>
+<span class="nc" id="L730">		Set&lt;PiercingBullet&gt; recyclable = new HashSet&lt;PiercingBullet&gt;();</span>
+<span class="nc bnc" id="L731" title="All 2 branches missed.">		for (PiercingBullet bullet : this.bullets)</span>
+<span class="nc bnc" id="L732" title="All 2 branches missed.">			if (bullet.getBulletType() != 0) {</span>
+<span class="nc bnc" id="L733" title="All 4 branches missed.">				if (checkCollision(bullet, this.ship) &amp;&amp; !this.levelFinished) {</span>
+<span class="nc" id="L734">					recyclable.add(bullet);</span>
+<span class="nc bnc" id="L735" title="All 4 branches missed.">					if (!this.ship.isDestroyed() &amp;&amp; !this.item.isbarrierActive()) {   // team Inventory</span>
+<span class="nc" id="L736">						this.ship.destroy();</span>
+<span class="nc" id="L737">						this.lives--;</span>
+<span class="nc" id="L738">						this.logger.info(&quot;Hit on player ship, &quot; + this.lives</span>
+								+ &quot; lives remaining.&quot;);
+
+						// Sound Operator
+<span class="nc bnc" id="L742" title="All 2 branches missed.">						if (this.lives == 0){</span>
+<span class="nc" id="L743">							sm = SoundManager.getInstance();</span>
+<span class="nc" id="L744">							sm.playShipDieSounds();</span>
+						}
+					}
+				}
+			} else {
+				// CtrlS - set fire_id of bullet.
+<span class="nc" id="L750">				bullet.setFire_id(fire_id);</span>
+<span class="nc bnc" id="L751" title="All 2 branches missed.">				for (EnemyShip enemyShip : this.enemyShipFormation) {</span>
+<span class="nc bnc" id="L752" title="All 2 branches missed.">					if (!enemyShip.isDestroyed()</span>
+<span class="nc bnc" id="L753" title="All 2 branches missed.">							&amp;&amp; checkCollision(bullet, enemyShip)</span>
+<span class="nc bnc" id="L754" title="All 2 branches missed.">							&amp;&amp; (bullet.getPreviousEnemy() != enemyShip)) {</span>
+<span class="nc" id="L755">						int CntAndPnt[] = this.enemyShipFormation._destroy(bullet, enemyShip, false);    // team Inventory</span>
+<span class="nc" id="L756">						this.shipsDestroyed += CntAndPnt[0];</span>
+<span class="nc" id="L757">						int feverScore = CntAndPnt[0]; //TEAM CLOVE //Edited by team Enemy</span>
+
+<span class="nc bnc" id="L759" title="All 2 branches missed.">						if(enemyShip.getHp() &lt;= 0) {</span>
+							//inventory_f fever time is activated, the score is doubled.
+<span class="nc bnc" id="L761" title="All 2 branches missed.">							if(feverTimeItem.isActive()) {</span>
+<span class="nc" id="L762">								feverScore = feverScore * 10;</span>
+							}
+<span class="nc" id="L764">							this.shipsDestroyed++;</span>
+						}
+
+<span class="nc" id="L767">            			this.scoreManager.addScore(feverScore); //clove</span>
+<span class="nc" id="L768">            			this.score += CntAndPnt[1];</span>
+
+						// CtrlS - If collision occur then check the bullet can process
+<span class="nc bnc" id="L771" title="All 2 branches missed.">						if (!processedFireBullet.contains(bullet.getFire_id())) {</span>
+							// CtrlS - increase hitCount if the bullet can count
+<span class="nc bnc" id="L773" title="All 2 branches missed.">							if (bullet.isCheckCount()) {</span>
+<span class="nc" id="L774">								hitCount++;</span>
+<span class="nc" id="L775">								bullet.setCheckCount(false);</span>
+<span class="nc" id="L776">								this.logger.info(&quot;Hit count!&quot;);</span>
+<span class="nc" id="L777">								processedFireBullet.add(bullet.getFire_id()); // mark this bullet_id is processed.</span>
+							}
+						}
+
+<span class="nc" id="L781">						bullet.onCollision(enemyShip); // Handle bullet collision with enemy ship</span>
+
+						// Check PiercingBullet piercing count and add to recyclable if necessary
+<span class="nc bnc" id="L784" title="All 2 branches missed.">						if (bullet.getPiercingCount() &lt;= 0) {</span>
+							//Ctrl-S : set true of CheckCount if the bullet is planned to recycle.
+<span class="nc" id="L786">							bullet.setCheckCount(true);</span>
+<span class="nc" id="L787">							recyclable.add(bullet);</span>
+						}
+					}
+					// Added by team Enemy.
+					// Enemy killed by Explosive enemy gives points too
+<span class="nc bnc" id="L792" title="All 2 branches missed.">					if (enemyShip.isChainExploded()) {</span>
+<span class="nc bnc" id="L793" title="All 2 branches missed.">						if (enemyShip.getColor() == Color.MAGENTA) {</span>
+<span class="nc" id="L794">							this.itemManager.dropItem(enemyShip, 1, 1);</span>
+						}
+<span class="nc" id="L796">						this.score += enemyShip.getPointValue();</span>
+<span class="nc" id="L797">						this.shipsDestroyed++;</span>
+<span class="nc" id="L798">						enemyShip.setChainExploded(false); // resets enemy's chain explosion state.</span>
+					}
+<span class="nc" id="L800">				}</span>
+<span class="nc bnc" id="L801" title="All 2 branches missed.">				if (this.enemyShipSpecial != null</span>
+<span class="nc bnc" id="L802" title="All 2 branches missed.">						&amp;&amp; !this.enemyShipSpecial.isDestroyed()</span>
+<span class="nc bnc" id="L803" title="All 2 branches missed.">						&amp;&amp; checkCollision(bullet, this.enemyShipSpecial)) {</span>
+
+<span class="nc" id="L805">					int feverSpecialScore = enemyShipSpecial.getPointValue();</span>
+          			// inventory - Score bonus when acquiring fever items
+<span class="nc bnc" id="L807" title="All 2 branches missed.">					if (feverTimeItem.isActive()) { feverSpecialScore *= 10; } //TEAM CLOVE //Team inventory</span>
+
+					// CtrlS - If collision occur then check the bullet can process
+<span class="nc bnc" id="L810" title="All 2 branches missed.">					if (!processedFireBullet.contains(bullet.getFire_id())) {</span>
+						// CtrlS - If collision occur then increase hitCount and checkCount
+<span class="nc bnc" id="L812" title="All 2 branches missed.">						if (bullet.isCheckCount()) {</span>
+<span class="nc" id="L813">							hitCount++;</span>
+<span class="nc" id="L814">							bullet.setCheckCount(false);</span>
+<span class="nc" id="L815">							this.logger.info(&quot;Hit count!&quot;);</span>
+						}
+					}
+<span class="nc" id="L818">					this.scoreManager.addScore(feverSpecialScore); //clove</span>
+<span class="nc" id="L819">					this.shipsDestroyed++;</span>
+<span class="nc" id="L820">					this.enemyShipSpecial.destroy();</span>
+<span class="nc" id="L821">					this.enemyShipSpecialExplosionCooldown.reset();</span>
+
+<span class="nc" id="L823">					bullet.onCollision(this.enemyShipSpecial); // Handle bullet collision with special enemy</span>
+
+					// Check PiercingBullet piercing count for special enemy and add to recyclable if necessary
+<span class="nc bnc" id="L826" title="All 2 branches missed.">					if (bullet.getPiercingCount() &lt;= 0) {</span>
+						//Ctrl-S : set true of CheckCount if the bullet is planned to recycle.
+<span class="nc" id="L828">						bullet.setCheckCount(true);</span>
+<span class="nc" id="L829">						recyclable.add(bullet);</span>
+					}
+
+					//// Drop item to 100%
+<span class="nc" id="L833">					this.itemManager.dropItem(enemyShipSpecial,1,2);</span>
+				}
+
+<span class="nc bnc" id="L836" title="All 2 branches missed.">				for (Obstacle obstacle : this.obstacles) {</span>
+<span class="nc bnc" id="L837" title="All 4 branches missed.">					if (!obstacle.isDestroyed() &amp;&amp; checkCollision(bullet, obstacle)) {</span>
+<span class="nc" id="L838">						obstacle.destroy();  // Destroy obstacle</span>
+<span class="nc" id="L839">						recyclable.add(bullet);  // Remove bullet</span>
+
+						// Sound Operator
+<span class="nc" id="L842">						sm = SoundManager.getInstance();</span>
+<span class="nc" id="L843">						sm.playES(&quot;obstacle_explosion&quot;);</span>
+					}
+<span class="nc" id="L845">				}</span>
+			}
+
+<span class="nc bnc" id="L848" title="All 2 branches missed.">		for (Obstacle obstacle : this.obstacles) {</span>
+<span class="nc bnc" id="L849" title="All 4 branches missed.">			if (!obstacle.isDestroyed() &amp;&amp; checkCollision(this.ship, obstacle)) {</span>
+				//Obstacles ignored when barrier activated_team inventory
+<span class="nc bnc" id="L851" title="All 2 branches missed.">				if (!this.item.isbarrierActive()) {</span>
+<span class="nc" id="L852">					this.lives--;</span>
+<span class="nc bnc" id="L853" title="All 2 branches missed.">					if (!this.ship.isDestroyed()) {</span>
+<span class="nc" id="L854">						this.ship.destroy();  // Optionally, destroy the ship or apply other effects.</span>
+					}
+<span class="nc" id="L856">					obstacle.destroy();  // Destroy obstacle</span>
+<span class="nc" id="L857">					this.logger.info(&quot;Ship hit an obstacle, &quot; + this.lives + &quot; lives remaining.&quot;);</span>
+				} else {
+<span class="nc" id="L859">					obstacle.destroy();  // Destroy obstacle</span>
+<span class="nc" id="L860">					this.logger.info(&quot;Shield blocked the hit from an obstacle, &quot; + this.lives + &quot; lives remaining.&quot;);</span>
+				}
+
+<span class="nc" id="L863">				break;  // Stop further collisions if the ship is destroyed.</span>
+			}
+<span class="nc" id="L865">		}</span>
+
+<span class="nc" id="L867">		this.bullets.removeAll(recyclable);</span>
+<span class="nc" id="L868">		PiercingBulletPool.recycle(recyclable);</span>
+
+		//Check item and ship collision
+<span class="nc bnc" id="L871" title="All 2 branches missed.">		for(Item item : itemManager.items){</span>
+<span class="nc bnc" id="L872" title="All 2 branches missed.">			if (checkCollision(item, ship)) {</span>
+<span class="nc" id="L873">				itemManager.OperateItem(item);</span>
+				// CtrlS: Count coin
+<span class="nc bnc" id="L875" title="All 2 branches missed.">				if (item.getSpriteType() == DrawManager.SpriteType.ItemCoin) coinItemsCollected++;</span>
+<span class="nc" id="L876">				Core.getLogger().info(&quot;coin: &quot; + coinItemsCollected);</span>
+			}
+<span class="nc" id="L878">		}</span>
+<span class="nc" id="L879">		itemManager.removeAllReItems();</span>
+
+
+<span class="nc" id="L882">	}</span>
+
+
+	/**
+	 * Checks if two entities are colliding.
+	 *
+	 * @param a
+	 *            First entity, the bullet.
+	 * @param b
+	 *            Second entity, the ship.
+	 * @return Result of the collision test.
+	 */
+	public static boolean checkCollision(final Entity a, final Entity b) {
+		// Calculate center point of the entities in both axis.
+<span class="nc" id="L896">		int centerAX = a.getPositionX() + a.getWidth() / 2;</span>
+<span class="nc" id="L897">		int centerAY = a.getPositionY() + a.getHeight() / 2;</span>
+<span class="nc" id="L898">		int centerBX = b.getPositionX() + b.getWidth() / 2;</span>
+<span class="nc" id="L899">		int centerBY = b.getPositionY() + b.getHeight() / 2;</span>
+		// Calculate maximum distance without collision.
+<span class="nc" id="L901">		int maxDistanceX = a.getWidth() / 2 + b.getWidth() / 2;</span>
+<span class="nc" id="L902">		int maxDistanceY = a.getHeight() / 2 + b.getHeight() / 2;</span>
+		// Calculates distance.
+<span class="nc" id="L904">		int distanceX = Math.abs(centerAX - centerBX);</span>
+<span class="nc" id="L905">		int distanceY = Math.abs(centerAY - centerBY);</span>
+
+<span class="nc bnc" id="L907" title="All 4 branches missed.">		return distanceX &lt; maxDistanceX &amp;&amp; distanceY &lt; maxDistanceY;</span>
+	}
+
+	public int getBulletsShot(){    //clove
+<span class="nc" id="L911">		return this.bulletsShot;    //clove</span>
+	}                               //clove
+
+	/**
+	 * Add playtime parameter - Soomin Lee / TeamHUD
+	 * Returns a GameState object representing the status of the game.
+	 *
+	 * @return Current game state.
+	 */
+	public final GameState getGameState() {
+<span class="nc" id="L921">		return new GameState(this.level, this.scoreManager.getAccumulatedScore(), this.lives,this.livestwo,</span>
+				this.bulletsShot, this.shipsDestroyed, this.playTime, this.coin, this.gem, this.hitCount, this.coinItemsCollected); // Team-Ctrl-S(Currency)
+	}
+	public int getLives() {
+<span class="nc" id="L925">		return lives;</span>
+	}
+	public void setLives(int lives) {
+<span class="nc" id="L928">		this.lives = lives;</span>
+<span class="nc" id="L929">	}</span>
+
+	public Ship getShip() {
+<span class="nc" id="L932">		return ship;</span>
+	}   // Team Inventory(Item)
+
+	public ItemBarrierAndHeart getItem() {
+<span class="nc" id="L936">		return item;</span>
+	}   // Team Inventory(Item)
+
+	public FeverTimeItem getFeverTimeItem() {
+<span class="nc" id="L940">		return feverTimeItem;</span>
+	} // Team Inventory(Item)
+	/**
+	 * Check remaining enemies
+	 *
+	 * @return remaining enemies count.
+	 *
+	 */
+	private int getRemainingEnemies() {
+<span class="nc" id="L949">		int remainingEnemies = 0;</span>
+<span class="nc bnc" id="L950" title="All 2 branches missed.">		for (EnemyShip enemyShip : this.enemyShipFormation) {</span>
+<span class="nc bnc" id="L951" title="All 2 branches missed.">			if (!enemyShip.isDestroyed()) {</span>
+<span class="nc" id="L952">				remainingEnemies++;</span>
+			}
+<span class="nc" id="L954">		}</span>
+<span class="nc" id="L955">		return remainingEnemies;</span>
+	} // by HUD team SeungYun
+
+
+	public SpeedItem getSpeedItem() {
+<span class="nc" id="L960">		return this.speedItem;</span>
+	}
+	public boolean isRoundClearedByTime() {
+<span class="nc bnc" id="L963" title="All 4 branches missed.">		return (returnCode == 4) &amp;&amp; (playTime - playTimePre &gt;= 15);</span>
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.10.202304240956</span></div></body></html>

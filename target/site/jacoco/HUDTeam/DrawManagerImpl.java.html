@@ -1,0 +1,301 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="ko"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>DrawManagerImpl.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">my-java-project</a> &gt; <a href="index.source.html" class="el_package">HUDTeam</a> &gt; <span class="el_source">DrawManagerImpl.java</span></div><h1>DrawManagerImpl.java</h1><pre class="source lang-java linenums">package HUDTeam;
+
+import engine.DrawManager;
+import entity.EnemyShip;
+import screen.GameScreen;
+import screen.Screen;
+import entity.Entity;
+
+import java.awt.*;
+import java.awt.geom.RoundRectangle2D;
+
+<span class="nc" id="L12">public class DrawManagerImpl extends DrawManager {</span>
+
+    // Add method
+    public static void drawLevel(final Screen screen, final int level){
+<span class="nc" id="L16">        String levelText = &quot;Level: &quot; + level;</span>
+
+<span class="nc" id="L18">        backBufferGraphics.setFont(fontRegular);</span>
+<span class="nc" id="L19">        backBufferGraphics.setColor(Color.WHITE);</span>
+
+<span class="nc" id="L21">        int xPosition = screen.getWidth() / 2;</span>
+<span class="nc" id="L22">        int yPosition = 25;</span>
+
+<span class="nc" id="L24">        backBufferGraphics.drawString(levelText, xPosition - fontRegularMetrics.stringWidth(levelText) / 2, yPosition); // edit by jesung ko - TeamHUD</span>
+<span class="nc" id="L25">    } // Lee Hyun Woo - level</span>
+
+    public static void drawBulletSpeed(final Screen screen, final int bulletSpeed) {
+<span class="nc" id="L28">        backBufferGraphics.setFont(fontRegular);</span>
+<span class="nc" id="L29">        backBufferGraphics.setColor(Color.WHITE);</span>
+<span class="nc" id="L30">        String bulletSpeedText = String.format(&quot;BS : %d px/f &quot;, bulletSpeed);</span>
+<span class="nc" id="L31">        backBufferGraphics.drawString(bulletSpeedText, 10, screen.getHeight() - 15);</span>
+<span class="nc" id="L32">    }</span>
+
+    public static void drawSpeed(final Screen screen, final double speed) {
+<span class="nc" id="L35">        String speedString = &quot;MS : &quot; + speed;</span>
+<span class="nc" id="L36">        backBufferGraphics.setColor(Color.WHITE);</span>
+<span class="nc" id="L37">        backBufferGraphics.setFont(fontRegular);</span>
+<span class="nc" id="L38">        backBufferGraphics.drawString(speedString, 10, screen.getHeight() - 35);</span>
+<span class="nc" id="L39">    }</span>
+
+    public void drawLivesWithHeart(final Screen screen, final int lives) {
+<span class="nc" id="L42">        backBufferGraphics.setFont(fontRegular);</span>
+<span class="nc" id="L43">        backBufferGraphics.setColor(Color.WHITE);</span>
+
+<span class="nc" id="L45">        Entity heart = new Entity(0, 0, 13 * 2, 8 * 2, Color.RED) {</span>
+
+        };
+<span class="nc" id="L48">        heart.setSpriteType(SpriteType.Heart);</span>
+
+<span class="nc bnc" id="L50" title="All 2 branches missed.">        for (int i = 0; i &lt; lives; i++) {</span>
+<span class="nc" id="L51">            drawEntity(heart, 20 + 30 * i, 10);</span>
+        }
+<span class="nc" id="L53">    } // Saeum Jung - heart graphic</span>
+
+    /**
+     * Draws current score on screen.
+     *
+     * @param screen
+     *            Screen to draw on.
+     * @param playTime
+     *            Current playtime.
+     *
+     * by Soomin Lee - TeamHUD
+     */
+    public static void drawTime(final Screen screen, final int playTime) {
+<span class="nc" id="L66">        backBufferGraphics.setFont(fontRegular);</span>
+<span class="nc" id="L67">        backBufferGraphics.setColor(Color.WHITE);</span>
+<span class="nc" id="L68">        int playTimeMinutes = playTime / 60;</span>
+<span class="nc" id="L69">        int playTimeSeconds = playTime % 60;</span>
+<span class="nc" id="L70">        String playTimeString = String.format(&quot;%d&quot;+&quot;m &quot;+&quot;%d&quot;+&quot;s&quot;, playTimeMinutes, playTimeSeconds);</span>
+<span class="nc" id="L71">        int xPosition = (screen.getWidth() * 4) / 6; // position 4/6</span>
+<span class="nc" id="L72">        backBufferGraphics.drawString(playTimeString, xPosition - fontRegularMetrics.stringWidth(playTimeString) / 2, 25); // edit by jesung ko - TeamHUD</span>
+<span class="nc" id="L73">    }</span>
+
+    /**
+     * Draws the player's score on the screen.
+     * The score is displayed at the 2/6 position of the screen width.
+     *
+     * @param screen
+     *          The screen to draw on.
+     * @param score
+     *          The current score to display.
+     * by jesung Ko - TeamHUD
+     */
+    public static void drawScore2(final Screen screen, final int score) {
+<span class="nc" id="L86">        String scoreString = &quot;Score: &quot; + score;</span>
+<span class="nc" id="L87">        backBufferGraphics.setFont(fontRegular);</span>
+<span class="nc" id="L88">        backBufferGraphics.setColor(Color.WHITE);</span>
+<span class="nc" id="L89">        int xPosition = (screen.getWidth() * 2) / 6; // 2/6 지점</span>
+<span class="nc" id="L90">        backBufferGraphics.drawString(scoreString, xPosition - fontRegularMetrics.stringWidth(scoreString) / 2, 25);</span>
+<span class="nc" id="L91">    }</span>
+    /**
+     * Show accomplished achievement
+     *
+     * @param screen
+     *            Screen to draw on.
+     * @param achievementText
+     *            Accomplished achievement text.
+     *
+     * by Jo Minseo - HUD team
+     */
+    public static void drawAchievement(final Screen screen, String achievementText) {
+<span class="nc" id="L103">        int width = screen.getWidth() / 4;</span>
+<span class="nc" id="L104">        int height = screen.getHeight() / 16;</span>
+        int fontWidth;
+
+<span class="nc" id="L107">        backBufferGraphics.setColor(Color.white);</span>
+<span class="nc" id="L108">        backBufferGraphics.drawRect(screen.getWidth() - width - 3, screen.getHeight() - height - 18, width, height);</span>
+
+        //Modify the location of the window and the text - Jo Minseo/HUD team
+<span class="nc" id="L111">        backBufferGraphics.setColor(Color.white);</span>
+<span class="nc" id="L112">        backBufferGraphics.setFont(fontRegular);</span>
+<span class="nc bnc" id="L113" title="All 2 branches missed.">        if(achievementText.length() &lt; 14){</span>
+<span class="nc" id="L114">            fontWidth = fontRegularMetrics.stringWidth(achievementText);</span>
+<span class="nc" id="L115">            backBufferGraphics.drawString(achievementText, screen.getWidth() - width / 2 - fontWidth / 2, screen.getHeight() - 35);</span>
+        }
+<span class="nc bnc" id="L117" title="All 2 branches missed.">        else if(achievementText.length() &lt; 27){</span>
+<span class="nc" id="L118">            fontWidth = fontRegularMetrics.stringWidth(achievementText.substring(0,13));</span>
+<span class="nc" id="L119">            backBufferGraphics.drawString(achievementText.substring(0,13), screen.getWidth() - width / 2 - fontWidth / 2, screen.getHeight() - 43);</span>
+<span class="nc" id="L120">            fontWidth = fontRegularMetrics.stringWidth(achievementText.substring(13));</span>
+<span class="nc" id="L121">            backBufferGraphics.drawString(achievementText.substring(13), screen.getWidth() - width/2 - fontWidth / 2, screen.getHeight() - 25);</span>
+        }
+        else{
+<span class="nc" id="L124">            fontWidth = fontRegularMetrics.stringWidth(achievementText.substring(0,13));</span>
+<span class="nc" id="L125">            backBufferGraphics.drawString(achievementText.substring(0,13), screen.getWidth() - width / 2 - fontWidth / 2, screen.getHeight() - 43);</span>
+<span class="nc" id="L126">            fontWidth = fontRegularMetrics.stringWidth(achievementText.substring(13,25)+&quot;...&quot;);</span>
+<span class="nc" id="L127">            backBufferGraphics.drawString(achievementText.substring(13,25)+&quot;...&quot;, screen.getWidth() - width / 2 - fontWidth / 2, screen.getHeight() - 25);</span>
+        }
+<span class="nc" id="L129">    }</span>
+
+    /**
+     * Draw remaining enemies
+     *
+     * @param screen
+     *            Screen to draw on.
+     * @param remainingEnemies
+     *            remaining enemies count.
+     */
+    public static void drawRemainingEnemies(final Screen screen, final int remainingEnemies) {
+<span class="nc" id="L140">        backBufferGraphics.setFont(fontRegular);</span>
+<span class="nc" id="L141">        backBufferGraphics.setColor(Color.WHITE);</span>
+<span class="nc" id="L142">        String remainingEnemiesString = &quot;Enemies: &quot; + remainingEnemies;</span>
+<span class="nc" id="L143">        int textWidth = fontRegularMetrics.stringWidth(remainingEnemiesString);</span>
+
+<span class="nc" id="L145">        int x = (screen.getWidth() - textWidth) / 2;</span>
+<span class="nc" id="L146">        int y = screen.getHeight() - 25;</span>
+
+<span class="nc" id="L148">        backBufferGraphics.drawString(remainingEnemiesString, x, y);</span>
+<span class="nc" id="L149">    } // by SeungYun</span>
+
+
+
+    /**
+     * Draws current score on screen.
+     *
+     * @param screen
+     *            Screen to draw on.
+     * @param positionY
+     *            Position to display separator line.
+     *
+     * by Ko jesung - TeamHUD
+     */
+    public static void drawSeparatorLine(final Screen screen, final int positionY) {
+<span class="nc" id="L164">        backBufferGraphics.setColor(Color.GREEN);</span>
+<span class="nc" id="L165">        backBufferGraphics.drawLine(0, positionY, screen.getWidth(), positionY);</span>
+<span class="nc" id="L166">        backBufferGraphics.drawLine(0, positionY + 1, screen.getWidth(),</span>
+                positionY + 1);
+<span class="nc" id="L168">    }</span>
+
+    /**
+     * Draws a filled rectangle with specified color at given coordinates.
+     *
+     * @param x
+     *            The x-coordinate of the rectangle's top-left corner.
+     * @param y
+     *            The y-coordinate of the rectangle's top-left corner.
+     * @param width
+     *            The width of the rectangle.
+     * @param height
+     *            The height of the rectangle.
+     * @param color
+     *            The color to fill the rectangle.
+     */
+    public static void drawRect(final int x, final int y, final int width, final int height, final Color color) {
+<span class="nc" id="L185">        backBufferGraphics.setColor(color);</span>
+<span class="nc" id="L186">        backBufferGraphics.fillRect(x, y, width, height);</span>
+<span class="nc" id="L187">    } // by Saeum Jung - TeamHUD</span>
+
+    /**
+     * Draws 2P's lives on screen.
+     *
+     * @param screen
+     *            Screen to draw on.
+     * @param livestwo two
+     *            2P's lives
+     *
+     * by Lee HyunWoo - TeamHUD
+     */
+    public static void drawLives2P(final Screen screen, final int livestwo) {
+<span class="nc" id="L200">        backBufferGraphics.setFont(fontRegular);</span>
+<span class="nc" id="L201">        backBufferGraphics.setColor(Color.WHITE);</span>
+<span class="nc" id="L202">        Entity heart = new Entity(0, 0, 13 * 2, 8 * 2, Color.BLUE) {</span>
+
+        };
+<span class="nc" id="L205">        heart.setSpriteType(SpriteType.Heart);</span>
+
+<span class="nc" id="L207">        int heartWidth = 13 * 2;</span>
+<span class="nc" id="L208">        int startingXPosition = screen.getWidth() - (heartWidth * livestwo) - 20;</span>
+
+<span class="nc bnc" id="L210" title="All 2 branches missed.">        for (int i = 0; i &lt; livestwo; i++)</span>
+<span class="nc" id="L211">            drawEntity(heart, startingXPosition + 30 * i, 10);</span>
+<span class="nc" id="L212">    }</span>
+
+    /**
+     * Draws 2P's bulletSpeed on screen.
+     *
+     * @param screen
+     *            Screen to draw on.
+     * @param bulletSpeed two
+     *            2P's bulletSpeed
+     *
+     * by Lee HyunWoo - TeamHUD
+     */
+    public static void drawBulletSpeed2P(final Screen screen, final int bulletSpeed) {
+<span class="nc" id="L225">        backBufferGraphics.setFont(fontRegular);</span>
+<span class="nc" id="L226">        backBufferGraphics.setColor(Color.WHITE);</span>
+<span class="nc" id="L227">        String bulletSpeedText = String.format(&quot;BS : %d px/f &quot;, bulletSpeed);</span>
+<span class="nc" id="L228">        backBufferGraphics.drawString(bulletSpeedText, 500, screen.getHeight() - 15);</span>
+<span class="nc" id="L229">    }</span>
+
+    /**
+     * Draws 2P's speed on screen.
+     *
+     * @param screen
+     *            Screen to draw on.
+     * @param speed two
+     *            2P's speed
+     *
+     * by Lee HyunWoo - TeamHUD
+     */
+    public static void drawSpeed2P(final Screen screen, final double speed) {
+<span class="nc" id="L242">        String speedString = &quot;MS : &quot; + speed;</span>
+<span class="nc" id="L243">        backBufferGraphics.setColor(Color.WHITE);</span>
+<span class="nc" id="L244">        backBufferGraphics.setFont(fontRegular);</span>
+<span class="nc" id="L245">        backBufferGraphics.drawString(speedString, 500, screen.getHeight() - 35);</span>
+    
+<span class="nc" id="L247">    }</span>
+
+    /**
+     * Draws Percentage of game progress on screen
+     *
+     * @param screen
+     *            Screen to draw on.
+     * @param percent
+     *            AFAFAF
+     *
+     */
+    public static void drawPercentage(final Screen screen, final double percent) {
+<span class="nc" id="L259">        int x = screen.getWidth() - 25;</span>
+<span class="nc" id="L260">        int y = 200;</span>
+<span class="nc" id="L261">        int width = 15;</span>
+<span class="nc" id="L262">        int height = 300;</span>
+
+        // 전체 진행 바 외곽선
+<span class="nc" id="L265">        backBufferGraphics.setColor(Color.GRAY);</span>
+<span class="nc" id="L266">        backBufferGraphics.fillRoundRect(x, y, width, height, 30, 30);</span>
+
+        // 채워지는 부분 (fillRoundRect는 인자로 int밖에 받지 못해 g2d사용함)
+<span class="nc" id="L269">        Graphics2D g2d = (Graphics2D) backBufferGraphics;</span>
+        
+<span class="nc" id="L271">        double fillHeight = (height * (percent / 100.0));</span>
+<span class="nc" id="L272">        backBufferGraphics.setColor(Color.BLACK);</span>
+<span class="nc" id="L273">        RoundRectangle2D.Double roundedRect =</span>
+                new RoundRectangle2D.Double(x, y+height - percent * 3, width, fillHeight, 30, 30);
+<span class="nc" id="L275">        g2d.fill(roundedRect);</span>
+
+        // 진행률 텍스트
+<span class="nc" id="L278">        backBufferGraphics.setColor(Color.WHITE);</span>
+<span class="nc" id="L279">        backBufferGraphics.setFont(fontSmall);</span>
+<span class="nc" id="L280">        backBufferGraphics.drawString((int)percent + &quot;%&quot;, x-5, y + height + 20);</span>
+
+<span class="nc" id="L282">    }</span>
+
+    public static void drawEnemyHp(final Screen screen, final EnemyShip enemyship) {
+<span class="nc bnc" id="L285" title="All 2 branches missed.">        if (enemyship.getHp() &lt; enemyship.getMaxhp()) {</span>
+<span class="nc" id="L286">            int x = enemyship.getPositionX() + 2;</span>
+<span class="nc" id="L287">            int y = enemyship.getPositionY() + enemyship.getHeight();</span>
+
+<span class="nc" id="L289">            int width = enemyship.getWidth() - 5;</span>
+<span class="nc" id="L290">            int currentHpWidth = (int) ((enemyship.getHp() / (double) enemyship.getMaxhp()) * width);</span>
+<span class="nc" id="L291">            int height = 5;</span>
+
+<span class="nc" id="L293">            backBufferGraphics.setColor(Color.black);</span>
+<span class="nc" id="L294">            backBufferGraphics.fillRect(x, y, width, height);</span>
+
+<span class="nc" id="L296">            backBufferGraphics.setColor(Color.RED);</span>
+<span class="nc" id="L297">            backBufferGraphics.fillRect(x, y, currentHpWidth, height);</span>
+        }
+<span class="nc" id="L299">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.10.202304240956</span></div></body></html>

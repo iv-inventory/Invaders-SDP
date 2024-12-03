@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="ko"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>MinimalFormatter.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">my-java-project</a> &gt; <a href="index.source.html" class="el_package">engine</a> &gt; <span class="el_source">MinimalFormatter.java</span></div><h1>MinimalFormatter.java</h1><pre class="source lang-java linenums">package engine;
+
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.logging.Formatter;
+import java.util.logging.LogRecord;
+
+/**
+ * Implements a simple logging format.
+ * 
+ * @author &lt;a href=&quot;mailto:RobertoIA1987@gmail.com&quot;&gt;Roberto Izquierdo Amo&lt;/a&gt;
+ * 
+ */
+<span class="nc" id="L15">public class MinimalFormatter extends Formatter {</span>
+
+	/** Format for the date. */
+<span class="nc" id="L18">	private static final DateFormat FORMAT = new SimpleDateFormat(&quot;h:mm:ss&quot;);</span>
+	/** System line separator. */
+<span class="nc" id="L20">	private static final String LINE_SEPARATOR = System</span>
+<span class="nc" id="L21">			.getProperty(&quot;line.separator&quot;);</span>
+
+	@Override
+	public final String format(final LogRecord logRecord) {
+
+<span class="nc" id="L26">		StringBuilder output = new StringBuilder().append(&quot;[&quot;)</span>
+<span class="nc" id="L27">				.append(logRecord.getLevel()).append('|')</span>
+<span class="nc" id="L28">				.append(FORMAT.format(new Date(logRecord.getMillis())))</span>
+<span class="nc" id="L29">				.append(&quot;]: &quot;).append(logRecord.getMessage()).append(' ')</span>
+<span class="nc" id="L30">				.append(LINE_SEPARATOR);</span>
+
+<span class="nc" id="L32">		return output.toString();</span>
+	}
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.10.202304240956</span></div></body></html>

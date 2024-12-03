@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="ko"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ScoreManager.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">my-java-project</a> &gt; <a href="index.source.html" class="el_package">clove</a> &gt; <span class="el_source">ScoreManager.java</span></div><h1>ScoreManager.java</h1><pre class="source lang-java linenums">package clove;
+
+import java.time.Instant;
+import inventory_develop.Bomb;
+
+public class ScoreManager {
+
+    private int levelScore;
+<span class="nc" id="L9">    private int accumulatedScore = 0;</span>
+    private int level;
+
+    // Constructor - initializes level
+<span class="nc" id="L13">    public ScoreManager(int level, int score) {</span>
+<span class="nc" id="L14">        this.level = level;</span>
+<span class="nc" id="L15">        this.accumulatedScore = score;</span>
+<span class="nc" id="L16">    }</span>
+
+    public void setScore(int score){
+<span class="nc" id="L19">        this.accumulatedScore = score;</span>
+<span class="nc" id="L20">    }</span>
+
+    // Adds score based on enemy score and level
+    public void addScore(int enemyScore) {
+<span class="nc" id="L24">        int scoreToAdd = enemyScore * this.level;</span>
+<span class="nc bnc" id="L25" title="All 2 branches missed.">        if (Bomb.isBombExploded()){</span>
+<span class="nc" id="L26">            scoreToAdd += (250 + (Bomb.getTotalPoint() * this.level));</span>
+<span class="nc" id="L27">            Bomb.resetBombExploded();</span>
+        }
+<span class="nc" id="L29">        this.levelScore += scoreToAdd;</span>
+<span class="nc" id="L30">        this.accumulatedScore += scoreToAdd;</span>
+        //System.out.println(&quot;Enemy destroyed. Score added: &quot; + scoreToAdd + &quot;, Level Score: &quot; + this.levelScore);
+<span class="nc" id="L32">    }</span>
+
+    public int getAccumulatedScore() {
+<span class="nc" id="L35">        return accumulatedScore;</span>
+    }
+
+    public int getLevel() {
+<span class="nc" id="L39">        return level;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.10.202304240956</span></div></body></html>

@@ -1,0 +1,356 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="ko"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>UpgradeManager.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">my-java-project</a> &gt; <a href="index.source.html" class="el_package">CtrlS</a> &gt; <span class="el_source">UpgradeManager.java</span></div><h1>UpgradeManager.java</h1><pre class="source lang-java linenums">package CtrlS;
+
+import engine.Core;
+import engine.FileManager;
+
+import java.io.IOException;
+import java.text.DecimalFormat;
+import java.util.Properties;
+import java.util.logging.Logger;
+
+import inventory_develop.Bomb;
+import inventory_develop.ShipStatus;
+
+public final class UpgradeManager {
+
+    /** Singleton instance of the class. */
+    private static UpgradeManager instance;
+    /** Application logger. */
+    private static Logger logger;
+    private static FileManager fileManager;
+
+    // Upgrade keys
+    private static final String COIN_ACQUISITION_MULTIPLIER = &quot;coin_acquisition_multiplier&quot;;
+    private static final String ATTACK_SPEED = &quot;attack_speed&quot;;
+    // Upgrade keys - StoryModeTrait
+    private static final String BULLET_DAMAGE = &quot;bullet_damage&quot;;
+    private static final String BULLET_NUM = &quot;bullet_num&quot;;
+    private static final String BULLET_SPEED = &quot;bullet_speed&quot;;
+    private static final String MOVEMENT_SPEED = &quot;movement_speed&quot;;
+    private static final String SHIP_SHOOT360 = &quot;ship_shoot360&quot;;
+
+    // inventory, Upgrade count
+    private static final String Speed_Count = &quot;speed_LevelCount&quot;;
+    private static final String Attack_Count = &quot;attack_LevelCount&quot;;
+    private static final String Coin_Count = &quot;Coin_LevelCount&quot;;
+    private static final String Bullet_Count = &quot;bullet_LevelCount&quot;;
+    // load stat increase data
+    private static ShipStatus shipStatus;
+
+
+    /** Decimal format to ensure values have one decimal place. */
+<span class="fc" id="L42">    private static final DecimalFormat decimalFormat = new DecimalFormat(&quot;#.#&quot;);</span>
+
+    /**
+     * private constructor.
+     */
+<span class="fc" id="L47">    private UpgradeManager() {</span>
+<span class="fc" id="L48">        fileManager = Core.getFileManager();</span>
+<span class="fc" id="L49">        logger = Core.getLogger();</span>
+        try{
+<span class="fc" id="L51">            Core.getFileManager().saveUpgradeStatus(Core.getFileManager().loadUpgradeStatus());</span>
+<span class="nc" id="L52">        } catch (IOException e){</span>
+<span class="nc" id="L53">            throw new RuntimeException(e);</span>
+<span class="fc" id="L54">        }</span>
+        // load stat increase data
+<span class="fc" id="L56">        shipStatus = new ShipStatus();</span>
+<span class="fc" id="L57">        shipStatus.loadStatus();</span>
+<span class="fc" id="L58">        shipStatus.loadPrice();</span>
+<span class="fc" id="L59">    }</span>
+
+    /**
+     * Returns shared instance of UpgradeManager.
+     *
+     * @return Shared instance of UpgradeManager.
+     */
+    public static UpgradeManager getInstance() {
+<span class="fc bfc" id="L67" title="All 2 branches covered.">        if (instance == null)</span>
+<span class="fc" id="L68">            instance = new UpgradeManager();</span>
+<span class="fc" id="L69">        return instance;</span>
+    }
+
+    // Methods for coin acquisition multiplier
+
+    /**
+     * Get the current coin acquisition multiplier value.
+     *
+     * @return The current coin acquisition multiplier.
+     * @throws IOException In case of loading problems.
+     */
+    public double getCoinAcquisitionMultiplier() throws IOException {
+<span class="nc" id="L81">        Properties properties = fileManager.loadUpgradeStatus();</span>
+<span class="nc" id="L82">        return Double.parseDouble(properties.getProperty(COIN_ACQUISITION_MULTIPLIER, &quot;1.0&quot;));</span>
+    }
+
+    /**
+     * Add to the current coin acquisition multiplier.
+     *
+     *
+     * @throws IOException In case of saving problems.
+     */
+    public void addCoinAcquisitionMultiplier() throws IOException {
+<span class="nc" id="L92">        double currentValue = getCoinAcquisitionMultiplier();</span>
+<span class="nc" id="L93">        currentValue += shipStatus.getCoinIn();</span>
+
+        // Format the value to one decimal place
+<span class="nc" id="L96">        String formattedValue = decimalFormat.format(currentValue);</span>
+
+<span class="nc" id="L98">        Properties properties = fileManager.loadUpgradeStatus();</span>
+<span class="nc" id="L99">        properties.setProperty(COIN_ACQUISITION_MULTIPLIER, formattedValue);</span>
+<span class="nc" id="L100">        fileManager.saveUpgradeStatus(properties);</span>
+<span class="nc" id="L101">    }</span>
+
+    // Methods for attack speed
+
+    /**
+     * Get the current attack speed value.
+     *
+     * @return The current attack speed.
+     * @throws IOException In case of loading problems.
+     */
+    public int getAttackSpeed() throws IOException {
+<span class="nc" id="L112">        Properties properties = fileManager.loadUpgradeStatus();</span>
+<span class="nc" id="L113">        return Integer.parseInt(properties.getProperty(ATTACK_SPEED, &quot;1&quot;));</span>
+    }
+
+    /**
+     * Add to the current attack speed.
+     *
+     * @throws IOException In case of saving problems.
+     */
+    public void addAttackSpeed() throws IOException {
+<span class="nc" id="L122">        int currentValue = getAttackSpeed();</span>
+<span class="nc" id="L123">        currentValue += shipStatus.getSuootingInIn();</span>
+<span class="nc" id="L124">        Properties properties = fileManager.loadUpgradeStatus();</span>
+<span class="nc" id="L125">        properties.setProperty(ATTACK_SPEED, Integer.toString(currentValue));</span>
+<span class="nc" id="L126">        fileManager.saveUpgradeStatus(properties);</span>
+<span class="nc" id="L127">    }</span>
+
+    // Methods for movement speed
+
+    /**
+     * Get the current movement speed value.
+     *
+     * @return The current movement speed.
+     * @throws IOException In case of loading problems.
+     */
+    public double getMovementSpeed() throws IOException {
+<span class="fc" id="L138">        Properties properties = fileManager.loadUpgradeStatus();</span>
+<span class="fc" id="L139">        return Double.parseDouble(properties.getProperty(MOVEMENT_SPEED, &quot;1&quot;));</span>
+    }
+
+    public void setMovementSpeed(double movementSpeed) throws IOException {
+<span class="fc" id="L143">        Properties properties = fileManager.loadUpgradeStatus();</span>
+<span class="fc" id="L144">        properties.setProperty(MOVEMENT_SPEED, Double.toString(movementSpeed));</span>
+<span class="fc" id="L145">        fileManager.saveUpgradeStatus(properties);</span>
+<span class="fc" id="L146">    }</span>
+
+    /**
+     * Add to the current movement speed.
+     *
+     * @throws IOException In case of saving problems.
+     */
+    public void addMovementSpeed() throws IOException {
+<span class="nc" id="L154">        double currentValue = getMovementSpeed();</span>
+<span class="nc" id="L155">        currentValue += shipStatus.getSpeedIn();</span>
+<span class="nc" id="L156">        Properties properties = fileManager.loadUpgradeStatus();</span>
+<span class="nc" id="L157">        properties.setProperty(MOVEMENT_SPEED, Double.toString(currentValue));</span>
+<span class="nc" id="L158">        fileManager.saveUpgradeStatus(properties);</span>
+<span class="nc" id="L159">    }</span>
+
+    /**
+     * Reset all upgrades to their default values.
+     *
+     * @throws IOException In case of saving problems.
+     */
+    public void resetUpgrades() throws IOException {
+<span class="nc" id="L167">        Properties properties = fileManager.loadDefaultUpgradeStatus();</span>
+<span class="nc" id="L168">        fileManager.saveUpgradeStatus(properties);</span>
+<span class="nc" id="L169">    }</span>
+
+    // --- produce inventory team ---
+
+    // Methods for bullet Number
+
+    public int getBulletNum() throws IOException {
+<span class="fc" id="L176">        Properties properties = fileManager.loadUpgradeStatus();</span>
+<span class="fc" id="L177">        return Integer.parseInt(properties.getProperty(BULLET_NUM, &quot;1&quot;));</span>
+    }
+
+    public void setBulletNum(int bulletNum) throws IOException {
+<span class="fc" id="L181">        Properties properties = fileManager.loadUpgradeStatus();</span>
+<span class="fc" id="L182">        properties.setProperty(BULLET_NUM, Integer.toString(bulletNum));</span>
+<span class="fc" id="L183">        fileManager.saveUpgradeStatus(properties);</span>
+<span class="fc" id="L184">    }</span>
+
+    public void addBulletNum() throws IOException {
+<span class="nc" id="L187">        int currentValue = getBulletNum();</span>
+<span class="nc" id="L188">        currentValue += 1;</span>
+<span class="nc" id="L189">        Properties properties = fileManager.loadUpgradeStatus();</span>
+<span class="nc" id="L190">        properties.setProperty(BULLET_NUM, Integer.toString(currentValue));</span>
+<span class="nc" id="L191">        fileManager.saveUpgradeStatus(properties);</span>
+<span class="nc" id="L192">    }</span>
+
+    public int getBulletSpeed() throws IOException {
+<span class="fc" id="L195">        Properties properties = fileManager.loadUpgradeStatus();</span>
+<span class="fc" id="L196">        return Integer.parseInt(properties.getProperty(BULLET_SPEED, &quot;1&quot;));</span>
+    }
+
+    public void setBulletSpeed(int bulletSpeed) throws IOException {
+<span class="fc" id="L200">        Properties properties = fileManager.loadUpgradeStatus();</span>
+<span class="fc" id="L201">        properties.setProperty(BULLET_SPEED, Integer.toString(bulletSpeed));</span>
+<span class="fc" id="L202">        fileManager.saveUpgradeStatus(properties);</span>
+<span class="fc" id="L203">    }</span>
+
+    public int getBulletDamage() throws IOException {
+<span class="fc" id="L206">        Properties properties = fileManager.loadUpgradeStatus();</span>
+<span class="fc" id="L207">        return Integer.parseInt(properties.getProperty(BULLET_DAMAGE, &quot;1&quot;));</span>
+    }
+
+    public void setBulletDamage(int bulletDamage) throws IOException {
+<span class="fc" id="L211">        Properties properties = fileManager.loadUpgradeStatus();</span>
+<span class="fc" id="L212">        properties.setProperty(BULLET_DAMAGE, Integer.toString(bulletDamage));</span>
+<span class="fc" id="L213">        fileManager.saveUpgradeStatus(properties);</span>
+<span class="fc" id="L214">    }</span>
+
+    public boolean getShipShoot360() throws IOException {
+<span class="fc" id="L217">        Properties properties = fileManager.loadUpgradeStatus();</span>
+<span class="fc" id="L218">        return Boolean.parseBoolean(properties.getProperty(SHIP_SHOOT360, &quot;1&quot;));</span>
+    }
+
+    public void setShipShoot360(boolean shipShoot360) throws IOException {
+<span class="fc" id="L222">        Properties properties = fileManager.loadUpgradeStatus();</span>
+<span class="fc" id="L223">        properties.setProperty(SHIP_SHOOT360, Boolean.toString(shipShoot360));</span>
+<span class="fc" id="L224">        fileManager.saveUpgradeStatus(properties);</span>
+<span class="fc" id="L225">    }</span>
+
+
+    public int getSpeedCount() throws IOException {
+<span class="nc" id="L229">        Properties properties = fileManager.loadUpgradeStatus();</span>
+<span class="nc" id="L230">        return Integer.parseInt(properties.getProperty(Speed_Count, &quot;1&quot;));</span>
+    }
+    public int getAttackCount() throws IOException {
+<span class="nc" id="L233">        Properties properties = fileManager.loadUpgradeStatus();</span>
+<span class="nc" id="L234">        return Integer.parseInt(properties.getProperty(Attack_Count, &quot;1&quot;));</span>
+    }
+    public int getBulletCount() throws IOException {
+<span class="nc" id="L237">        Properties properties = fileManager.loadUpgradeStatus();</span>
+<span class="nc" id="L238">        return Integer.parseInt(properties.getProperty(Bullet_Count, &quot;1&quot;));</span>
+    }
+    public int getCoinCount() throws IOException {
+<span class="nc" id="L241">        Properties properties = fileManager.loadUpgradeStatus();</span>
+<span class="nc" id="L242">        return Integer.parseInt(properties.getProperty(Coin_Count, &quot;1&quot;));</span>
+    }
+
+
+    public void addSpeedCount() throws IOException {
+<span class="nc" id="L247">        int currentValue = getSpeedCount();</span>
+<span class="nc" id="L248">        currentValue += 1;</span>
+<span class="nc" id="L249">        Properties properties = fileManager.loadUpgradeStatus();</span>
+<span class="nc" id="L250">        properties.setProperty(Speed_Count, Integer.toString(currentValue));</span>
+<span class="nc" id="L251">        fileManager.saveUpgradeStatus(properties);</span>
+<span class="nc" id="L252">    }</span>
+    public void addAttackCount() throws IOException {
+<span class="nc" id="L254">        int currentValue = getAttackCount();</span>
+<span class="nc" id="L255">        currentValue += 1;</span>
+<span class="nc" id="L256">        Properties properties = fileManager.loadUpgradeStatus();</span>
+<span class="nc" id="L257">        properties.setProperty(Attack_Count, Integer.toString(currentValue));</span>
+<span class="nc" id="L258">        fileManager.saveUpgradeStatus(properties);</span>
+<span class="nc" id="L259">    }</span>
+    public void addBulletCount() throws IOException {
+<span class="nc" id="L261">        int currentValue = getBulletCount();</span>
+<span class="nc" id="L262">        currentValue += 1;</span>
+<span class="nc" id="L263">        Properties properties = fileManager.loadUpgradeStatus();</span>
+<span class="nc" id="L264">        properties.setProperty(Bullet_Count, Integer.toString(currentValue));</span>
+<span class="nc" id="L265">        fileManager.saveUpgradeStatus(properties);</span>
+<span class="nc" id="L266">    }</span>
+    public void addCoinCount() throws IOException {
+<span class="nc" id="L268">        int currentValue = getCoinCount();</span>
+<span class="nc" id="L269">        currentValue += 1;</span>
+<span class="nc" id="L270">        Properties properties = fileManager.loadUpgradeStatus();</span>
+<span class="nc" id="L271">        properties.setProperty(Coin_Count, Integer.toString(currentValue));</span>
+<span class="nc" id="L272">        fileManager.saveUpgradeStatus(properties);</span>
+<span class="nc" id="L273">    }</span>
+
+    public int Price(int i){
+        try {
+<span class="nc bnc" id="L277" title="All 5 branches missed.">            switch (i) {</span>
+                case 1:  // bullet price
+<span class="nc bnc" id="L279" title="All 2 branches missed.">                    if (getBulletCount() % 2 != 0){</span>
+<span class="nc" id="L280">                        return shipStatus.getBullet_price() * getBulletCount();</span>
+                    }
+                    else {
+<span class="nc" id="L283">                        return (getBulletCount() + 1) * 10;</span>
+                    }
+
+                case 2:  // speed price
+<span class="nc bnc" id="L287" title="All 2 branches missed.">                    if (getSpeedCount() % 4 != 0){</span>
+<span class="nc" id="L288">                        return PriceCalculation(shipStatus.getSpeed_price(), getSpeedCount());</span>
+                    }
+                    else {
+<span class="nc" id="L291">                        return getSpeedCount() / 4 * 5;</span>
+                    }
+
+                case 3:  // attack price
+<span class="nc bnc" id="L295" title="All 2 branches missed.">                    if (getAttackCount() % 4 != 0){</span>
+<span class="nc" id="L296">                        return PriceCalculation(shipStatus.getAttack_price(), getAttackCount());</span>
+                    }
+                    else {
+<span class="nc" id="L299">                        return getAttackCount() / 4 * 5;</span>
+                    }
+
+                case 4:  // CoinBonus price
+<span class="nc bnc" id="L303" title="All 2 branches missed.">                    if (getCoinCount() % 4 != 0){</span>
+<span class="nc" id="L304">                        return PriceCalculation(shipStatus.getCoinBonus_price(), getCoinCount());</span>
+                    }
+                    else {
+<span class="nc" id="L307">                        return getCoinCount() / 4 * 5;</span>
+                    }
+            }
+<span class="nc" id="L310">        } catch (IOException e){</span>
+<span class="nc" id="L311">            throw new RuntimeException(e);</span>
+<span class="nc" id="L312">        }</span>
+<span class="nc" id="L313">        Core.getLogger().warning(&quot;Can not Calculate Price&quot;);</span>
+<span class="nc" id="L314">        return 0;</span>
+    }
+
+    public int PriceCalculation(int basic_price, int count){
+<span class="nc" id="L318">        basic_price += (basic_price / 2) * LevelCalculation(count);</span>
+<span class="nc" id="L319">        return basic_price;</span>
+    }
+
+    public int LevelCalculation(int level){
+<span class="nc" id="L323">        int Level = (level - ((level - 1) / 4) - 1) ;</span>
+<span class="nc bnc" id="L324" title="All 2 branches missed.">        if (Level &lt; 1){</span>
+<span class="nc" id="L325">            return 0;</span>
+        }
+        else {
+<span class="nc" id="L328">            return Level;</span>
+        }
+    }
+
+    public String whatMoney(int count, int i){
+<span class="nc bnc" id="L333" title="All 2 branches missed.">        if (i == 1) {</span>
+<span class="nc bnc" id="L334" title="All 2 branches missed.">            if (count % 2 == 0){</span>
+<span class="nc" id="L335">                return &quot;GEM&quot;;</span>
+            }
+            else {
+<span class="nc" id="L338">                return &quot;COIN&quot;;</span>
+            }
+        }
+        else {
+<span class="nc bnc" id="L342" title="All 2 branches missed.">            if (count % 4 == 0) {</span>
+<span class="nc" id="L343">                return &quot;GEM&quot;;</span>
+            }
+            else {
+<span class="nc" id="L346">                return &quot;COIN&quot;;</span>
+            }
+        }
+    }
+
+    // for Test
+    public static void setFileManager(FileManager fileManager) {
+<span class="fc" id="L353">        UpgradeManager.fileManager = fileManager;</span>
+<span class="fc" id="L354">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.10.202304240956</span></div></body></html>

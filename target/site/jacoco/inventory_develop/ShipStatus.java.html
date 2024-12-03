@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="ko"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ShipStatus.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">my-java-project</a> &gt; <a href="index.source.html" class="el_package">inventory_develop</a> &gt; <span class="el_source">ShipStatus.java</span></div><h1>ShipStatus.java</h1><pre class="source lang-java linenums">package inventory_develop;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Properties;
+
+public class ShipStatus {
+
+    private double Speed_increase;
+    private int SHOOTING_INTERVAL_increase;
+    private int BULLET_SPEED_increase;
+    private Double coin_increase;
+    private int feverTime_score_increase;
+
+    private Double pierce_probability;
+    private Double hearth_probability;
+    private Double bomb_probability;
+    private Double shield_probability;
+    private Double feverTime_probability;
+    private Double speedUp_probability;
+    private Double speedSlow_probability;
+
+    private int Speed_price;
+    private int num_Bullet_price;
+    private int Attack_Speed_price;
+    private int Coin_Bonus_price;
+
+<span class="fc" id="L28">    Properties properties = new Properties();</span>
+
+
+<span class="fc" id="L31">    public ShipStatus() {}</span>
+
+    public void loadStatus(){
+<span class="fc" id="L34">        try (InputStream inputStream = ShipStatus.class.getClassLoader().getResourceAsStream(&quot;StatusConfig.properties&quot;)) {</span>
+<span class="pc bpc" id="L35" title="1 of 2 branches missed.">            if (inputStream == null) {</span>
+<span class="fc" id="L36">                System.out.println(&quot;FileNotFound&quot;);</span>
+<span class="fc" id="L37">                return;</span>
+            }
+
+<span class="nc" id="L40">            properties.load(inputStream);</span>
+
+<span class="nc" id="L42">            Speed_increase = Double.parseDouble(properties.getProperty(&quot;Speed.increase&quot;));</span>
+<span class="nc" id="L43">            SHOOTING_INTERVAL_increase = Integer.parseInt(properties.getProperty(&quot;SHOOTING_INTERVAL.increase&quot;));</span>
+<span class="nc" id="L44">            BULLET_SPEED_increase = Integer.parseInt(properties.getProperty(&quot;BULLET_SPEED.increase&quot;));</span>
+<span class="nc" id="L45">            coin_increase = Double.parseDouble(properties.getProperty(&quot;CoinBonus.increase&quot;));</span>
+<span class="nc" id="L46">            speedUp_probability = Double.parseDouble(properties.getProperty(&quot;SpeedUp.probability&quot;));</span>
+<span class="nc" id="L47">            speedSlow_probability = Double.parseDouble(properties.getProperty(&quot;SpeedSlow.probability&quot;));</span>
+
+<span class="pc bpc" id="L49" title="1 of 2 branches missed.">        }</span>
+
+<span class="nc" id="L51">        catch (IOException e) {</span>
+<span class="nc" id="L52">            e.printStackTrace();</span>
+<span class="nc" id="L53">        }</span>
+<span class="nc" id="L54">    }</span>
+
+    public void loadProbability(){
+<span class="nc" id="L57">        try (InputStream inputStream = ShipStatus.class.getClassLoader().getResourceAsStream(&quot;StatusConfig.properties&quot;)) {</span>
+<span class="nc bnc" id="L58" title="All 2 branches missed.">            if (inputStream == null) {</span>
+<span class="nc" id="L59">                System.out.println(&quot;FileNotFound&quot;);</span>
+<span class="nc" id="L60">                return;</span>
+            }
+
+<span class="nc" id="L63">            properties.load(inputStream);</span>
+
+<span class="nc" id="L65">            pierce_probability = Double.parseDouble(properties.getProperty(&quot;pierce.probability&quot;));</span>
+<span class="nc" id="L66">            hearth_probability = Double.parseDouble(properties.getProperty(&quot;hearth.probability&quot;));</span>
+<span class="nc" id="L67">            bomb_probability = Double.parseDouble(properties.getProperty(&quot;bomb.probability&quot;));</span>
+<span class="nc" id="L68">            shield_probability = Double.parseDouble(properties.getProperty(&quot;shield.probability&quot;));</span>
+<span class="nc" id="L69">            feverTime_probability = Double.parseDouble(properties.getProperty(&quot;feverTime.probability&quot;));</span>
+<span class="nc" id="L70">            speedUp_probability = Double.parseDouble(properties.getProperty(&quot;SpeedUp.probability&quot;));</span>
+<span class="nc" id="L71">            speedSlow_probability = Double.parseDouble(properties.getProperty(&quot;SpeedSlow.probability&quot;));</span>
+
+
+<span class="nc bnc" id="L74" title="All 2 branches missed.">        } catch (IOException e) {</span>
+<span class="nc" id="L75">            e.printStackTrace();</span>
+<span class="nc" id="L76">        }</span>
+<span class="nc" id="L77">    }</span>
+
+    public void loadPrice(){
+<span class="fc" id="L80">        try (InputStream inputStream = ShipStatus.class.getClassLoader().getResourceAsStream(&quot;StatusConfig.properties&quot;)) {</span>
+<span class="pc bpc" id="L81" title="1 of 2 branches missed.">            if (inputStream == null) {</span>
+<span class="fc" id="L82">                System.out.println(&quot;FileNotFound&quot;);</span>
+<span class="fc" id="L83">                return;</span>
+            }
+
+<span class="nc" id="L86">            properties.load(inputStream);</span>
+
+<span class="nc" id="L88">            Speed_price = Integer.parseInt(properties.getProperty(&quot;Speed.price&quot;));</span>
+<span class="nc" id="L89">            num_Bullet_price = Integer.parseInt(properties.getProperty(&quot;bullet_number.price&quot;));</span>
+<span class="nc" id="L90">            Attack_Speed_price = Integer.parseInt(properties.getProperty(&quot;SHOOTING_INTERVAL.price&quot;));</span>
+<span class="nc" id="L91">            Coin_Bonus_price = Integer.parseInt(properties.getProperty(&quot;CoinBonus.price&quot;));</span>
+
+
+<span class="pc bpc" id="L94" title="1 of 2 branches missed.">        } catch (IOException e) {</span>
+<span class="nc" id="L95">            e.printStackTrace();</span>
+<span class="nc" id="L96">        }</span>
+<span class="nc" id="L97">    }</span>
+
+    public final double getSpeedIn(){
+<span class="nc" id="L100">        return Speed_increase;</span>
+    }
+    public final int getSuootingInIn(){
+<span class="nc" id="L103">        return SHOOTING_INTERVAL_increase;</span>
+    }
+    public final int getBulletSpeedIn(){
+<span class="nc" id="L106">        return BULLET_SPEED_increase;</span>
+    }
+    public final double getCoinIn(){
+<span class="nc" id="L109">        return coin_increase;</span>
+    }
+
+    public final double getPierce_probability(){
+<span class="nc" id="L113">        return pierce_probability;</span>
+    }
+    public final double getHearth_probability(){
+<span class="nc" id="L116">        return hearth_probability;</span>
+    }
+    public final double getShield_probability(){
+<span class="nc" id="L119">        return shield_probability;</span>
+    }
+    public final double getBomb_probability(){
+<span class="nc" id="L122">        return bomb_probability;</span>
+    }
+<span class="nc" id="L124">    public Double getFeverTimeProbability() { return feverTime_probability; }</span>
+<span class="nc" id="L125">    public final double getSpeedUpProbability() {return speedUp_probability;}</span>
+<span class="nc" id="L126">    public final double getSpeedSlowProbability() {return speedSlow_probability;}</span>
+
+    public final int getSpeed_price(){
+<span class="nc" id="L129">        return Speed_price;</span>
+    }
+    public final int getCoinBonus_price(){
+<span class="nc" id="L132">        return Coin_Bonus_price;</span>
+    }
+    public final int getAttack_price(){
+<span class="nc" id="L135">        return Attack_Speed_price;</span>
+    }
+    public final int getBullet_price(){
+<span class="nc" id="L138">        return num_Bullet_price;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.10.202304240956</span></div></body></html>

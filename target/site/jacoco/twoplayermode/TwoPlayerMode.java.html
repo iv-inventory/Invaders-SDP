@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="ko"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>TwoPlayerMode.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">my-java-project</a> &gt; <a href="index.source.html" class="el_package">twoplayermode</a> &gt; <span class="el_source">TwoPlayerMode.java</span></div><h1>TwoPlayerMode.java</h1><pre class="source lang-java linenums">package twoplayermode;
+
+
+
+import java.awt.*;
+import java.awt.event.KeyEvent;
+import java.util.Set;
+import java.util.HashSet;
+
+import Enemy.*;
+import HUDTeam.DrawManagerImpl;
+import screen.GameScreen;
+import engine.GameState;
+import engine.GameSettings;
+import entity.Ship;
+import engine.DrawManager;
+import Enemy.PiercingBullet;
+import entity.Bullet;
+import entity.BulletPool;
+import entity.EnemyShip;
+import entity.Obstacle;
+import inventory_develop.ItemBarrierAndHeart;
+import inventory_develop.FeverTimeItem;
+import Sound_Operator.SoundManager;
+
+
+public class TwoPlayerMode extends GameScreen {
+
+
+<span class="nc" id="L30">    public static int livestwo = 3;</span>
+
+
+    public TwoPlayerMode(GameState gameState, GameSettings gameSettings, boolean bonusLife, int width, int height, int fps) {
+<span class="nc" id="L34">        super(gameState, gameSettings, bonusLife, width, height, fps, 2);</span>
+
+
+
+<span class="nc" id="L38">    }</span>
+
+    @Override
+    public void initialize() {
+<span class="nc" id="L42">        super.initialize(); // GameScreen의 초기화 로직 호출</span>
+<span class="nc" id="L43">        this.setTwoPlayerMode(true);</span>
+        // player2 초기화
+<span class="nc" id="L45">        this.player2 = new Ship(this.width / 4, this.height - 30, Color.BLUE); // add by team HUD</span>
+<span class="nc" id="L46">    }</span>
+
+//    @Override
+//    protected void update() {
+//        super.update(); // GameScreen의 기존 기능을 사용
+//
+////        if (player2 != null) {
+////            // Player 2 movement and shooting
+////            boolean moveRight2 = inputManager.isKeyDown(KeyEvent.VK_C);
+////            boolean moveLeft2 = inputManager.isKeyDown(KeyEvent.VK_Z);
+////
+////            if (moveRight2 &amp;&amp; player2.getPositionX() + player2.getWidth() &lt; width) {
+////                player2.moveRight();
+////            }
+////            if (moveLeft2 &amp;&amp; player2.getPositionX() &gt; 0) {
+////                player2.moveLeft();
+////            }
+////            if (inputManager.isKeyDown(KeyEvent.VK_X)) {
+////                player2.shoot(bullets);
+////            }
+////
+////            // Player 2 bullet collision handling
+////            handleBulletCollisionsForPlayer2();
+////
+////            // 장애물과 아이템 상호작용 추가
+////            handleObstacleCollisionsForPlayer2();
+////            handleItemCollisionsForPlayer2();
+////        }
+//    }
+
+    // Player 2의 총알과 충돌 처리
+    public static void handleBulletCollisionsForPlayer2( Set&lt;PiercingBullet&gt; bullets, Ship player2) {
+<span class="nc bnc" id="L78" title="All 2 branches missed.">        if(player2==null) return;</span>
+<span class="nc" id="L79">        Set&lt;Bullet&gt; recyclable = new HashSet&lt;&gt;();</span>
+<span class="nc bnc" id="L80" title="All 2 branches missed.">        for (Bullet bullet : bullets) {</span>
+<span class="nc bnc" id="L81" title="All 4 branches missed.">            if (bullet.getSpeedY() &gt; 0 &amp;&amp; checkCollision(bullet, player2)) {</span>
+<span class="nc" id="L82">                recyclable.add(bullet);</span>
+<span class="nc bnc" id="L83" title="All 2 branches missed.">                if (!player2.isDestroyed()) {</span>
+<span class="nc" id="L84">                    player2.destroy();</span>
+<span class="nc" id="L85">                    livestwo--;</span>
+<span class="nc" id="L86">                    System.out.println(&quot;Player 2 hit, lives remaining: &quot; + livestwo);</span>
+<span class="nc bnc" id="L87" title="All 2 branches missed.">                    if (livestwo &lt;= 0) {</span>
+<span class="nc" id="L88">                        player2 = null; // Player 2가 파괴된 경우</span>
+                    }
+                }
+            }
+<span class="nc" id="L92">        }</span>
+<span class="nc" id="L93">        bullets.removeAll(recyclable);</span>
+<span class="nc" id="L94">        BulletPool.recycle(recyclable);</span>
+<span class="nc" id="L95">    }</span>
+
+    // Player 2의 장애물과 충돌 처리
+    public static void handleObstacleCollisionsForPlayer2(Set&lt;Obstacle&gt; obstacles, Ship player2) {
+<span class="nc bnc" id="L99" title="All 2 branches missed.">        if(player2==null) return;</span>
+<span class="nc bnc" id="L100" title="All 2 branches missed.">        for (Obstacle obstacle : obstacles) {</span>
+<span class="nc bnc" id="L101" title="All 4 branches missed.">            if (!obstacle.isDestroyed() &amp;&amp; checkCollision(player2, obstacle)) {</span>
+<span class="nc" id="L102">                livestwo--;</span>
+<span class="nc bnc" id="L103" title="All 2 branches missed.">                if (!player2.isDestroyed()) {</span>
+<span class="nc" id="L104">                    player2.destroy(); // Player 2가 파괴됨</span>
+                }
+<span class="nc" id="L106">                obstacle.destroy(); // 장애물 제거</span>
+<span class="nc" id="L107">                System.out.println(&quot;Player 2 hit an obstacle, lives remaining: &quot; + livestwo);</span>
+
+<span class="nc bnc" id="L109" title="All 2 branches missed.">                if (livestwo &lt;= 0) {</span>
+<span class="nc" id="L110">                    player2 = null; // Player 2가 파괴된 경우</span>
+                }
+                break;
+            }
+<span class="nc" id="L114">        }</span>
+<span class="nc" id="L115">    }</span>
+
+    // Player 2의 아이템과 충돌 처리
+    public static void handleItemCollisionsForPlayer2(Ship player2) {
+<span class="nc bnc" id="L119" title="All 2 branches missed.">        if(player2==null) return;</span>
+<span class="nc bnc" id="L120" title="All 2 branches missed.">        for (Item item : itemManager.items) {</span>
+<span class="nc bnc" id="L121" title="All 2 branches missed.">            if (checkCollision(item, player2)) {</span>
+<span class="nc" id="L122">                itemManager.OperateItem(item); // 아이템 효과 적용</span>
+<span class="nc" id="L123">                System.out.println(&quot;Item collected by Player 2.&quot;);</span>
+            }
+<span class="nc" id="L125">        }</span>
+<span class="nc" id="L126">    }</span>
+
+    /**
+     *
+     * */
+    public static int getLivestwo() {
+<span class="nc" id="L132">        return livestwo;</span>
+    }
+
+    public void setLivestwo(int livestwo) {
+<span class="nc" id="L136">        this.livestwo = livestwo;</span>
+<span class="nc" id="L137">    }</span>
+
+}
+
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.10.202304240956</span></div></body></html>

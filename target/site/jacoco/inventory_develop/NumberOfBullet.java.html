@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="ko"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>NumberOfBullet.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">my-java-project</a> &gt; <a href="index.source.html" class="el_package">inventory_develop</a> &gt; <span class="el_source">NumberOfBullet.java</span></div><h1>NumberOfBullet.java</h1><pre class="source lang-java linenums">package inventory_develop;
+
+import Enemy.PiercingBullet;
+import Enemy.PiercingBulletPool;
+import engine.Core;
+
+import java.io.IOException;
+import java.util.HashSet;
+import java.util.Set;
+
+/**
+ * TwoBulletPool extends BulletPool to manage firing two bullets at once.
+ */
+public class NumberOfBullet{
+
+    /** Offset to ensure bullets don't overlap when fired together. */
+    private static final int OFFSET_X_TWOBULLETS = 15;
+    private static final int OFFSET_X_THREEBULLETS = 12;
+
+    /** Bulet damage */
+<span class="nc" id="L21">    private static int bulletDamage = 1;</span>
+    /** Bullet levels */
+<span class="nc" id="L23">    private static int bulletCount = 1;</span>
+    /** PiercingBullet levels */
+<span class="nc" id="L25">    private static int piercingbulletLevel = 1;</span>
+<span class="nc" id="L26">    private final int PierceMax = 3;</span>
+
+    /**
+     * Constructor
+     */
+<span class="nc" id="L31">    public NumberOfBullet() {</span>
+        try {
+<span class="nc" id="L33">            bulletDamage = Core.getUpgradeManager().getBulletDamage();</span>
+<span class="nc" id="L34">            bulletCount = Core.getUpgradeManager().getBulletNum();</span>
+<span class="nc bnc" id="L35" title="All 2 branches missed.">            if (bulletCount &gt; 3){</span>
+<span class="nc" id="L36">                bulletCount = 3;</span>
+            }
+<span class="nc" id="L38">        } catch (IOException e) {</span>
+<span class="nc" id="L39">            throw new RuntimeException(e);</span>
+<span class="nc" id="L40">        }</span>
+<span class="nc" id="L41">    }</span>
+
+    /**
+     *
+     * @return
+     */
+    public Set&lt;PiercingBullet&gt; addBullet(int positionX, int positionY, int speedX, int speedY, boolean canShootBomb, int bulletType, double angle) {
+<span class="nc" id="L48">        Set&lt;PiercingBullet&gt; bullets = new HashSet&lt;&gt;();</span>
+
+<span class="nc bnc" id="L50" title="All 2 branches missed.">        if (canShootBomb) {</span>
+<span class="nc" id="L51">            bullets.add(PiercingBulletPool.getPiercingBullet(positionX, positionY, speedX, speedY, 1, bulletType, angle, bulletDamage));</span>
+<span class="nc" id="L52">            return bullets;</span>
+        }
+
+<span class="nc bnc" id="L55" title="All 4 branches missed.">        switch (bulletCount) {</span>
+            case 1:
+<span class="nc" id="L57">                bullets.add(PiercingBulletPool.getPiercingBullet(positionX, positionY, speedX, speedY, piercingbulletLevel, bulletType, angle, bulletDamage));</span>
+<span class="nc" id="L58">                break;</span>
+            case 2:
+<span class="nc" id="L60">                bullets.add(PiercingBulletPool.getPiercingBullet(positionX - OFFSET_X_TWOBULLETS + 5, positionY, speedX, speedY, piercingbulletLevel, bulletType, angle, bulletDamage));</span>
+<span class="nc" id="L61">                bullets.add(PiercingBulletPool.getPiercingBullet(positionX + OFFSET_X_TWOBULLETS - 5, positionY, speedX, speedY, piercingbulletLevel, bulletType, angle, bulletDamage));</span>
+<span class="nc" id="L62">                break;</span>
+            case 3:
+<span class="nc" id="L64">                bullets.add(PiercingBulletPool.getPiercingBullet(positionX + OFFSET_X_THREEBULLETS, positionY, speedX, speedY, piercingbulletLevel, bulletType, angle, bulletDamage));</span>
+<span class="nc" id="L65">                bullets.add(PiercingBulletPool.getPiercingBullet(positionX, positionY, speedX, speedY, piercingbulletLevel, bulletType, angle, bulletDamage));</span>
+<span class="nc" id="L66">                bullets.add(PiercingBulletPool.getPiercingBullet(positionX - OFFSET_X_THREEBULLETS, positionY, speedX, speedY, piercingbulletLevel, bulletType, angle, bulletDamage));</span>
+                break;
+        }
+
+<span class="nc" id="L70">        return bullets;</span>
+
+    }
+
+    public void pierceup() {
+<span class="nc bnc" id="L75" title="All 2 branches missed.">        if (piercingbulletLevel &lt; PierceMax){</span>
+<span class="nc" id="L76">            piercingbulletLevel += 1;</span>
+        }
+<span class="nc" id="L78">    }</span>
+
+    public void ResetPierceLevel(){
+<span class="nc" id="L81">        piercingbulletLevel = 1;</span>
+<span class="nc" id="L82">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.10.202304240956</span></div></body></html>

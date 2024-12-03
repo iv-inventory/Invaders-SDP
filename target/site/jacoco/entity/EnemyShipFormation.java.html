@@ -1,0 +1,805 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="ko"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>EnemyShipFormation.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">my-java-project</a> &gt; <a href="index.source.html" class="el_package">entity</a> &gt; <span class="el_source">EnemyShipFormation.java</span></div><h1>EnemyShipFormation.java</h1><pre class="source lang-java linenums">package entity;
+
+
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.util.*;
+import java.util.List;
+import java.util.concurrent.ExecutionException;
+import java.util.logging.Logger;
+import javax.swing.Timer;
+
+import Enemy.*;
+import HUDTeam.DrawManagerImpl;
+import Sound_Operator.SoundManager;
+import clove.ScoreManager;
+import inventory_develop.Bomb;
+import inventory_develop.SpeedItem;
+import screen.Screen;
+import engine.Cooldown;
+import engine.Core;
+import engine.DrawManager;
+import engine.DrawManager.SpriteType;
+import engine.GameSettings;
+import static java.lang.Math.*;
+import Enemy.PiercingBulletPool;
+//Sound_Operator
+import Sound_Operator.SoundManager;
+
+/**
+ * Groups enemy ships into a formation that moves together.
+ *
+ * @author &lt;a href=&quot;mailto:RobertoIA1987@gmail.com&quot;&gt;Roberto Izquierdo Amo&lt;/a&gt;
+ *
+ */
+public class EnemyShipFormation implements Iterable&lt;EnemyShip&gt; {
+<span class="nc" id="L37">	private boolean isCircle = false;</span>
+	// Sound Operator
+	private static SoundManager sm;
+	/** Number of iteration of movement */
+<span class="nc" id="L41">	private int iteration = 0;</span>
+
+	/** Initial position in the x-axis. */
+	private static final int INIT_POS_X = 60;
+	/** Initial position in the y-axis. */
+	private static final int INIT_POS_Y = 100;
+	/** Distance between ships. */
+	private static final int SEPARATION_DISTANCE = 60;
+	private static final int SEPARATION_DISTANCE_CIRCLE = 70;
+	/** Radius of circle */
+<span class="nc" id="L51">	private int RADIUS=0;</span>
+<span class="nc" id="L52">	private int MINIRADIUS= 0;</span>
+	private double angle;
+
+	/** Proportion of C-type ships. */
+	private static final double PROPORTION_C = 0.2;
+	/** Proportion of B-type ships. */
+	private static final double PROPORTION_B = 0.4;
+	/** Lateral speed of the formation. */
+	private static final int X_SPEED = 8;
+	/** Downwards speed of the formation. */
+	private static final int Y_SPEED = 4;
+	/** SpeedX of the bullets shot by the members. */
+	private static final int BULLET_SPEED = 4;
+	/** Proportion of differences between shooting times. */
+	private static final double SHOOTING_VARIANCE = .2;
+	/** Margin on the sides of the screen. */
+	private static final int SIDE_MARGIN = 20;
+	/** Margin on the bottom of the screen. */
+	private static final int BOTTOM_MARGIN = 80;
+	/** Distance to go down each pass. */
+	private static final int DESCENT_DISTANCE = 20;
+	/** Minimum speed allowed. */
+	private static final int MINIMUM_SPEED = 10;
+
+	/** DrawManager instance. */
+	private DrawManager drawManager;
+	/** Application logger. */
+	private Logger logger;
+	/** Screen to draw ships on. */
+	private Screen screen;
+
+	/** List of enemy ships forming the formation. */
+	private List&lt;List&lt;EnemyShip&gt;&gt; enemyShips;
+	/** Minimum time between shots. */
+	private List&lt;SpeedItem&gt; activeSpeedItems;
+	private List&lt;Cooldown&gt; shootingCooldown;
+	private Cooldown enemyCooldown;
+	/** Number of ships in the formation - horizontally. */
+	private int nShipsWide;
+	/** Number of ships in the formation - vertically. */
+	private int nShipsHigh;
+	/** Time between shots. */
+	private int shootingInterval;
+	/** Variance in the time between shots. */
+	private int shootingVariance;
+	/** Initial ship speed. */
+	private int baseSpeed;
+	/** Speed of the ships. */
+	private int movementSpeed;
+	/** Current direction the formation is moving on. */
+	private Direction currentDirection;
+	/** Direction the formation was moving previously. */
+	private Direction previousDirection;
+	/** Interval between movements, in frames. */
+	private int movementInterval;
+	/** Total width of the formation. */
+	private int width;
+	/** Total height of the formation. */
+	private int height;
+	/** Position in the x-axis of the upper left corner of the formation. */
+	private int positionX;
+	/** Position in the y-axis of the upper left corner of the formation. */
+	private int positionY;
+	/** Position in the x-axis of player ship. */
+	private int shippositionX;
+	/** Position in the y-axis of player ship. */
+	private int shippositionY;
+	/** Width of one ship. */
+	private int shipWidth;
+	/** Height of one ship. */
+	private int shipHeight;
+	/** List of ships that are able to shoot. */
+	private List&lt;EnemyShip&gt; shooters;
+	/** Number of not destroyed ships. */
+	private int shipCount;
+
+	private int enemyFrecuency;
+	private String gametype;
+
+	private ScoreManager scoreManager; //add by team Enemy
+	private ItemManager itemManager; //add by team Enemy
+
+	private int index_x;
+	private int index_y;
+
+	/** Directions the formation can move. */
+<span class="nc" id="L138">	private enum Direction {</span>
+		/** Movement to the right side of the screen. */
+<span class="nc" id="L140">		RIGHT,</span>
+		/** Movement to the left side of the screen. */
+<span class="nc" id="L142">		LEFT,</span>
+		/** Movement to the bottom of the screen. */
+<span class="nc" id="L144">		DOWN</span>
+	};
+
+	//add by team Enemy
+	//Setting Up Score Manager and ItemManager
+	public void setScoreManager (ScoreManager scoreManager){
+<span class="nc" id="L150">		this.scoreManager = scoreManager;</span>
+<span class="nc" id="L151">	}</span>
+	public void setItemManager (ItemManager itemManager){//add by team Enemy
+<span class="nc" id="L153">		this.itemManager = itemManager;</span>
+<span class="nc" id="L154">	}</span>
+
+	/**
+	 * Constructor, sets the initial conditions.
+	 *
+	 * @param gameSettings
+	 *            Current game settings.
+	 */
+<span class="nc" id="L162">	public EnemyShipFormation(final GameSettings gameSettings) {</span>
+<span class="nc" id="L163">		this.drawManager = Core.getDrawManager();</span>
+<span class="nc" id="L164">		this.logger = Core.getLogger();</span>
+<span class="nc" id="L165">		this.enemyShips = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L166">		this.activeSpeedItems = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L167">		this.currentDirection = Direction.RIGHT;</span>
+<span class="nc" id="L168">		this.movementInterval = 0;</span>
+<span class="nc" id="L169">		this.nShipsWide = gameSettings.getFormationWidth();</span>
+<span class="nc" id="L170">		this.nShipsHigh = gameSettings.getFormationHeight();</span>
+<span class="nc" id="L171">		this.shootingInterval = gameSettings.getShootingFrecuency();</span>
+<span class="nc" id="L172">		this.shootingVariance = (int) (gameSettings.getShootingFrecuency()</span>
+				* SHOOTING_VARIANCE);
+<span class="nc" id="L174">		this.baseSpeed = gameSettings.getBaseSpeed();</span>
+<span class="nc" id="L175">		this.enemyFrecuency = gameSettings.getEnemyFrecuency();</span>
+<span class="nc" id="L176">		this.gametype = gameSettings.getGametype();</span>
+
+<span class="nc bnc" id="L178" title="All 4 branches missed.">		if (gametype.equals(&quot;Story&quot;) || gametype.equals(&quot;Normal&quot;)){</span>
+<span class="nc" id="L179">			Core.getLogger().warning(&quot;game type is wrong type&quot;);</span>
+		}
+
+<span class="nc" id="L182">		this.movementSpeed = this.baseSpeed;</span>
+<span class="nc" id="L183">		this.positionX = INIT_POS_X;</span>
+<span class="nc" id="L184">		this.positionY = INIT_POS_Y;</span>
+<span class="nc" id="L185">		this.shooters = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L186">		this.shootingCooldown = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L187">		this.shipCount = 0;</span>
+<span class="nc" id="L188">		index_x = 0;</span>
+<span class="nc" id="L189">		index_y = 0;</span>
+<span class="nc" id="L190">		Random rand= new Random();</span>
+<span class="nc" id="L191">		int n = rand.nextInt(2);</span>
+<span class="nc bnc" id="L192" title="All 4 branches missed.">		if(n%2==1 &amp;&amp; (Objects.equals(gametype, &quot;Normal&quot;))){ isCircle=true;</span>
+<span class="nc" id="L193">			this.logger.info(&quot;cercle&quot;+ 2);</span>
+		}
+<span class="nc" id="L195">		else isCircle=false;</span>
+
+<span class="nc bnc" id="L197" title="All 2 branches missed.">		if(isCircle){</span>
+<span class="nc" id="L198">			RADIUS=gameSettings.getFormationHeight()*6;</span>
+<span class="nc" id="L199">			MINIRADIUS= gameSettings.getFormationHeight()*2;}</span>
+
+<span class="nc" id="L201">		this.logger.info(&quot;Initializing &quot; + nShipsWide + &quot;x&quot; + nShipsHigh</span>
+				+ &quot; ship formation in (&quot; + positionX + &quot;,&quot; + positionY + &quot;)&quot;);
+
+		// Each sub-list is a column on the formation.
+<span class="nc bnc" id="L205" title="All 2 branches missed.">		for (int i = 0; i &lt; this.nShipsWide; i++){</span>
+<span class="nc" id="L206">			this.enemyShips.add(new ArrayList&lt;&gt;());</span>
+			}
+
+<span class="nc bnc" id="L209" title="All 2 branches missed.">		if (Objects.equals(gametype, &quot;Normal&quot;)) {</span>
+<span class="nc" id="L210">			setEnemyShips();</span>
+		}
+<span class="nc bnc" id="L212" title="All 2 branches missed.">		else if (Objects.equals(gametype, &quot;Story&quot;)){</span>
+<span class="nc" id="L213">			set_Story_Enemy();</span>
+		}
+
+<span class="nc" id="L216">		this.shipWidth = this.enemyShips.get(0).get(0).getWidth();</span>
+<span class="nc" id="L217">		this.shipHeight = this.enemyShips.get(0).get(0).getHeight();</span>
+
+<span class="nc" id="L219">		this.width = (this.nShipsWide - 1) * SEPARATION_DISTANCE</span>
+				+ this.shipWidth;
+<span class="nc" id="L221">		this.height = (this.nShipsHigh - 1) * SEPARATION_DISTANCE</span>
+				+ this.shipHeight;
+
+<span class="nc" id="L224">	}</span>
+
+	private void setEnemyShips(){
+<span class="nc" id="L227">		SpriteType spriteType = null;</span>
+
+<span class="nc" id="L229">		int hp = 1;</span>
+
+<span class="nc bnc" id="L231" title="All 2 branches missed.">		for (List&lt;EnemyShip&gt; column : this.enemyShips) {</span>
+			int x;
+			int y;
+<span class="nc bnc" id="L234" title="All 2 branches missed.">			for (int i = 0; i &lt; this.nShipsHigh; i++) {</span>
+<span class="nc" id="L235">				double angle = 2* PI * i / this.nShipsHigh;</span>
+
+<span class="nc bnc" id="L237" title="All 2 branches missed.">				if (i / (float) this.nShipsHigh &lt; PROPORTION_C)</span>
+<span class="nc bnc" id="L238" title="All 4 branches missed.">					if (shipCount == (nShipsHigh*1)+1 ||shipCount == (nShipsHigh*3)+1) //Edited by Enemy</span>
+<span class="nc" id="L239">						spriteType = SpriteType.ExplosiveEnemyShip1;</span>
+<span class="nc bnc" id="L240" title="All 2 branches missed.">					else if (i / (float) this.nShipsHigh &lt; PROPORTION_C)</span>
+<span class="nc" id="L241">						spriteType = SpriteType.EnemyShipC1;</span>
+<span class="nc bnc" id="L242" title="All 2 branches missed.">					else if (i / (float) this.nShipsHigh &lt; PROPORTION_B + PROPORTION_C)</span>
+<span class="nc" id="L243">						spriteType = SpriteType.EnemyShipB1;</span>
+					else
+<span class="nc" id="L245">						spriteType = SpriteType.EnemyShipA1;</span>
+<span class="nc bnc" id="L246" title="All 2 branches missed.">				if(isCircle){</span>
+<span class="nc" id="L247">					x = (int) round(RADIUS * cos(angle) + positionX + ( SEPARATION_DISTANCE_CIRCLE* this.enemyShips.indexOf(column)));</span>
+<span class="nc" id="L248">					y = (int) (RADIUS * sin(angle)) + positionY;}</span>
+				else{
+<span class="nc" id="L250">					x = positionX + (SEPARATION_DISTANCE * this.enemyShips.indexOf(column));</span>
+<span class="nc" id="L251">					y = positionY+ i*SEPARATION_DISTANCE;</span>
+				}
+
+<span class="nc bnc" id="L254" title="All 2 branches missed.">				if(shipCount == nShipsHigh*(nShipsWide/2))</span>
+<span class="nc" id="L255">					hp = 2; // Edited by Enemy, It just an example to insert EnemyShip that hp is 2.</span>
+
+<span class="nc" id="L257">				column.add(new EnemyShip(x, y, spriteType, hp, this.enemyShips.indexOf(column), i));// Edited by Enemy</span>
+<span class="nc" id="L258">				this.shipCount++;</span>
+<span class="nc" id="L259">				this.shooters.add(column.get(column.size() - 1));</span>
+<span class="nc" id="L260">				this.shootingCooldown.add(Core.getVariableCooldown(shootingInterval + 2000,</span>
+						shootingVariance));
+
+<span class="nc" id="L263">				hp = 1;// Edited by Enemy</span>
+			}
+<span class="nc" id="L265">		}</span>
+<span class="nc" id="L266">	}</span>
+
+	private void set_Story_Enemy(){
+		SpriteType spriteType;
+
+<span class="nc" id="L271">		int hp = 1;</span>
+
+<span class="nc bnc" id="L273" title="All 2 branches missed.">		if ((int) (random() * 100) &lt; 33) {</span>
+<span class="nc" id="L274">			spriteType = SpriteType.EnemyShipF1;</span>
+<span class="nc" id="L275">			hp = 3;</span>
+		}
+<span class="nc bnc" id="L277" title="All 2 branches missed.">		else if ((int) (random() * 100) &lt; 66) {</span>
+<span class="nc" id="L278">			spriteType = SpriteType.EnemyShipE1;</span>
+<span class="nc" id="L279">			hp = 2;</span>
+		}
+		else
+<span class="nc" id="L282">			spriteType = SpriteType.EnemyShipD1;</span>
+
+<span class="nc bnc" id="L284" title="All 2 branches missed.">		for (List&lt;EnemyShip&gt; column : this.enemyShips) {</span>
+<span class="nc bnc" id="L285" title="All 2 branches missed.">			if (enemyShips.indexOf(column) == index_y){</span>
+<span class="nc" id="L286">				column.add(new EnemyShip((int)(random()*610) + 10, positionY, spriteType, hp, index_y, index_x));// Edited by Enemy</span>
+<span class="nc" id="L287">				this.shipCount++;</span>
+<span class="nc" id="L288">				this.shooters.add(column.get(column.size() - 1));</span>
+
+				// 몹 종류에 따른 공격속도 설정, 이 부분은 나중에 다른 값들이랑 같이 따로 클래스를 생성할 수도 있습니다.
+<span class="nc bnc" id="L291" title="All 2 branches missed.">				if (spriteType == SpriteType.EnemyShipF1){</span>
+<span class="nc" id="L292">					this.shootingCooldown.add(Core.getVariableCooldown(shootingInterval + 2000,</span>
+							shootingVariance));
+				}
+<span class="nc bnc" id="L295" title="All 2 branches missed.">				else if (spriteType == SpriteType.EnemyShipE1){</span>
+<span class="nc" id="L296">					this.shootingCooldown.add(Core.getVariableCooldown(shootingInterval + 2000,</span>
+							shootingVariance));
+				}
+				else {
+<span class="nc" id="L300">					this.shootingCooldown.add(Core.getVariableCooldown(shootingInterval + 2000,</span>
+							shootingVariance));
+				}
+			}
+<span class="nc" id="L304">		}</span>
+<span class="nc bnc" id="L305" title="All 2 branches missed.">		if (index_x &lt; this.nShipsHigh) index_x++;</span>
+		else {
+<span class="nc" id="L307">			index_y++;</span>
+<span class="nc" id="L308">			index_x = 0;</span>
+		}
+<span class="nc" id="L310">	}</span>
+
+	/**
+	 * Associates the formation to a given screen.
+	 *
+	 * @param newScreen
+	 *            Screen to attach.
+	 */
+	public final void attach(final Screen newScreen) {
+<span class="nc" id="L319">		screen = newScreen;</span>
+<span class="nc" id="L320">	}</span>
+
+	/**
+	 * Draws every individual component of the formation.
+	 */
+	public final void draw() {
+<span class="nc bnc" id="L326" title="All 2 branches missed.">		for (List&lt;EnemyShip&gt; column : this.enemyShips)</span>
+<span class="nc bnc" id="L327" title="All 2 branches missed.">			for (EnemyShip enemyShip : column) {</span>
+<span class="nc" id="L328">				drawManager.drawEntity(enemyShip, enemyShip.getPositionX(),</span>
+<span class="nc" id="L329">						enemyShip.getPositionY());</span>
+<span class="nc" id="L330">				DrawManagerImpl.drawEnemyHp(screen, enemyShip);</span>
+<span class="nc" id="L331">			}</span>
+<span class="nc" id="L332">	}</span>
+	/**
+	 * Updates the position of the ships.
+	 */
+	public final void update() {
+
+<span class="nc bnc" id="L338" title="All 2 branches missed.">		if (Objects.equals(gametype, &quot;Story&quot;)){</span>
+<span class="nc bnc" id="L339" title="All 2 branches missed.">			if(this.enemyCooldown == null) {</span>
+<span class="nc" id="L340">				this.enemyCooldown = Core.getCooldown(enemyFrecuency);</span>
+<span class="nc" id="L341">				this.enemyCooldown.reset();</span>
+			}
+
+<span class="nc bnc" id="L344" title="All 2 branches missed.">			if (this.enemyCooldown.checkFinished()) {</span>
+<span class="nc" id="L345">				this.enemyCooldown.reset();</span>
+<span class="nc" id="L346">				set_Story_Enemy();</span>
+			}
+		}
+
+<span class="nc" id="L350">		cleanUp();</span>
+
+<span class="nc" id="L352">		int movementX = 0;</span>
+<span class="nc" id="L353">		int movementY = 0;</span>
+<span class="nc" id="L354">		double remainingProportion = (double) this.shipCount</span>
+				/ (this.nShipsHigh * this.nShipsWide);
+<span class="nc" id="L356">		this.movementSpeed = (int) (pow(remainingProportion, 2)</span>
+				* this.baseSpeed);
+<span class="nc" id="L358">		this.movementSpeed += MINIMUM_SPEED;</span>
+
+<span class="nc" id="L360">		movementInterval++;</span>
+<span class="nc bnc" id="L361" title="All 2 branches missed.">		if (movementInterval &gt;= this.movementSpeed) {</span>
+<span class="nc" id="L362">			movementInterval = 0;</span>
+
+<span class="nc" id="L364">			int circleFormationPadding = 0;</span>
+
+<span class="nc bnc" id="L366" title="All 2 branches missed.">			if (isCircle) {</span>
+<span class="nc" id="L367">				circleFormationPadding = 45;</span>
+			}
+
+<span class="nc" id="L370">			boolean isAtBottom = positionY</span>
+<span class="nc bnc" id="L371" title="All 2 branches missed.">					+ this.height + RADIUS &gt; screen.getHeight() - BOTTOM_MARGIN;</span>
+<span class="nc" id="L372">			boolean isAtRightSide = positionX</span>
+<span class="nc bnc" id="L373" title="All 2 branches missed.">					+ this.width + RADIUS &gt;= screen.getWidth() - SIDE_MARGIN;</span>
+<span class="nc bnc" id="L374" title="All 2 branches missed.">			boolean isAtLeftSide = positionX - RADIUS - circleFormationPadding &lt;= SIDE_MARGIN;</span>
+<span class="nc bnc" id="L375" title="All 2 branches missed.">			boolean isAtHorizontalAltitude = positionY % DESCENT_DISTANCE == 0;</span>
+
+<span class="nc bnc" id="L377" title="All 2 branches missed.">			if (currentDirection == Direction.DOWN) {</span>
+<span class="nc bnc" id="L378" title="All 2 branches missed.">				if (isAtHorizontalAltitude)</span>
+<span class="nc bnc" id="L379" title="All 2 branches missed.">					if (previousDirection == Direction.RIGHT) {</span>
+<span class="nc" id="L380">						currentDirection = Direction.LEFT;</span>
+<span class="nc" id="L381">						this.logger.info(&quot;Formation now moving left 1&quot;);</span>
+					} else {
+<span class="nc" id="L383">						currentDirection = Direction.RIGHT;</span>
+<span class="nc" id="L384">						this.logger.info(&quot;Formation now moving right 2&quot;);</span>
+					}
+<span class="nc bnc" id="L386" title="All 2 branches missed.">			} else if (currentDirection == Direction.LEFT) {</span>
+<span class="nc bnc" id="L387" title="All 2 branches missed.">				if (isAtLeftSide)</span>
+<span class="nc bnc" id="L388" title="All 2 branches missed.">					if (!isAtBottom) {</span>
+<span class="nc" id="L389">						previousDirection = currentDirection;</span>
+<span class="nc" id="L390">						currentDirection = Direction.DOWN;</span>
+<span class="nc" id="L391">						this.logger.info(&quot;Formation now moving down 3&quot;);</span>
+					} else {
+<span class="nc" id="L393">						currentDirection = Direction.RIGHT;</span>
+<span class="nc" id="L394">						this.logger.info(&quot;Formation now moving right 4&quot;);</span>
+					}
+			} else {
+<span class="nc bnc" id="L397" title="All 2 branches missed.">				if (isAtRightSide)</span>
+<span class="nc bnc" id="L398" title="All 2 branches missed.">					if (!isAtBottom) {</span>
+<span class="nc" id="L399">						previousDirection = currentDirection;</span>
+<span class="nc" id="L400">						currentDirection = Direction.DOWN;</span>
+<span class="nc" id="L401">						this.logger.info(&quot;Formation now moving down 5&quot;);</span>
+					} else {
+<span class="nc" id="L403">						currentDirection = Direction.LEFT;</span>
+<span class="nc" id="L404">						this.logger.info(&quot;Formation now moving left 6&quot;);</span>
+					}
+			}
+
+<span class="nc bnc" id="L408" title="All 2 branches missed.">			if (currentDirection == Direction.RIGHT)</span>
+<span class="nc" id="L409">				movementX = X_SPEED;</span>
+<span class="nc bnc" id="L410" title="All 2 branches missed.">			else if (currentDirection == Direction.LEFT)</span>
+<span class="nc" id="L411">				movementX = -X_SPEED;</span>
+			else
+<span class="nc" id="L413">				movementY = Y_SPEED;</span>
+
+
+<span class="nc" id="L416">			positionX += movementX;</span>
+<span class="nc" id="L417">			positionY += movementY;</span>
+
+			// Cleans explosions.
+			List&lt;EnemyShip&gt; destroyed;
+<span class="nc bnc" id="L421" title="All 2 branches missed.">			for (List&lt;EnemyShip&gt; column : this.enemyShips) {</span>
+<span class="nc" id="L422">				destroyed = new ArrayList&lt;EnemyShip&gt;();</span>
+<span class="nc bnc" id="L423" title="All 2 branches missed.">				for (EnemyShip ship : column) {</span>
+<span class="nc bnc" id="L424" title="All 4 branches missed.">					if (ship != null &amp;&amp; ship.isDestroyed()) {</span>
+<span class="nc" id="L425">						destroyed.add(ship);</span>
+<span class="nc" id="L426">						this.logger.info(&quot;Removed enemy &quot;</span>
+<span class="nc" id="L427">								+ column.indexOf(ship) + &quot; from column &quot;</span>
+<span class="nc" id="L428">								+ this.enemyShips.indexOf(column));</span>
+					}
+<span class="nc" id="L430">				}</span>
+<span class="nc bnc" id="L431" title="All 2 branches missed.">				for (EnemyShip destroy : destroyed){</span>
+<span class="nc" id="L432">					shootingCooldown.remove(shooters.indexOf(destroy));</span>
+<span class="nc" id="L433">					shooters.remove(destroy);</span>
+<span class="nc" id="L434">				}</span>
+<span class="nc" id="L435">				column.removeAll(destroyed);</span>
+<span class="nc" id="L436">			}</span>
+<span class="nc" id="L437">			double angle = (PI/this.nShipsHigh);</span>
+<span class="nc" id="L438">			int temp=0;</span>
+<span class="nc" id="L439">			iteration++;</span>
+<span class="nc bnc" id="L440" title="All 2 branches missed.">			for (List&lt;EnemyShip&gt; column : this.enemyShips){</span>
+<span class="nc" id="L441">				temp=0;</span>
+<span class="nc bnc" id="L442" title="All 2 branches missed.">				for (EnemyShip enemyShip : column) {</span>
+<span class="nc" id="L443">					double currentAngle = angle * (temp+iteration);</span>
+<span class="nc" id="L444">					int distanceX = movementX + (int) (MINIRADIUS * cos(currentAngle));</span>
+<span class="nc" id="L445">					int distanceY = movementY + (int) (MINIRADIUS * sin(currentAngle));</span>
+
+<span class="nc bnc" id="L447" title="All 4 branches missed.">					if (distanceX + enemyShip.positionX &gt; screen.getWidth() - SIDE_MARGIN || distanceX + enemyShip.positionX &lt; SIDE_MARGIN) {</span>
+<span class="nc" id="L448">						distanceX = 0;</span>
+
+<span class="nc bnc" id="L450" title="All 2 branches missed.">					} else if (distanceY + enemyShip.positionY &gt; screen.getHeight() - BOTTOM_MARGIN) {</span>
+<span class="nc" id="L451">						distanceY = 0;</span>
+					}
+
+<span class="nc" id="L454">					enemyShip.move(</span>
+							distanceX,
+							distanceY
+					);
+<span class="nc" id="L458">					enemyShip.update();</span>
+<span class="nc" id="L459">					temp++;</span>
+<span class="nc" id="L460">				}</span>
+<span class="nc" id="L461">			}</span>
+		}
+<span class="nc" id="L463">	}</span>
+
+	/**
+	 * Cleans empty columns, adjusts the width and height of the formation.
+	 */
+	private void cleanUp() {
+<span class="nc" id="L469">		Set&lt;Integer&gt; emptyColumns = new HashSet&lt;Integer&gt;();</span>
+<span class="nc" id="L470">		int maxColumn = 0;</span>
+<span class="nc" id="L471">		int minPositionY = Integer.MAX_VALUE;</span>
+<span class="nc bnc" id="L472" title="All 2 branches missed.">		for (List&lt;EnemyShip&gt; column : this.enemyShips) {</span>
+<span class="nc bnc" id="L473" title="All 2 branches missed.">			if (!column.isEmpty()) {</span>
+				// Height of this column
+<span class="nc" id="L475">				int columnSize = column.get(column.size() - 1).positionY</span>
+						- this.positionY + this.shipHeight;
+<span class="nc" id="L477">				maxColumn = max(maxColumn, columnSize);</span>
+<span class="nc" id="L478">				minPositionY = min(minPositionY, column.get(0)</span>
+<span class="nc" id="L479">						.getPositionY());</span>
+<span class="nc" id="L480">			} else {</span>
+				// Empty column, we remove it.
+<span class="nc" id="L482">				emptyColumns.add(this.enemyShips.indexOf(column));</span>
+			}
+<span class="nc" id="L484">		}</span>
+<span class="nc bnc" id="L485" title="All 2 branches missed.">		for (int index : emptyColumns) {</span>
+<span class="nc" id="L486">			this.enemyShips.remove(index);</span>
+<span class="nc" id="L487">			logger.info(&quot;Removed column &quot; + index);</span>
+<span class="nc" id="L488">		}</span>
+
+<span class="nc" id="L490">		int leftMostPoint = 0;</span>
+<span class="nc" id="L491">		int rightMostPoint = 0;</span>
+
+<span class="nc bnc" id="L493" title="All 2 branches missed.">		for (List&lt;EnemyShip&gt; column : this.enemyShips) {</span>
+<span class="nc bnc" id="L494" title="All 2 branches missed.">			if (!column.isEmpty()) {</span>
+<span class="nc bnc" id="L495" title="All 2 branches missed.">				if (leftMostPoint == 0)</span>
+<span class="nc" id="L496">					leftMostPoint = column.get(0).getPositionX();</span>
+<span class="nc" id="L497">				rightMostPoint = column.get(0).getPositionX();</span>
+			}
+<span class="nc" id="L499">		}</span>
+
+<span class="nc" id="L501">		this.width = rightMostPoint - leftMostPoint + this.shipWidth;</span>
+<span class="nc" id="L502">		this.height = maxColumn;</span>
+
+<span class="nc" id="L504">		this.positionX = leftMostPoint;</span>
+<span class="nc" id="L505">		this.positionY = minPositionY;</span>
+<span class="nc" id="L506">	}</span>
+
+	/**
+	 * Shoots a bullet downwards.
+	 *
+	 * @param bullets
+	 *            Bullets set to add the bullet being shot.
+	 */
+	public final void shoot(final Set&lt;PiercingBullet&gt; bullets) { // Edited by Enemy
+		// For now, only ships in the bottom row are able to shoot.
+<span class="nc bnc" id="L516" title="All 2 branches missed.">		for (Cooldown shoot : this.shootingCooldown){</span>
+<span class="nc bnc" id="L517" title="All 4 branches missed.">			if (!shooters.isEmpty() &amp;&amp; shoot.checkFinished()){</span>
+<span class="nc" id="L518">				EnemyShip shooter = this.shooters.get(shootingCooldown.indexOf(shoot));</span>
+<span class="nc" id="L519">				shoot.reset();</span>
+
+				// 몹 종류에 따른 공격방식 설정, 이 부분은 나중에 다른 값들이랑 같이 따로 클래스를 생성할 수도 있습니다.
+<span class="nc bnc" id="L522" title="All 2 branches missed.">				if (shooter.getSpriteType() == SpriteType.EnemyShipD1){  //임시 기믹 변경 예정</span>
+<span class="nc" id="L523">					angle = Math.atan2(shippositionY - shooter.getPositionY(), shippositionX - shooter.getPositionX());</span>
+				}
+<span class="nc bnc" id="L525" title="All 2 branches missed.">				else if (shooter.getSpriteType() == SpriteType.EnemyShipE1){</span>
+<span class="nc" id="L526">					angle = Math.atan2(shippositionY - shooter.getPositionY(), shippositionX - shooter.getPositionX());</span>
+				}
+<span class="nc bnc" id="L528" title="All 2 branches missed.">				else if (shooter.getSpriteType() == SpriteType.EnemyShipF1){</span>
+<span class="nc" id="L529">					angle = Math.atan2(shippositionY - shooter.getPositionY(), shippositionX - shooter.getPositionX());</span>
+				}
+				else {
+<span class="nc" id="L532">					angle = 1.5708;</span>
+				}
+
+<span class="nc" id="L535">				sm = SoundManager.getInstance();</span>
+<span class="nc" id="L536">				sm.playES(&quot;Enemy_Gun_Shot_1_ES&quot;);</span>
+<span class="nc" id="L537">				bullets.add(PiercingBulletPool.getPiercingBullet( // Edited by Enemy</span>
+<span class="nc" id="L538">						shooter.getPositionX() + shooter.width / 2,</span>
+<span class="nc" id="L539">						shooter.getPositionY(),</span>
+<span class="nc" id="L540">						(int) (BULLET_SPEED * Math.cos(angle)),</span>
+<span class="nc" id="L541">						(int) (BULLET_SPEED * Math.sin(angle)),</span>
+						0,
+						1,
+						angle,
+						1)); // Edited by Enemy
+
+			}
+<span class="nc" id="L548">		}</span>
+<span class="nc" id="L549">	}</span>
+
+	/**
+	 * Destroys a ship.
+	 *
+	 * @param destroyedShip
+	 *            Ship to be destroyed.
+	 */
+	public final void destroy(final EnemyShip destroyedShip) {
+<span class="nc bnc" id="L558" title="All 2 branches missed.">			if (Bomb.getIsBomb()) {		// team Inventory</span>
+<span class="nc" id="L559">				Bomb.destroyByBomb(enemyShips, destroyedShip, this.itemManager , this.logger);</span>
+			} else {
+<span class="nc bnc" id="L561" title="All 2 branches missed.">				for (List&lt;EnemyShip&gt; column : this.enemyShips)</span>
+<span class="nc bnc" id="L562" title="All 2 branches missed.">					for (int i = 0; i &lt; column.size(); i++)</span>
+<span class="nc bnc" id="L563" title="All 2 branches missed.">						if (column.get(i).equals(destroyedShip)) {</span>
+<span class="nc" id="L564">							column.get(i).destroy();</span>
+<span class="nc" id="L565">							this.logger.info(&quot;Destroyed ship in (&quot;</span>
+<span class="nc" id="L566">									+ this.enemyShips.indexOf(column) + &quot;,&quot; + i + &quot;)&quot;);</span>
+						}
+			}
+
+<span class="nc" id="L570">		this.shipCount--;</span>
+<span class="nc" id="L571">	}</span>
+
+	/**
+	 * Returns an iterator over the ships in the formation.
+	 *
+	 * @return Iterator over the enemy ships.
+	 */
+	@Override
+	public final Iterator&lt;EnemyShip&gt; iterator() {
+<span class="nc" id="L580">		Set&lt;EnemyShip&gt; enemyShipsList = new HashSet&lt;&gt;();</span>
+<span class="nc bnc" id="L581" title="All 2 branches missed.">		for (List&lt;EnemyShip&gt; column : this.enemyShips) {</span>
+<span class="nc bnc" id="L582" title="All 2 branches missed.">			for (EnemyShip enemyShip : column) {</span>
+<span class="nc" id="L583">				enemyShipsList.add(enemyShip);</span>
+<span class="nc" id="L584">			}</span>
+<span class="nc" id="L585">		}</span>
+<span class="nc" id="L586">		return enemyShipsList.iterator();</span>
+	}
+
+	/**
+	 * Checks if there are any ships remaining.
+	 *
+	 * @return True when all ships have been destroyed.
+	 */
+	public final boolean isEmpty() {
+<span class="nc bnc" id="L595" title="All 2 branches missed.">		return this.shipCount &lt;= 0;</span>
+	}
+
+	/**
+	 * When EnemyShip is hit, its HP decrease by 1, and if the HP reaches 0, the ship is destroyed.
+	 *
+	 * @param bullet
+	 *            Player's bullet
+	 * @param destroyedShip
+	 *            Ship to be hit
+	 * @param isChainExploded
+	 *            True if enemy ship is chain exploded
+	 */
+	public final int[] _destroy(final Bullet bullet, final EnemyShip destroyedShip, boolean isChainExploded) {// Edited by Enemy team
+<span class="nc" id="L609">		int count = 0;   // number of destroyed enemy</span>
+<span class="nc" id="L610">		int point = 0;  // point of destroyed enemy</span>
+
+		// Checks if this ship is 'chainExploded' due to recursive call
+<span class="nc bnc" id="L613" title="All 2 branches missed.">		if (isChainExploded</span>
+<span class="nc bnc" id="L614" title="All 2 branches missed.">				&amp;&amp; !destroyedShip.spriteType.equals(SpriteType.ExplosiveEnemyShip1)</span>
+<span class="nc bnc" id="L615" title="All 2 branches missed.">				&amp;&amp; !destroyedShip.spriteType.equals(SpriteType.ExplosiveEnemyShip2)){</span>
+<span class="nc" id="L616">			destroyedShip.chainExplode();</span>
+		}
+
+<span class="nc bnc" id="L619" title="All 4 branches missed.">		if (bullet.getSpriteType() == SpriteType.ItemBomb &amp;&amp; isCircle) {	// Bomb Item type1</span>
+<span class="nc" id="L620">			int[] score = Bomb.destroyByBomb_isCircle(enemyShips, destroyedShip, this.itemManager, this.logger);</span>
+<span class="nc" id="L621">			count = score[0];</span>
+<span class="nc" id="L622">			point = score[1];</span>
+<span class="nc bnc" id="L623" title="All 2 branches missed.">		} else if (bullet.getSpriteType() == SpriteType.ItemBomb) {		// Bomb Item type2</span>
+<span class="nc" id="L624">			int[] score = Bomb.destroyByBomb(enemyShips, destroyedShip, this.itemManager, this.logger);</span>
+<span class="nc" id="L625">			count = score[0];</span>
+<span class="nc" id="L626">			point = score[1];</span>
+<span class="nc" id="L627">		} else {</span>
+<span class="nc bnc" id="L628" title="All 2 branches missed.">			for (List&lt;EnemyShip&gt; column : this.enemyShips) // Add by team Enemy</span>
+<span class="nc bnc" id="L629" title="All 2 branches missed.">				for (int i = 0; i &lt; column.size(); i++) {</span>
+<span class="nc bnc" id="L630" title="All 2 branches missed.">					if (column.get(i).equals(destroyedShip)) {</span>
+<span class="nc bnc" id="L631" title="All 2 branches missed.">						switch (destroyedShip.spriteType){</span>
+							case ExplosiveEnemyShip1:
+							case ExplosiveEnemyShip2:
+//								HpEnemyShip.hit(destroyedShip, bullet);
+
+								//Sound_Operator
+<span class="nc bnc" id="L637" title="All 2 branches missed.">								if (destroyedShip.isDestroyed()) {</span>
+
+<span class="nc" id="L639">									sm = SoundManager.getInstance();</span>
+<span class="nc" id="L640">									sm.playES(&quot;enemy_explosion&quot;);</span>
+								}
+<span class="nc" id="L642">								point += destroyedShip.getPointValue();</span>
+<span class="nc" id="L643">								int point_mob[]  =  explosive(destroyedShip.getX(), destroyedShip.getY(),</span>
+<span class="nc" id="L644">										this.enemyShips.indexOf(column),i,this.enemyShips); // Edited by team Enemy</span>
+<span class="nc" id="L645">								point += point_mob[0];</span>
+<span class="nc" id="L646">								count += point_mob[1]+1;</span>
+<span class="nc bnc" id="L647" title="All 2 branches missed.">								if(isChainExploded){</span>
+<span class="nc" id="L648">									this.scoreManager.addScore(point-destroyedShip.getPointValue());</span>
+								}
+<span class="nc" id="L650">								this.logger.info(&quot;Destroyed ExplosiveEnemyship in (&quot;</span>
+<span class="nc" id="L651">										+ this.enemyShips.indexOf(column) + &quot;,&quot; + i + &quot;)&quot;);</span>
+
+<span class="nc" id="L653">								break;</span>
+							default:
+//								HpEnemyShip.hit(destroyedShip, bullet);
+
+<span class="nc bnc" id="L657" title="All 2 branches missed.">								if(destroyedShip.getHp() &gt; 0 ){</span>
+<span class="nc" id="L658">									this.logger.info(&quot;Enemy ship lost 1 HP in (&quot;</span>
+<span class="nc" id="L659">											+ this.enemyShips.indexOf(column) + &quot;,&quot; + i + &quot;)&quot;);</span>
+								}else{
+<span class="nc" id="L661">									this.logger.info(&quot;Destroyed ship in (&quot;</span>
+<span class="nc" id="L662">											+ this.enemyShips.indexOf(column) + &quot;,&quot; + i + &quot;)&quot;);</span>
+<span class="nc" id="L663">									point = column.get(i).getPointValue();</span>
+<span class="nc" id="L664">									count += 1;</span>
+								}
+								break;
+						}
+<span class="nc bnc" id="L668" title="All 2 branches missed.">						if (column.get(i).getColor().equals(Color.MAGENTA)) { //add by team enemy</span>
+<span class="nc" id="L669">							this.itemManager.dropItem(destroyedShip, 1, 1);</span>
+						}
+
+
+
+					}
+				}
+		}
+
+<span class="nc" id="L678">		this.shipCount -= count;</span>
+
+<span class="nc" id="L680">		int[] returnValue = {count, point};</span>
+<span class="nc" id="L681">		return returnValue;</span>
+	}
+
+	/**
+	 * A function that explosive up, down, left, and right when an explosive EnemyShip dies
+	 *
+	 * @param x
+	 *            explosive EnemyShip's Initial x-coordinates
+	 * @param y
+	 *            explosive EnemyShip's Initial y-coordinates
+	 * @param index_x
+	 *            explosive EnemyShip's x-coordinates in EnemyShips
+	 * @param index_y
+	 * 			  explosive EnemyShip's y-coordinates in EnemyShips
+	 * @param enemyShips
+	 * 			  the current arrangement of the enemy
+	 */
+	public int[] explosive(final int x, final int y, final int index_x, final int index_y, List&lt;List&lt;EnemyShip&gt;&gt; enemyShips){
+
+
+<span class="nc" id="L701">		Queue&lt;EnemyShip&gt; targetShipQ = new LinkedList&lt;&gt;();</span>
+<span class="nc" id="L702">		Timer timer = new Timer(500, null);</span>
+<span class="nc" id="L703">		int range = 2;</span>
+<span class="nc" id="L704">		int i = 1;</span>
+<span class="nc" id="L705">		int point = 0;</span>
+<span class="nc" id="L706">		int mob = 0;</span>
+
+<span class="nc" id="L708">		Bullet bullet = new Bullet(0,0, 0,-1, 1, 0, 1);</span>
+
+		do{
+
+<span class="nc bnc" id="L712" title="All 6 branches missed.">			if(index_x+i &gt;= 0 &amp;&amp; enemyShips.size() &gt; index_x+i &amp;&amp; enemyShips.get(index_x+i).size() &gt; y){ // right</span>
+<span class="nc" id="L713">				EnemyShip targetShip = enemyShips.get(index_x+i).get(y);</span>
+<span class="nc bnc" id="L714" title="All 2 branches missed.">				if (!targetShip.isDestroyed()) {</span>
+<span class="nc bnc" id="L715" title="All 4 branches missed.">					if (targetShip.getX() == x + i &amp;&amp; targetShip.getY() == y) {</span>
+<span class="nc" id="L716">						targetShipQ.add(targetShip);</span>
+<span class="nc" id="L717">						point += targetShip.getPointValue();</span>
+<span class="nc" id="L718">						mob += 1;</span>
+
+					}
+				}
+			}
+
+<span class="nc bnc" id="L724" title="All 6 branches missed.">			if( index_x-i &gt;= 0 &amp;&amp; enemyShips.size() &gt; index_x-i &amp;&amp; enemyShips.get(index_x-i).size() &gt; y) { // left</span>
+<span class="nc" id="L725">				EnemyShip targetShip = enemyShips.get(index_x - i).get(y);</span>
+<span class="nc bnc" id="L726" title="All 2 branches missed.">				if(!targetShip.isDestroyed()) {</span>
+<span class="nc bnc" id="L727" title="All 4 branches missed.">					if (targetShip.getX() == x - i &amp;&amp; targetShip.getY() == y) {</span>
+<span class="nc" id="L728">						targetShipQ.add(targetShip);</span>
+<span class="nc" id="L729">						point += targetShip.getPointValue();</span>
+<span class="nc" id="L730">						mob += 1;</span>
+
+					}
+				}
+			}
+
+<span class="nc bnc" id="L736" title="All 2 branches missed.">			if(index_y-i &gt;= 0){//up</span>
+<span class="nc" id="L737">				EnemyShip targetShip = enemyShips.get(index_x).get(index_y-i);</span>
+<span class="nc bnc" id="L738" title="All 2 branches missed.">				if (!targetShip.isDestroyed()) {</span>
+<span class="nc bnc" id="L739" title="All 4 branches missed.">					if (targetShip.getX() == x &amp;&amp; targetShip.getY() == y - i) {</span>
+<span class="nc" id="L740">						targetShipQ.add(targetShip);</span>
+<span class="nc" id="L741">						point += targetShip.getPointValue();</span>
+<span class="nc" id="L742">						mob += 1;</span>
+					}
+				}
+			}
+
+<span class="nc bnc" id="L747" title="All 2 branches missed.">			if(enemyShips.get(index_x).size() &gt; index_y+i){//down</span>
+<span class="nc" id="L748">				EnemyShip targetShip = enemyShips.get(index_x).get(index_y+i);</span>
+<span class="nc bnc" id="L749" title="All 2 branches missed.">				if(!targetShip.isDestroyed()) {</span>
+<span class="nc bnc" id="L750" title="All 4 branches missed.">					if (targetShip.getX() == x &amp;&amp; targetShip.getY() == y + i) {</span>
+<span class="nc" id="L751">						targetShipQ.add(targetShip);</span>
+<span class="nc" id="L752">						point += targetShip.getPointValue();</span>
+<span class="nc" id="L753">						mob += 1;</span>
+
+
+					}
+				}
+			}
+
+<span class="nc" id="L760">			targetShipQ.add(new EnemyShip());</span>
+
+<span class="nc" id="L762">			i++;</span>
+		}
+<span class="nc bnc" id="L764" title="All 2 branches missed.">		while(i &lt;= range);</span>
+
+<span class="nc" id="L766">		ActionListener listener = new ActionListener() {</span>
+			@Override
+			public void actionPerformed(ActionEvent e) {
+
+
+
+				while(true){
+<span class="nc bnc" id="L773" title="All 2 branches missed.">					if(!targetShipQ.isEmpty()) {</span>
+<span class="nc" id="L774">						EnemyShip targetShip = targetShipQ.poll();</span>
+<span class="nc bnc" id="L775" title="All 2 branches missed.">						if(targetShip.getX() != -2){</span>
+<span class="nc" id="L776">							_destroy(bullet,targetShip,true);</span>
+						}else{
+							break;
+						}
+
+<span class="nc" id="L781">					}else{</span>
+						break;
+					}
+				}
+
+<span class="nc bnc" id="L786" title="All 2 branches missed.">				if (targetShipQ.isEmpty())</span>
+<span class="nc" id="L787">					((Timer) e.getSource()).stop();</span>
+
+<span class="nc" id="L789">			}</span>
+		};
+
+<span class="nc" id="L792">		timer.addActionListener(listener);</span>
+<span class="nc" id="L793">		timer.start();</span>
+
+<span class="nc" id="L795">		return new int[]{point, mob};</span>
+	}
+	public final void BecomeCircle(boolean iscircle){
+<span class="nc" id="L798">		this.isCircle=iscircle;</span>
+<span class="nc" id="L799">	}</span>
+	public void setShipposition(int shippositionX, int shippositionY){
+<span class="nc" id="L801">		this.shippositionX = shippositionX;</span>
+<span class="nc" id="L802">		this.shippositionY = shippositionY;</span>
+<span class="nc" id="L803">	}</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.10.202304240956</span></div></body></html>

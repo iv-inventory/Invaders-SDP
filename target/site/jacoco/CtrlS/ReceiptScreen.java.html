@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="ko"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ReceiptScreen.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">my-java-project</a> &gt; <a href="index.source.html" class="el_package">CtrlS</a> &gt; <span class="el_source">ReceiptScreen.java</span></div><h1>ReceiptScreen.java</h1><pre class="source lang-java linenums">package CtrlS;
+
+import screen.Screen;
+import engine.GameState;
+
+import java.awt.event.KeyEvent;
+
+/**
+ * Implements the high scores screen, it shows player records.
+ * 
+ * @author &lt;a href=&quot;mailto:RobertoIA1987@gmail.com&quot;&gt;Roberto Izquierdo Amo&lt;/a&gt;
+ * 
+ */
+public class ReceiptScreen extends Screen {
+	
+	private final RoundState roundState;
+	private final GameState gameState;
+
+	/**
+	 * Constructor, establishes the properties of the screen.
+	 *
+	 * @param width
+	 *            Screen width.
+	 * @param height
+	 *            Screen height.
+	 * @param fps
+	 *            Frames per second, frame rate at which the game is run.
+	 */
+	public ReceiptScreen(final int width, final int height, final int fps, final RoundState roundState, final GameState gameState) {
+<span class="nc" id="L30">		super(width, height, fps);</span>
+
+<span class="nc" id="L32">		this.roundState = roundState;</span>
+<span class="nc" id="L33">		this.gameState = gameState;</span>
+<span class="nc" id="L34">		this.returnCode = 2;</span>
+<span class="nc" id="L35">	}</span>
+
+	/**
+	 * Starts the action.
+	 * 
+	 * @return Next screen code.
+	 */
+	public final int run() {
+<span class="nc" id="L43">		super.run();</span>
+
+<span class="nc" id="L45">		return this.returnCode;</span>
+	}
+
+	/**
+	 * Updates the elements on screen and checks for events.
+	 */
+	protected final void update() {
+<span class="nc" id="L52">		super.update();</span>
+
+<span class="nc" id="L54">		draw();</span>
+<span class="nc bnc" id="L55" title="All 2 branches missed.">		if (inputManager.isKeyDown(KeyEvent.VK_SPACE)</span>
+<span class="nc bnc" id="L56" title="All 2 branches missed.">				&amp;&amp; this.inputDelay.checkFinished())</span>
+<span class="nc" id="L57">			this.isRunning = false;</span>
+<span class="nc" id="L58">	}</span>
+
+	/**
+	 * Draws the elements associated with the screen.
+	 */
+	private void draw() {
+<span class="nc" id="L64">		drawManager.initDrawing(this);</span>
+
+<span class="nc" id="L66">		drawManager.drawReceipt(this, this.roundState, this.gameState);</span>
+
+<span class="nc" id="L68">		super.drawPost();</span>
+<span class="nc" id="L69">		drawManager.completeDrawing(this);</span>
+<span class="nc" id="L70">	}</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.10.202304240956</span></div></body></html>

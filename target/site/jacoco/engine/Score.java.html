@@ -1,0 +1,166 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="ko"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Score.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">my-java-project</a> &gt; <a href="index.source.html" class="el_package">engine</a> &gt; <span class="el_source">Score.java</span></div><h1>Score.java</h1><pre class="source lang-java linenums">package engine;
+
+import clove.Statistics;
+
+import java.io.IOException;
+import java.util.logging.Level;
+import java.time.LocalDate;
+
+import screen.GameScreen;
+
+/**
+ * Implements a high score record.
+ * 
+ * @author &lt;a href=&quot;mailto:RobertoIA1987@gmail.com&quot;&gt;Roberto Izquierdo Amo&lt;/a&gt;
+ * 
+ */
+public class Score implements Comparable&lt;Score&gt; {
+
+	/** Player's name. */
+	private String name;
+	/** Score points. */
+	private int score;
+
+	private LocalDate currentDate;
+	/** Integers for describe present Date */
+	private int Year;
+	private int Month;
+	private int Day;
+	/** String for storage present Date */
+	private String Date;
+
+	/** highest level that player reached */
+    private int highestLevel;
+	/** ship number that player destroyed */
+	private int totalShipDestroyed;
+	/** achievement number that player cleared */
+	private int clearAchievementNumber;
+	/** Time for Total level clear time(player has done) */
+	private long playTime;
+
+	/**
+	 * Constructor.
+	 * 
+	 * @param name
+	 *            Player name, three letters.
+	 * @param score
+	 *            Player score.
+	 * Added non-parameter elements for Date // Clove
+	 * Added load statistics for save recent score // Clove
+	 */
+<span class="nc" id="L51">	public Score(final String name, final int score) {</span>
+<span class="nc" id="L52">		this.name = name;</span>
+<span class="nc" id="L53">		this.score = score;</span>
+
+<span class="nc" id="L55">		this.currentDate = LocalDate.now();</span>
+<span class="nc" id="L56">		this.Year = currentDate.getYear();</span>
+<span class="nc" id="L57">		this.Month = currentDate.getMonthValue();</span>
+<span class="nc" id="L58">		this.Day = currentDate.getDayOfMonth();</span>
+<span class="nc" id="L59">		this.Date = String.format(&quot;%d-%02d-%02d&quot;, Year, Month, Day);</span>
+
+        try{
+<span class="nc" id="L62">			Statistics stat = new Statistics();</span>
+<span class="nc" id="L63">			stat = stat.loadUserData(stat);</span>
+<span class="nc" id="L64">			this.highestLevel = stat.getHighestLevel();</span>
+<span class="nc" id="L65">			this.totalShipDestroyed = stat.getTotalShipsDestroyed();</span>
+<span class="nc" id="L66">			this.clearAchievementNumber = stat.getClearAchievementNumber();</span>
+<span class="nc" id="L67">			this.playTime = stat.getTotalPlaytime();</span>
+<span class="nc" id="L68">		} catch (IOException ex) {</span>
+<span class="nc" id="L69">			ex.printStackTrace();</span>
+<span class="nc" id="L70">		}</span>
+<span class="nc" id="L71">	}</span>
+
+	/**
+	 * Constructor for read/write Recent Record files
+	 *
+	 * @param name
+	 * 				Player name but non-value parameter, just for overload constructor
+	 * @param score
+	 * 				Player score
+	 * @param date
+	 * 				Date (especially Time Player played the game.
+	 * @param highestLevel
+	 * 				Player reached level.
+	 * @param totalShipDestroyed
+	 * 				Number of Destroyed Ship.
+	 * @param clearAchievementNumber
+	 * 				Number of Cleared Achievement.
+	 */
+	public Score(final String name, final int score, final String date, int highestLevel,
+<span class="nc" id="L90">				 final int totalShipDestroyed, final int clearAchievementNumber) {</span>
+<span class="nc" id="L91">		this.name = name;</span>
+<span class="nc" id="L92">		this.score = score;</span>
+<span class="nc" id="L93">		this.Date = date;</span>
+<span class="nc" id="L94">		this.highestLevel = highestLevel;</span>
+<span class="nc" id="L95">		this.totalShipDestroyed = totalShipDestroyed;</span>
+<span class="nc" id="L96">		this.clearAchievementNumber = clearAchievementNumber;</span>
+<span class="nc" id="L97">	}</span>
+	/**
+	 * Constructor
+	 */
+<span class="nc" id="L101">	public Score(final String name, final int score, final long playTime) {</span>
+<span class="nc" id="L102">		this.name = name;</span>
+<span class="nc" id="L103">		this.score = score;</span>
+<span class="nc" id="L104">		this.playTime = playTime;</span>
+<span class="nc" id="L105">	}</span>
+
+
+	/**
+	 * Getter for the player's name.
+	 * 
+	 * @return Name of the player.
+	 */
+	public final String getName() {
+<span class="nc" id="L114">		return this.name;</span>
+	}
+
+	/**
+	 * Getter for the player's score.
+	 * 
+	 * @return High score.
+	 */
+<span class="nc" id="L122">	public final int getScore() { return this.score; }</span>
+
+	/**
+	 * Getter for Date
+	 *
+	 * @return Object currentDate
+	 */
+<span class="nc" id="L129">	public final LocalDate getcurrentDate() { return this.currentDate; }</span>
+
+	/**
+	 * Getter for String type Date
+	 *
+	 * @return Date
+	 */
+<span class="nc" id="L136">	public final String getDate() { return this.Date; }</span>
+
+<span class="nc" id="L138">	public long getPlayTime() { return playTime; }</span>
+
+<span class="nc" id="L140">	public final int getHighestLevel() { return this.highestLevel; }</span>
+
+<span class="nc" id="L142">	public final int getShipDestroyed() { return this.totalShipDestroyed; }</span>
+
+<span class="nc" id="L144">	public final int getClearAchievementNumber() { return this.clearAchievementNumber; }</span>
+
+	/**
+	 * Orders the scores descending by score.
+	 * 
+	 * @param score
+	 *            Score to compare the current one with.
+	 * @return Comparison between the two scores. Positive if the current one is
+	 *         smaller, positive if its bigger, zero if its the same.
+	 */
+
+	@Override
+	public final int compareTo(final Score score) {
+		/*int comparison = this.score &lt; score.getScore() ? 1 : this.score &gt; score
+				.getScore() ? -1 : 0;*/
+<span class="nc" id="L159">		int comparison = Integer.compare(score.score, this.score);</span>
+<span class="nc bnc" id="L160" title="All 2 branches missed.">		if (comparison != 0) { return comparison; }</span>
+
+<span class="nc" id="L162">		return Long.compare(this.playTime, score.playTime);</span>
+	}
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.10.202304240956</span></div></body></html>

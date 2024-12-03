@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="ko"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Entity.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">my-java-project</a> &gt; <a href="index.source.html" class="el_package">entity</a> &gt; <span class="el_source">Entity.java</span></div><h1>Entity.java</h1><pre class="source lang-java linenums">package entity;
+
+import java.awt.Color;
+
+import engine.DrawManager.SpriteType;
+
+/**
+ * Implements a generic game entity.
+ * 
+ * @author &lt;a href=&quot;mailto:RobertoIA1987@gmail.com&quot;&gt;Roberto Izquierdo Amo&lt;/a&gt;
+ * 
+ */
+public abstract class Entity {
+
+	/** Position in the x-axis of the upper left corner of the entity. */
+	protected int positionX;
+	/** Position in the y-axis of the upper left corner of the entity. */
+	protected int positionY;
+	/** Width of the entity. */
+	protected int width;
+	/** Height of the entity. */
+	protected int height;
+	/** Color of the entity. */
+	private Color color;
+	/** Sprite type assigned to the entity. */
+	protected SpriteType spriteType;
+
+	/**
+	 * Constructor, establishes the entity's generic properties.
+	 * 
+	 * @param positionX
+	 *            Initial position of the entity in the X axis.
+	 * @param positionY
+	 *            Initial position of the entity in the Y axis.
+	 * @param width
+	 *            Width of the entity.
+	 * @param height
+	 *            Height of the entity.
+	 * @param color
+	 *            Color of the entity.
+	 */
+
+	public void setSpriteType(SpriteType spriteType) {
+<span class="nc" id="L44">		this.spriteType = spriteType;</span>
+<span class="nc" id="L45">	}</span>
+
+	public Entity(final int positionX, final int positionY, final int width,
+<span class="fc" id="L48">			final int height, final Color color) {</span>
+<span class="fc" id="L49">		this.positionX = positionX;</span>
+<span class="fc" id="L50">		this.positionY = positionY;</span>
+<span class="fc" id="L51">		this.width = width;</span>
+<span class="fc" id="L52">		this.height = height;</span>
+<span class="fc" id="L53">		this.color = color;</span>
+<span class="fc" id="L54">	}</span>
+
+	/**
+	 * Getter for the color of the entity.
+	 * 
+	 * @return Color of the entity, used when drawing it.
+	 */
+	public final Color getColor() {
+<span class="nc" id="L62">		return color;</span>
+	}
+
+	/**
+	 * Setter for the X axis position of the entity.
+	 *
+	 * @param color
+	 *            New color of the entity.
+	 */
+	public final void setColor(Color color) {
+<span class="nc" id="L72">		this.color = color;</span>
+<span class="nc" id="L73">	}</span>
+
+	/**
+	 * Getter for the X axis position of the entity.
+	 * 
+	 * @return Position of the entity in the X axis.
+	 */
+	public final int getPositionX() {
+<span class="nc" id="L81">		return this.positionX;</span>
+	}
+
+	/**
+	 * Getter for the Y axis position of the entity.
+	 * 
+	 * @return Position of the entity in the Y axis.
+	 */
+	public final int getPositionY() {
+<span class="nc" id="L90">		return this.positionY;</span>
+	}
+
+	/**
+	 * Setter for the X axis position of the entity.
+	 * 
+	 * @param positionX
+	 *            New position of the entity in the X axis.
+	 */
+	public final void setPositionX(final int positionX) {
+<span class="nc" id="L100">		this.positionX = positionX;</span>
+<span class="nc" id="L101">	}</span>
+
+	/**
+	 * Setter for the Y axis position of the entity.
+	 * 
+	 * @param positionY
+	 *            New position of the entity in the Y axis.
+	 */
+	public final void setPositionY(final int positionY) {
+<span class="nc" id="L110">		this.positionY = positionY;</span>
+<span class="nc" id="L111">	}</span>
+
+	/**
+	 * Getter for the sprite that the entity will be drawn as.
+	 * 
+	 * @return Sprite corresponding to the entity.
+	 */
+	public final SpriteType getSpriteType() {
+<span class="fc" id="L119">		return this.spriteType;</span>
+	}
+
+	/**
+	 * Getter for the width of the image associated to the entity.
+	 * 
+	 * @return Width of the entity.
+	 */
+	public final int getWidth() {
+<span class="nc" id="L128">		return this.width;</span>
+	}
+
+	/**
+	 * Getter for the height of the image associated to the entity.
+	 * 
+	 * @return Height of the entity.
+	 */
+	public final int getHeight() {
+<span class="nc" id="L137">		return this.height;</span>
+	}
+
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.10.202304240956</span></div></body></html>

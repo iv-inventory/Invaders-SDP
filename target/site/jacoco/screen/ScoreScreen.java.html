@@ -1,0 +1,302 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="ko"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ScoreScreen.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">my-java-project</a> &gt; <a href="index.source.html" class="el_package">screen</a> &gt; <span class="el_source">ScoreScreen.java</span></div><h1>ScoreScreen.java</h1><pre class="source lang-java linenums">package screen;
+
+import java.awt.event.KeyEvent;
+import java.io.IOException;
+import java.util.Collections;
+import java.util.List;
+
+import clove.Statistics; //Team Clove
+import HUDTeam.DrawAchievementHud;
+import HUDTeam.DrawManagerImpl;
+import engine.Cooldown;
+import engine.Core;
+import engine.GameState;
+import engine.Score;
+import Enemy.PlayerGrowth;
+import inventory_develop.NumberOfBullet;
+
+/**
+ * Implements the score screen.
+ * 
+ * @author &lt;a href=&quot;mailto:RobertoIA1987@gmail.com&quot;&gt;Roberto Izquierdo Amo&lt;/a&gt;
+ * 
+ */
+public class ScoreScreen extends Screen {
+
+	/** Milliseconds between changes in user selection. */
+	private static final int SELECTION_TIME = 200;
+	/** Maximum number of high scores. */
+	private static final int MAX_HIGH_SCORE_NUM = 7;
+	private static final int MAX_HIGH_SCORE_NUM_STORY = 8;
+	/** Code of first mayus character. */
+	private static final int FIRST_CHAR = 65;
+	/** Code of last mayus character. */
+	private static final int LAST_CHAR = 90;
+	/** Maximum number of recent scores / Team Clover */
+	private static final int MAX_RECENT_SCORE_NUM = 10;
+
+	/** Current score. */
+	private int score;
+	/** Player lives left. */
+	private int livesRemaining;
+	/** Total bullets shot by the player. */
+	private int bulletsShot;
+	/** Total ships destroyed by the player. */
+	private int shipsDestroyed;
+	/** List of past high scores. */
+	private List&lt;Score&gt; highScores;
+	/** Checks if current score is a new high score. */
+	private boolean isNewRecord;
+	/** Player name for record input. */
+	private char[] name;
+	/** Character of players name selected for change. */
+	private int nameCharSelected;
+	/** Time between changes in user selection. */
+	private Cooldown selectionCooldown;
+	/** Total coin earned this game */
+	private int coin; // Team-Ctrl-S(Currency)
+	/** User's Final Reached Level */ //Team Clove
+	private int level;
+
+	/** List of user recent scores */
+	private List&lt;Score&gt; recentScore; // Team Clove
+	/** To symbolize current score is always the most recent score. value is always true */
+<span class="nc" id="L64">	private final boolean isRecentScore = true; // Team Clove</span>
+
+	private Statistics statistics; //Team Clove
+
+	private long playTime; //Team Clove
+
+	private GameState gameState; // Team-Ctrl-S(Currency)
+
+	private boolean isGameClear; // CtrlS
+
+<span class="nc" id="L74">	private PlayerGrowth growth = new PlayerGrowth();</span>
+<span class="nc" id="L75">	private NumberOfBullet numberOfBullet = new NumberOfBullet();</span>
+
+
+	/**
+	 * Constructor, establishes the properties of the screen.
+	 * 
+	 * @param width
+	 *            Screen width.
+	 * @param height
+	 *            Screen height.
+	 * @param fps
+	 *            Frames per second, frame rate at which the game is run.
+	 * @param gameState
+	 *            Current game state.
+	 */
+	public ScoreScreen(final int width, final int height, final int fps,
+			final GameState gameState, int returncode) {
+<span class="nc" id="L92">		super(width, height, fps);</span>
+
+<span class="nc" id="L94">		this.score = gameState.getScore();</span>
+<span class="nc" id="L95">		this.livesRemaining = gameState.getLivesRemaining();</span>
+<span class="nc" id="L96">		this.bulletsShot = gameState.getBulletsShot();</span>
+<span class="nc" id="L97">		this.shipsDestroyed = gameState.getShipsDestroyed();</span>
+<span class="nc" id="L98">		this.isNewRecord = false;</span>
+<span class="nc" id="L99">		this.name = &quot;AAA&quot;.toCharArray();</span>
+<span class="nc" id="L100">		this.nameCharSelected = 0;</span>
+<span class="nc" id="L101">		this.selectionCooldown = Core.getCooldown(SELECTION_TIME);</span>
+<span class="nc" id="L102">		this.selectionCooldown.reset();</span>
+<span class="nc" id="L103">		this.coin = gameState.getCoin(); // Team-Ctrl-S(Currency)</span>
+<span class="nc" id="L104">		this.gameState = gameState; // Team-Ctrl-S(Currency)</span>
+<span class="nc" id="L105">		this.level = gameState.getLevel(); //Team Clove</span>
+<span class="nc" id="L106">		this.statistics = new Statistics(); //Team Clove</span>
+<span class="nc" id="L107">		this.returnCode = returncode;</span>
+
+		// 모드에 따라 게임 클리어 조건을 다르게 설정
+<span class="nc bnc" id="L110" title="All 2 branches missed.">		int maxLevel = (returnCode == 4) ? MAX_HIGH_SCORE_NUM_STORY : MAX_HIGH_SCORE_NUM;</span>
+<span class="nc bnc" id="L111" title="All 4 branches missed.">		this.isGameClear = this.livesRemaining &gt; 0 &amp;&amp; this.level &gt; maxLevel;</span>
+
+
+		try {
+<span class="nc" id="L115">			this.highScores = Core.getFileManager().loadHighScores();</span>
+<span class="nc bnc" id="L116" title="All 2 branches missed.">			if (highScores.size() &lt; MAX_HIGH_SCORE_NUM</span>
+<span class="nc bnc" id="L117" title="All 2 branches missed.">					|| highScores.get(highScores.size() - 1).getScore()</span>
+					&lt; this.score)
+<span class="nc" id="L119">				this.isNewRecord = true;</span>
+
+<span class="nc" id="L121">		} catch (IOException e) {</span>
+<span class="nc" id="L122">			logger.warning(&quot;Couldn't load high scores!&quot;);</span>
+<span class="nc" id="L123">		}</span>
+		try {																			// Team Clove added Exception
+<span class="nc" id="L125">			this.recentScore = Core.getFileManager().loadRecentScores();</span>
+<span class="nc" id="L126">		} catch (IOException e) {</span>
+<span class="nc" id="L127">			logger.warning(&quot;Couldn't load recent scores!&quot;);</span>
+<span class="nc" id="L128">		}</span>
+<span class="nc" id="L129">	}</span>
+
+	/**
+	 * Starts the action.
+	 * 
+	 * @return Next screen code.
+	 */
+	public final int run() {
+<span class="nc" id="L137">		super.run();</span>
+
+<span class="nc" id="L139">		return this.returnCode;</span>
+	}
+
+	/**
+	 * Updates the elements on screen and checks for events.
+	 */
+	protected final void update() {
+<span class="nc" id="L146">		super.update();</span>
+
+<span class="nc" id="L148">		draw();</span>
+<span class="nc bnc" id="L149" title="All 2 branches missed.">		if (this.inputDelay.checkFinished()) {</span>
+<span class="nc bnc" id="L150" title="All 2 branches missed.">			if (inputManager.isKeyDown(KeyEvent.VK_ESCAPE)) {</span>
+				// Return to main menu.
+<span class="nc" id="L152">				this.returnCode = 1;</span>
+<span class="nc" id="L153">				this.isRunning = false;</span>
+<span class="nc bnc" id="L154" title="All 2 branches missed.">				if (this.isNewRecord) {</span>
+<span class="nc" id="L155">					saveScore();</span>
+				}
+<span class="nc bnc" id="L157" title="All 2 branches missed.">				if (this.isGameClear) {</span>
+<span class="nc" id="L158">					saveGem();</span>
+				} // CtrlS
+<span class="nc" id="L160">				saveCoin(); // Team-Ctrl-S(Currency)</span>
+<span class="nc" id="L161">				saveStatistics(); //Team Clove</span>
+<span class="nc" id="L162">				saveRecentScore(); // Team Clove</span>
+<span class="nc bnc" id="L163" title="All 2 branches missed.">			} else if (inputManager.isKeyDown(KeyEvent.VK_SPACE)) {</span>
+				// Play again.
+//				System.out.println(this.isTwoPlayerMode());
+//				if (this.isTwoPlayerMode()){
+//					this.returnCode = 4;
+//				} else {
+//					this.returnCode = 2;
+//				}
+<span class="nc" id="L171">				this.isRunning = false;</span>
+<span class="nc bnc" id="L172" title="All 2 branches missed.">				if (this.isNewRecord) {</span>
+<span class="nc" id="L173">					saveScore();</span>
+				}
+<span class="nc bnc" id="L175" title="All 2 branches missed.">				if (this.isGameClear) {</span>
+<span class="nc" id="L176">					saveGem();</span>
+				} // CtrlS
+<span class="nc" id="L178">				saveCoin(); // Team-Ctrl-S(Currency)</span>
+<span class="nc" id="L179">				saveStatistics(); //Team Clove</span>
+<span class="nc" id="L180">				saveRecentScore(); // Team Clove</span>
+			}
+
+<span class="nc bnc" id="L183" title="All 4 branches missed.">			if (this.isNewRecord &amp;&amp; this.selectionCooldown.checkFinished()) {</span>
+<span class="nc bnc" id="L184" title="All 2 branches missed.">				if (inputManager.isKeyDown(KeyEvent.VK_RIGHT)) {</span>
+<span class="nc bnc" id="L185" title="All 2 branches missed.">					this.nameCharSelected = this.nameCharSelected == 2 ? 0</span>
+<span class="nc" id="L186">							: this.nameCharSelected + 1;</span>
+<span class="nc" id="L187">					this.selectionCooldown.reset();</span>
+				}
+<span class="nc bnc" id="L189" title="All 2 branches missed.">				if (inputManager.isKeyDown(KeyEvent.VK_LEFT)) {</span>
+<span class="nc bnc" id="L190" title="All 2 branches missed.">					this.nameCharSelected = this.nameCharSelected == 0 ? 2</span>
+<span class="nc" id="L191">							: this.nameCharSelected - 1;</span>
+<span class="nc" id="L192">					this.selectionCooldown.reset();</span>
+				}
+<span class="nc bnc" id="L194" title="All 2 branches missed.">				if (inputManager.isKeyDown(KeyEvent.VK_UP)) {</span>
+<span class="nc" id="L195">					this.name[this.nameCharSelected] =</span>
+							(char) (this.name[this.nameCharSelected]
+<span class="nc bnc" id="L197" title="All 2 branches missed.">									== LAST_CHAR ? FIRST_CHAR</span>
+<span class="nc" id="L198">							: this.name[this.nameCharSelected] + 1);</span>
+<span class="nc" id="L199">					this.selectionCooldown.reset();</span>
+				}
+<span class="nc bnc" id="L201" title="All 2 branches missed.">				if (inputManager.isKeyDown(KeyEvent.VK_DOWN)) {</span>
+<span class="nc" id="L202">					this.name[this.nameCharSelected] =</span>
+							(char) (this.name[this.nameCharSelected]
+<span class="nc bnc" id="L204" title="All 2 branches missed.">									== FIRST_CHAR ? LAST_CHAR</span>
+<span class="nc" id="L205">							: this.name[this.nameCharSelected] - 1);</span>
+<span class="nc" id="L206">					this.selectionCooldown.reset();</span>
+				}
+			}
+<span class="nc" id="L209">			numberOfBullet.ResetPierceLevel();</span>
+<span class="nc" id="L210">			growth.ResetBulletSpeed();</span>
+		}
+<span class="nc" id="L212">	}</span>
+
+	/**
+	 * Saves the score as a high score.
+	 */
+	private void saveScore() {
+<span class="nc" id="L218">		highScores.add(new Score(new String(this.name), score));</span>
+<span class="nc" id="L219">		Collections.sort(highScores);</span>
+<span class="nc bnc" id="L220" title="All 2 branches missed.">		if (highScores.size() &gt; MAX_HIGH_SCORE_NUM)</span>
+<span class="nc" id="L221">			highScores.remove(highScores.size() - 1);</span>
+
+		try {
+<span class="nc" id="L224">			Core.getFileManager().saveHighScores(highScores);</span>
+<span class="nc" id="L225">		} catch (IOException e) {</span>
+<span class="nc" id="L226">			logger.warning(&quot;Couldn't load high scores!&quot;);</span>
+<span class="nc" id="L227">		}</span>
+<span class="nc" id="L228">	}</span>
+
+	/** Saves the score as a recent score.
+	 *  Team Clove
+	 */
+	private void saveRecentScore() {
+<span class="nc" id="L234">		recentScore.add(new Score(null, score));</span>
+<span class="nc bnc" id="L235" title="All 2 branches missed.">		if (recentScore.size() &gt; MAX_RECENT_SCORE_NUM)</span>
+<span class="nc" id="L236">			recentScore.remove(0);</span>
+		try {
+<span class="nc" id="L238">			Core.getFileManager().saveRecentScores(recentScore);</span>
+<span class="nc" id="L239">		} catch (IOException e) {</span>
+<span class="nc" id="L240">			logger.warning(&quot;Couldn't load recent scores!&quot;);</span>
+<span class="nc" id="L241">		}</span>
+<span class="nc" id="L242">	}</span>
+
+	/**
+	 *  Saves the Player's Statistics
+	 */
+
+	private void saveStatistics(){
+		try{
+<span class="nc" id="L250">			statistics.comShipsDestructionStreak(0);</span>
+<span class="nc" id="L251">			statistics.addPlayedGameNumber(1);</span>
+<span class="nc" id="L252">			statistics.comClearAchievementNumber(0);</span>
+<span class="nc" id="L253">		} catch (IOException e) {</span>
+<span class="nc" id="L254">			logger.warning(&quot;Couldn't load Statistics!&quot;);</span>
+<span class="nc" id="L255">		}</span>
+<span class="nc" id="L256">	}</span>
+
+	/**
+	 * Saves the coin into currency file
+	 */
+	// Team-Ctrl-S(Currency)
+	private void saveCoin() {
+		try {
+<span class="nc" id="L264">			Core.getCurrencyManager().addCoin(coin);</span>
+<span class="nc" id="L265">			logger.info(&quot;You earned $&quot; + coin);</span>
+<span class="nc" id="L266">		} catch (IOException e) {</span>
+<span class="nc" id="L267">			logger.warning(&quot;Couldn't load coin!&quot;);</span>
+<span class="nc" id="L268">        }</span>
+<span class="nc" id="L269">    }</span>
+
+	/**
+	 * Saves the gem into currency file
+	 */
+	// CtrlS
+	private void saveGem() {
+		try {
+<span class="nc" id="L277">			Core.getCurrencyManager().addGem(1);</span>
+<span class="nc" id="L278">			logger.info(&quot;You earned 1 Gem for Game Clear&quot;);</span>
+<span class="nc" id="L279">		} catch (IOException e) {</span>
+<span class="nc" id="L280">			logger.warning(&quot;Couldn't load gem!&quot;);</span>
+<span class="nc" id="L281">		}</span>
+<span class="nc" id="L282">	}</span>
+
+	/**
+	 * Draws the elements associated with the screen.
+	 */
+	private void draw() {
+<span class="nc" id="L288">		drawManager.initDrawing(this);</span>
+
+<span class="nc" id="L290">		drawManager.drawGameEnd(this, this.inputDelay.checkFinished(), this.isGameClear); // CtrlS</span>
+<span class="nc" id="L291">		drawManager.drawResults(this, this.score, this.livesRemaining,</span>
+<span class="nc" id="L292">				this.shipsDestroyed, (float) this.gameState.getHitCount()</span>
+						/ this.bulletsShot, this.gameState);
+
+<span class="nc bnc" id="L295" title="All 2 branches missed.">		if (this.isNewRecord)</span>
+<span class="nc" id="L296">			drawManager.drawNameInput(this, this.name, this.nameCharSelected);</span>
+
+<span class="nc" id="L298">		super.drawPost();</span>
+<span class="nc" id="L299">		drawManager.completeDrawing(this);</span>
+<span class="nc" id="L300">	}</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.10.202304240956</span></div></body></html>

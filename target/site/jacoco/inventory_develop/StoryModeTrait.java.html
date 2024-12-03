@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="ko"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>StoryModeTrait.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">my-java-project</a> &gt; <a href="index.source.html" class="el_package">inventory_develop</a> &gt; <span class="el_source">StoryModeTrait.java</span></div><h1>StoryModeTrait.java</h1><pre class="source lang-java linenums">package inventory_develop;
+
+import engine.Core;
+
+import java.io.IOException;
+import java.util.*;
+import java.util.logging.Logger;
+
+public class StoryModeTrait {
+    private static Logger logger;
+
+    // basic - normal - rare - epic
+<span class="fc" id="L13">    private final Map&lt;String, Integer&gt; trait_BulletDamage</span>
+<span class="fc" id="L14">            = Map.of(&quot;basic&quot;, 1, &quot;common&quot;, 2, &quot;rare&quot;, 3,&quot;epic&quot;,5);</span>
+<span class="fc" id="L15">    private final Map&lt;String, Integer&gt; trait_BulletCount</span>
+<span class="fc" id="L16">            = Map.of(&quot;basic&quot;, 1, &quot;common&quot;, 2, &quot;rare&quot;, 3,&quot;epic&quot;, 5);</span>
+<span class="fc" id="L17">    private final Map&lt;String, Integer&gt; trait_BulletSpeed</span>
+<span class="fc" id="L18">            = Map.of(&quot;basic&quot;, 5, &quot;common&quot;, 7, &quot;rare&quot;,  10,&quot;epic&quot;, 15);</span>
+<span class="fc" id="L19">    private final Map&lt;String, Double&gt; trait_ShipSpeed</span>
+<span class="fc" id="L20">            = Map.of(&quot;basic&quot;, 3.5, &quot;common&quot;, 4.0, &quot;rare&quot;, 5.0,&quot;epic&quot;,6.0);</span>
+<span class="fc" id="L21">    private final Map&lt;String, Boolean&gt; trait_ShipShoot360</span>
+<span class="fc" id="L22">            = Map.of(&quot;common&quot;, false, &quot;rare&quot;, true);</span>
+
+<span class="fc" id="L24">    private Map&lt;String, String&gt; traits = new HashMap&lt;&gt;();</span>
+
+    // Construct
+<span class="fc" id="L27">    public StoryModeTrait() {</span>
+<span class="fc" id="L28">        logger = Core.getLogger();</span>
+        // 특성 초기화
+<span class="fc" id="L30">        traits.put(&quot;BulletDamage&quot;, &quot;basic&quot;);</span>
+<span class="fc" id="L31">        traits.put(&quot;BulletCount&quot;, &quot;basic&quot;);</span>
+<span class="fc" id="L32">        traits.put(&quot;BulletSpeed&quot;, &quot;basic&quot;);</span>
+<span class="fc" id="L33">        traits.put(&quot;ShipSpeed&quot;, &quot;basic&quot;);</span>
+<span class="fc" id="L34">        traits.put(&quot;ShipShoot360&quot;, &quot;common&quot;);   // 360도 발사는 rare에만 있기 때문에 초기 값을 common으로 지정</span>
+
+<span class="fc" id="L36">        update();</span>
+<span class="fc" id="L37">    }</span>
+
+    // 랜덤으로 세 특성을 뽑는 부분
+    public String[] getRandomTraits(int level) {
+<span class="fc" id="L41">        HashSet&lt;String&gt; randomTraits = new HashSet&lt;&gt;(); // 랜덤으로 나온 3개를 반환할 HashSet</span>
+<span class="fc" id="L42">        List&lt;String&gt; roulette = new ArrayList&lt;&gt;();      // rarity에 따른 확률로 뽑기위해 필요한 ArrayList</span>
+
+<span class="pc bpc" id="L44" title="1 of 3 branches missed.">        switch(level) {</span>
+            // 1~3 -&gt; 노말4, 레어3, 에픽0
+            case 1:
+            case 2:
+            case 3:
+<span class="fc bfc" id="L49" title="All 2 branches covered.">                for (String type : traits.keySet()) {</span>
+<span class="fc" id="L50">                    String rarity = traits.get(type);</span>
+
+<span class="fc bfc" id="L52" title="All 2 branches covered.">                    if (rarity.equals(&quot;basic&quot;)) {</span>
+<span class="fc bfc" id="L53" title="All 2 branches covered.">                        for (int i = 0; i &lt; 4; i++) {   // 4번 추가</span>
+<span class="fc" id="L54">                            roulette.add(type);</span>
+                        }
+<span class="pc bpc" id="L56" title="1 of 2 branches missed.">                    } else if (rarity.equals(&quot;common&quot;)) {</span>
+<span class="fc bfc" id="L57" title="All 2 branches covered.">                        for (int i = 0; i &lt; 3; i++) {   // 3번 추가</span>
+<span class="fc" id="L58">                            roulette.add(type);</span>
+                        }
+                    }
+<span class="fc" id="L61">                }</span>
+<span class="fc" id="L62">                break;</span>
+
+            // 5~7 -&gt; 노말1, 레어3, 에픽3
+            case 4:
+            case 5:
+            case 6:
+            case 7:
+<span class="fc bfc" id="L69" title="All 2 branches covered.">                for (String type : traits.keySet()) {</span>
+<span class="fc" id="L70">                    String rarity = traits.get(type);</span>
+<span class="fc bfc" id="L71" title="All 2 branches covered.">                    if (rarity.equals(&quot;basic&quot;)) {</span>
+<span class="fc bfc" id="L72" title="All 2 branches covered.">                        for (int i = 0; i &lt; 1; i++) {   // 1번 추가</span>
+<span class="fc" id="L73">                            roulette.add(type);</span>
+                        }
+<span class="pc bpc" id="L75" title="1 of 2 branches missed.">                    } else if (rarity.equals(&quot;common&quot;)) {   // 3번 추가</span>
+<span class="fc bfc" id="L76" title="All 2 branches covered.">                        for (int i = 0; i &lt; 3; i++) {</span>
+<span class="fc" id="L77">                            roulette.add(type);</span>
+                        }
+<span class="nc bnc" id="L79" title="All 4 branches missed.">                    } else if (rarity.equals(&quot;rare&quot;) &amp;&amp; !type.equals(&quot;ShipShoot360&quot;)) { // 3번 추가</span>
+<span class="nc bnc" id="L80" title="All 2 branches missed.">                        for (int i = 0; i &lt; 3; i++) {</span>
+<span class="nc" id="L81">                            roulette.add(type);</span>
+                        }
+                    }
+<span class="fc" id="L84">                }</span>
+                break;
+        }
+
+<span class="fc" id="L88">        Collections.shuffle(roulette);</span>
+
+<span class="pc bpc" id="L90" title="1 of 4 branches missed.">        for (int i = 0; i &lt; 3 &amp;&amp; !roulette.isEmpty(); i++) {</span>
+            String chosenTrait;
+            do {
+<span class="fc" id="L93">                chosenTrait = roulette.get(new Random().nextInt(roulette.size()));</span>
+<span class="fc bfc" id="L94" title="All 2 branches covered.">            } while (randomTraits.contains(chosenTrait)); // 중복 방지</span>
+<span class="fc" id="L95">            randomTraits.add(chosenTrait);</span>
+        }
+
+<span class="fc" id="L98">        return randomTraits.toArray(new String[0]);</span>
+    }
+
+    // 선택된 특성을 traits에 적용
+    public void upgradeSelectedTraits(String type) {
+<span class="fc" id="L103">        String rarity = traits.get(type);</span>
+<span class="fc" id="L104">        String beforerarity = rarity;</span>
+
+<span class="fc" id="L106">        rarity = setNextRarity(rarity);</span>
+
+<span class="fc" id="L108">        traits.put(type, rarity);</span>
+
+<span class="fc" id="L110">        logger.info(&quot;User's &quot; + type + &quot; changed from &quot; + beforerarity + &quot; to &quot; + rarity);</span>
+<span class="fc" id="L111">        update();</span>
+<span class="fc" id="L112">    }</span>
+
+    public String setNextRarity(String rarity) {
+<span class="fc bfc" id="L115" title="All 2 branches covered.">        if (rarity.equals(&quot;basic&quot;)) return &quot;common&quot;;</span>
+<span class="fc bfc" id="L116" title="All 2 branches covered.">        else if (rarity.equals(&quot;common&quot;)) return &quot;rare&quot;;</span>
+<span class="fc bfc" id="L117" title="All 2 branches covered.">        else if (rarity.equals(&quot;rare&quot;)) return &quot;epic&quot;;</span>
+<span class="fc" id="L118">        return rarity;</span>
+    }
+
+    // update() - 다른 update()들과 다르게 필요 시에만 작동하게 적용
+    public void update() {
+<span class="fc" id="L123">        int newBulletDamage = trait_BulletDamage.get(traits.get(&quot;BulletDamage&quot;));</span>
+<span class="fc" id="L124">        int newBulletCount = trait_BulletCount.get(traits.get(&quot;BulletCount&quot;));</span>
+<span class="fc" id="L125">        int newBulletSpeed = trait_BulletSpeed.get(traits.get(&quot;BulletSpeed&quot;));</span>
+<span class="fc" id="L126">        double newShipSpeed = trait_ShipSpeed.get(traits.get(&quot;ShipSpeed&quot;));</span>
+<span class="fc" id="L127">        boolean newShipShoot360 = trait_ShipShoot360.get(traits.get(&quot;ShipShoot360&quot;));</span>
+
+        try {
+<span class="fc" id="L130">            Core.getUpgradeManager().setBulletDamage(newBulletDamage);  // NumberOfBullet</span>
+<span class="fc" id="L131">            Core.getUpgradeManager().setBulletNum(newBulletCount);      // NumberOfBullet</span>
+<span class="fc" id="L132">            Core.getUpgradeManager().setBulletSpeed(newBulletSpeed);    // Ship -&gt; 이것도 NumberOfBullet으로 옮기고 싶지만 총알 속도가 올라가는 아이템이 있으니 나중에</span>
+<span class="fc" id="L133">            Core.getUpgradeManager().setMovementSpeed(newShipSpeed);    // Ship</span>
+<span class="fc" id="L134">            Core.getUpgradeManager().setShipShoot360(newShipShoot360);    //360도발사 Ship or GameScreen</span>
+<span class="nc" id="L135">        } catch (IOException e) {</span>
+<span class="nc" id="L136">            throw new RuntimeException(e);</span>
+<span class="fc" id="L137">        }</span>
+<span class="fc" id="L138">    }</span>
+
+
+    public Map&lt;String, String&gt; getTraits() {
+<span class="fc" id="L142">        return traits;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.10.202304240956</span></div></body></html>

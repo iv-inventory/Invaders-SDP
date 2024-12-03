@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="ko"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>GameSettings.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">my-java-project</a> &gt; <a href="index.source.html" class="el_package">engine</a> &gt; <span class="el_source">GameSettings.java</span></div><h1>GameSettings.java</h1><pre class="source lang-java linenums">package engine;
+
+/**
+ * Implements an object that stores a single game's difficulty settings.
+ * 
+ * @author &lt;a href=&quot;mailto:RobertoIA1987@gmail.com&quot;&gt;Roberto Izquierdo Amo&lt;/a&gt;
+ * 
+ */
+public class GameSettings {
+
+	/** Width of the level's enemy formation. */
+	private int formationWidth;
+	/** Height of the level's enemy formation. */
+	private int formationHeight;
+	/** Speed of the enemies, function of the remaining number. */
+	private int baseSpeed;
+	/** Frequency of enemy shootings, +/- 30%. */
+	private int shootingFrecuency;
+	/** Frequency of enemy. */
+	private int enemyFrecuency;
+	/** Level Design team modification
+	 * Number of enemy ships waves during the level **/
+	private int wavesNumber;
+
+	private String gametype;
+
+	/**
+	 * Constructor.
+	 * 
+	 * @param formationWidth
+	 *            Width of the level's enemy formation.
+	 * @param formationHeight
+	 *            Height of the level's enemy formation.
+	 * @param baseSpeed
+	 *            Speed of the enemies.
+	 * @param shootingFrecuency
+	 *            Frecuency of enemy shootings, +/- 30%.
+	 * @param wavesNumber
+	 * 				Number of waves in the level (Added by the Level Design team)
+	 */
+	public GameSettings(final int formationWidth, final int formationHeight,
+<span class="fc" id="L42">			final int baseSpeed, final int shootingFrecuency, final int wavesNumber) {</span>
+<span class="fc" id="L43">		this.formationWidth = formationWidth;</span>
+<span class="fc" id="L44">		this.formationHeight = formationHeight;</span>
+<span class="fc" id="L45">		this.baseSpeed = baseSpeed;</span>
+<span class="fc" id="L46">		this.shootingFrecuency = shootingFrecuency;</span>
+
+		/** Added by the Level Design team **/
+<span class="fc" id="L49">		this.wavesNumber = wavesNumber;</span>
+<span class="fc" id="L50">		this.gametype = &quot;Normal&quot;;</span>
+<span class="fc" id="L51">	}</span>
+
+	public GameSettings(final int formationWidth, final int enemyFrecuency,
+<span class="fc" id="L54">						final int baseSpeed, final int shootingFrecuency) {</span>
+<span class="fc" id="L55">		this.formationWidth = 1;</span>
+<span class="fc" id="L56">		this.formationHeight = formationWidth;</span>
+<span class="fc" id="L57">		this.enemyFrecuency = enemyFrecuency;</span>
+<span class="fc" id="L58">		this.baseSpeed = baseSpeed;</span>
+<span class="fc" id="L59">		this.shootingFrecuency = shootingFrecuency;</span>
+
+		/** Added by the Level Design team **/
+<span class="fc" id="L62">		this.wavesNumber = 1;</span>
+<span class="fc" id="L63">		this.gametype = &quot;Story&quot;;</span>
+<span class="fc" id="L64">	}</span>
+
+	/**
+	 * @return the formationWidth
+	 */
+	public final int getFormationWidth() {
+<span class="nc" id="L70">		return formationWidth;</span>
+	}
+
+	/**
+	 * @return the formationHeight
+	 */
+	public final int getFormationHeight() {
+<span class="nc" id="L77">		return formationHeight;</span>
+	}
+
+	/**
+	 * @return the baseSpeed
+	 */
+	public final int getBaseSpeed() {
+<span class="nc" id="L84">		return baseSpeed;</span>
+	}
+
+	/**
+	 * @return the shootingFrecuency
+	 */
+	public final int getShootingFrecuency() {
+<span class="nc" id="L91">		return shootingFrecuency;</span>
+	}
+
+	/**
+	 * Added by the Level Design team
+	 * @return the wavesNumber
+	 */
+	public final int getWavesNumber() {
+<span class="nc" id="L99">		return wavesNumber;</span>
+	}
+
+	public int getEnemyFrecuency(){
+<span class="nc" id="L103">		return enemyFrecuency;</span>
+	}
+
+	public String getGametype(){
+<span class="nc" id="L107">		return gametype;</span>
+	}
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.10.202304240956</span></div></body></html>

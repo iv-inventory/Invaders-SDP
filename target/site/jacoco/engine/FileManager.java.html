@@ -1,0 +1,974 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="ko"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>FileManager.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">my-java-project</a> &gt; <a href="index.source.html" class="el_package">engine</a> &gt; <span class="el_source">FileManager.java</span></div><h1>FileManager.java</h1><pre class="source lang-java linenums">package engine;
+
+import java.awt.*;
+import java.awt.image.BufferedImage;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.net.URLDecoder;
+import java.nio.charset.Charset;
+import java.util.*;
+import java.util.List;
+import java.util.logging.Logger;
+import CtrlS.EncryptionSupport;
+import engine.DrawManager.SpriteType;
+
+import clove.Statistics; //Team Clove
+
+import javax.imageio.ImageIO;
+
+/**
+ * Manages files used in the application.
+ * 
+ * @author &lt;a href=&quot;mailto:RobertoIA1987@gmail.com&quot;&gt;Roberto Izquierdo Amo&lt;/a&gt;
+ * 
+ */
+public final class FileManager {
+
+	/** Singleton instance of the class. */
+	private static FileManager instance;
+	/** Application logger. */
+	private static Logger logger;
+	/** Max number of high scores. */
+	private static final int MAX_SCORES = 7;
+	/** Max number of recent recorded scores / Team Clove */
+	private static final int MAX_RECORD = 10;
+
+	/**
+	 * private constructor.
+	 */
+<span class="fc" id="L48">	private FileManager() {</span>
+<span class="fc" id="L49">		logger = Core.getLogger();</span>
+<span class="fc" id="L50">	}</span>
+
+	/**
+	 * Returns shared instance of FileManager.
+	 * 
+	 * @return Shared instance of FileManager.
+	 */
+	protected static FileManager getInstance() {
+<span class="fc bfc" id="L58" title="All 2 branches covered.">		if (instance == null)</span>
+<span class="fc" id="L59">			instance = new FileManager();</span>
+<span class="fc" id="L60">		return instance;</span>
+	}
+
+	/**
+	 * Loads sprites from disk.
+	 * 
+	 * @param spriteMap
+	 *            Mapping of sprite type and empty boolean matrix that will
+	 *            contain the image.
+	 * @throws IOException
+	 *             In case of loading problems.
+	 */
+	public void loadSprite(final Map&lt;SpriteType, boolean[][]&gt; spriteMap)
+			throws IOException {
+<span class="nc" id="L74">		InputStream inputStream = null;</span>
+
+		try {
+<span class="nc" id="L77">			inputStream = DrawManager.class.getClassLoader()</span>
+<span class="nc" id="L78">					.getResourceAsStream(&quot;graphics&quot;);</span>
+			char c;
+
+			// Sprite loading.
+<span class="nc bnc" id="L82" title="All 2 branches missed.">			for (Map.Entry&lt;SpriteType, boolean[][]&gt; sprite : spriteMap</span>
+<span class="nc" id="L83">					.entrySet()) {</span>
+<span class="nc bnc" id="L84" title="All 2 branches missed.">				for (int i = 0; i &lt; sprite.getValue().length; i++)</span>
+<span class="nc bnc" id="L85" title="All 2 branches missed.">					for (int j = 0; j &lt; sprite.getValue()[i].length; j++) {</span>
+						do
+<span class="nc" id="L87">							c = (char) inputStream.read();</span>
+<span class="nc bnc" id="L88" title="All 4 branches missed.">						while (c != '0' &amp;&amp; c != '1');</span>
+
+<span class="nc bnc" id="L90" title="All 2 branches missed.">						if (c == '1')</span>
+<span class="nc" id="L91">							sprite.getValue()[i][j] = true;</span>
+						else
+<span class="nc" id="L93">							sprite.getValue()[i][j] = false;</span>
+					}
+<span class="nc" id="L95">				logger.fine(&quot;Sprite &quot; + sprite.getKey() + &quot; loaded.&quot;);</span>
+<span class="nc" id="L96">			}</span>
+<span class="nc bnc" id="L97" title="All 2 branches missed.">			if (inputStream != null)</span>
+<span class="nc" id="L98">				inputStream.close();</span>
+		} finally {
+<span class="nc bnc" id="L100" title="All 2 branches missed.">			if (inputStream != null)</span>
+<span class="nc" id="L101">				inputStream.close();</span>
+		}
+<span class="nc" id="L103">	}</span>
+
+	public BufferedImage loadImage(String path) throws IOException{
+		try {
+<span class="nc" id="L107">			InputStream image = FileManager.class.getResourceAsStream(&quot;/Imagegraphics/&quot; + path);</span>
+<span class="nc" id="L108">			return ImageIO.read(image);</span>
+		} finally {}
+	}
+
+	// 방법 1 : png이미지들을 n*n 정사각형으로 저장해야함
+	public BufferedImage rotateImage(BufferedImage img, double angle) {
+<span class="nc" id="L114">		int w = img.getWidth();</span>
+<span class="nc" id="L115">		int h = img.getHeight();</span>
+<span class="nc" id="L116">		BufferedImage rotatedImage = new BufferedImage(w, h, img.getType());</span>
+<span class="nc" id="L117">		Graphics2D g2d = rotatedImage.createGraphics();</span>
+
+		// 이미지 회전
+<span class="nc" id="L120">		g2d.rotate(Math.toRadians(Math.toDegrees(angle)+90), w / 2, h / 2);  // 중심을 기준으로 회전</span>
+<span class="nc" id="L121">		g2d.drawImage(img, 0, 0, null);</span>
+<span class="nc" id="L122">		g2d.dispose();</span>
+<span class="nc" id="L123">		return rotatedImage;</span>
+	}
+
+	// 방법 2 : 회전할 때 객체 흔들림이 심해서 보류
+//	public BufferedImage rotateImage(BufferedImage image, double angle) {
+//		int width = image.getWidth();
+//		int height = image.getHeight();
+//		angle = Math.toRadians(Math.toDegrees(angle)+90);
+//
+//		int newWidth = (int) Math.ceil(Math.abs(Math.cos(angle) * width) +
+//				Math.abs(Math.sin(angle) * height));
+//		int newHeight = (int) Math.ceil(Math.abs(Math.sin(angle) * width) +
+//				Math.abs(Math.cos(angle) * height));
+//
+//		BufferedImage rotatedImage = new BufferedImage(newWidth, newHeight, BufferedImage.TYPE_INT_ARGB);
+//		Graphics2D g2d = rotatedImage.createGraphics();
+//
+//		g2d.rotate(angle, newWidth / 2, newHeight / 2);
+//
+//		// 원래 이미지를 새 캔버스의 중심으로 그리기
+//		int x = (newWidth - width) / 2;
+//		int y = (newHeight - height) / 2;
+//		g2d.drawImage(image, x, y, null);
+//		g2d.dispose();
+//
+//		return rotatedImage;
+//	}
+
+
+	/**
+	 * Loads a font of a given size.
+	 * 
+	 * @param size
+	 *            Point size of the font.
+	 * @return New font.
+	 * @throws IOException
+	 *             In case of loading problems.
+	 * @throws FontFormatException
+	 *             In case of incorrect font format.
+	 */
+	public Font loadFont(final float size) throws IOException,
+			FontFormatException {
+<span class="nc" id="L165">		InputStream inputStream = null;</span>
+		Font font;
+
+		try {
+<span class="nc" id="L169">			inputStream = FileManager.class.getClassLoader()</span>
+<span class="nc" id="L170">					.getResourceAsStream(&quot;font.ttf&quot;);</span>
+<span class="nc bnc" id="L171" title="All 2 branches missed.">			if (inputStream != null) {</span>
+<span class="nc" id="L172">				font = Font.createFont(Font.TRUETYPE_FONT, inputStream).deriveFont(size);</span>
+			} else {
+				// Set as default font, if inputStream is null
+<span class="nc" id="L175">				System.out.println(&quot;Custom font not found, applying default font.&quot;);</span>
+<span class="nc" id="L176">				font = new Font(&quot;Serif&quot;, Font.PLAIN, (int) size); // Set as &quot;Serif&quot;</span>
+			}
+		} finally {
+<span class="nc bnc" id="L179" title="All 2 branches missed.">			if (inputStream != null)</span>
+<span class="nc" id="L180">				inputStream.close();</span>
+		}
+
+<span class="nc" id="L183">		return font;</span>
+	}
+
+	/**
+	 * Returns the application default scores if there is no user high scores
+	 * file.
+	 * 
+	 * @return Default high scores.
+	 * @throws IOException
+	 *             In case of loading problems.
+	 */
+	private List&lt;Score&gt; loadDefaultHighScores() throws IOException {
+<span class="nc" id="L195">		List&lt;Score&gt; highScores = new ArrayList&lt;Score&gt;();</span>
+<span class="nc" id="L196">		InputStream inputStream = null;</span>
+<span class="nc" id="L197">		BufferedReader reader = null;</span>
+
+		try {
+<span class="nc" id="L200">			inputStream = FileManager.class.getClassLoader()</span>
+<span class="nc" id="L201">					.getResourceAsStream(&quot;scores&quot;);</span>
+<span class="nc" id="L202">			reader = new BufferedReader(new InputStreamReader(inputStream));</span>
+
+<span class="nc" id="L204">			Score highScore = null;</span>
+<span class="nc" id="L205">			String name = reader.readLine();</span>
+<span class="nc" id="L206">			String score = reader.readLine();</span>
+<span class="nc" id="L207">			String time = reader.readLine();</span>
+
+<span class="nc bnc" id="L209" title="All 4 branches missed.">			while ((name != null) &amp;&amp; (score != null)) {</span>
+<span class="nc" id="L210">				highScore = new Score(name, Integer.parseInt(score), Integer.parseInt(time));</span>
+<span class="nc" id="L211">				highScores.add(highScore);</span>
+<span class="nc" id="L212">				name = reader.readLine();</span>
+<span class="nc" id="L213">				score = reader.readLine();</span>
+<span class="nc" id="L214">				time = reader.readLine();</span>
+			}
+		} finally {
+<span class="nc bnc" id="L217" title="All 2 branches missed.">			if (inputStream != null)</span>
+<span class="nc" id="L218">				inputStream.close();</span>
+		}
+
+<span class="nc" id="L221">		return highScores;</span>
+	}
+
+	/**
+	 * Loads high scores from file, and returns a sorted list of pairs score -
+	 * value.
+	 * 
+	 * @return Sorted list of scores - players.
+	 * @throws IOException
+	 *             In case of loading problems.
+	 */
+	public List&lt;Score&gt; loadHighScores() throws IOException {
+
+<span class="nc" id="L234">		List&lt;Score&gt; highScores = new ArrayList&lt;Score&gt;();</span>
+<span class="nc" id="L235">		InputStream inputStream = null;</span>
+<span class="nc" id="L236">		BufferedReader bufferedReader = null;</span>
+
+		try {
+<span class="nc" id="L239">			String jarPath = FileManager.class.getProtectionDomain()</span>
+<span class="nc" id="L240">					.getCodeSource().getLocation().getPath();</span>
+<span class="nc" id="L241">			jarPath = URLDecoder.decode(jarPath, &quot;UTF-8&quot;);</span>
+
+<span class="nc" id="L243">			String scoresPath = new File(jarPath).getParent();</span>
+<span class="nc" id="L244">			scoresPath += File.separator;</span>
+<span class="nc" id="L245">			scoresPath += &quot;scores&quot;;</span>
+
+<span class="nc" id="L247">			File scoresFile = new File(scoresPath);</span>
+<span class="nc" id="L248">			inputStream = new FileInputStream(scoresFile);</span>
+<span class="nc" id="L249">			bufferedReader = new BufferedReader(new InputStreamReader(</span>
+<span class="nc" id="L250">					inputStream, Charset.forName(&quot;UTF-8&quot;)));</span>
+
+<span class="nc" id="L252">			logger.info(&quot;Loading user high scores.&quot;);</span>
+
+<span class="nc" id="L254">			Score highScore = null;</span>
+<span class="nc" id="L255">			String name = bufferedReader.readLine();</span>
+<span class="nc" id="L256">			String score = bufferedReader.readLine();</span>
+<span class="nc" id="L257">			String time = bufferedReader.readLine();</span>
+
+<span class="nc bnc" id="L259" title="All 6 branches missed.">			while ((name != null) &amp;&amp; (score != null) &amp;&amp; (time != null)) {</span>
+<span class="nc" id="L260">				highScore = new Score(name, Integer.parseInt(score), Long.parseLong(time));</span>
+<span class="nc" id="L261">				highScores.add(highScore);</span>
+<span class="nc" id="L262">				name = bufferedReader.readLine();</span>
+<span class="nc" id="L263">				score = bufferedReader.readLine();</span>
+<span class="nc" id="L264">				time = bufferedReader.readLine();</span>
+			}
+
+<span class="nc" id="L267">		} catch (FileNotFoundException e) {</span>
+			// loads default if there's no user scores.
+<span class="nc" id="L269">			logger.info(&quot;Loading default high scores.&quot;);</span>
+<span class="nc" id="L270">			highScores = loadDefaultHighScores();</span>
+		} finally {
+<span class="nc bnc" id="L272" title="All 2 branches missed.">			if (bufferedReader != null)</span>
+<span class="nc" id="L273">				bufferedReader.close();</span>
+		}
+
+<span class="nc" id="L276">		Collections.sort(highScores);</span>
+<span class="nc" id="L277">		return highScores;</span>
+	}
+
+	/**
+	 * Saves user high scores to disk.
+	 * 
+	 * @param highScores
+	 *            High scores to save.
+	 * @throws IOException
+	 *             In case of loading problems.
+	 */
+	public void saveHighScores(final List&lt;Score&gt; highScores)
+			throws IOException {
+<span class="nc" id="L290">		OutputStream outputStream = null;</span>
+<span class="nc" id="L291">		BufferedWriter bufferedWriter = null;</span>
+
+		try {
+<span class="nc" id="L294">			String jarPath = FileManager.class.getProtectionDomain()</span>
+<span class="nc" id="L295">					.getCodeSource().getLocation().getPath();</span>
+<span class="nc" id="L296">			jarPath = URLDecoder.decode(jarPath, &quot;UTF-8&quot;);</span>
+
+<span class="nc" id="L298">			String scoresPath = new File(jarPath).getParent();</span>
+<span class="nc" id="L299">			scoresPath += File.separator;</span>
+<span class="nc" id="L300">			scoresPath += &quot;scores&quot;;</span>
+
+<span class="nc" id="L302">			File scoresFile = new File(scoresPath);</span>
+
+<span class="nc bnc" id="L304" title="All 2 branches missed.">			if (!scoresFile.exists())</span>
+<span class="nc" id="L305">				scoresFile.createNewFile();</span>
+
+<span class="nc" id="L307">			outputStream = new FileOutputStream(scoresFile);</span>
+<span class="nc" id="L308">			bufferedWriter = new BufferedWriter(new OutputStreamWriter(</span>
+<span class="nc" id="L309">					outputStream, Charset.forName(&quot;UTF-8&quot;)));</span>
+
+<span class="nc" id="L311">			logger.info(&quot;Saving user high scores.&quot;);</span>
+
+			// Saves 7 or less scores.
+<span class="nc" id="L314">			int savedCount = 0;</span>
+<span class="nc bnc" id="L315" title="All 2 branches missed.">			for (Score score : highScores) {</span>
+<span class="nc bnc" id="L316" title="All 2 branches missed.">				if (savedCount &gt;= MAX_SCORES)</span>
+<span class="nc" id="L317">					break;</span>
+<span class="nc" id="L318">				bufferedWriter.write(score.getName());</span>
+<span class="nc" id="L319">				bufferedWriter.newLine();</span>
+<span class="nc" id="L320">				bufferedWriter.write(Integer.toString(score.getScore()));</span>
+<span class="nc" id="L321">				bufferedWriter.newLine();</span>
+<span class="nc" id="L322">				bufferedWriter.write(Long.toString(score.getPlayTime()));</span>
+<span class="nc" id="L323">				bufferedWriter.newLine();</span>
+<span class="nc" id="L324">				savedCount++;</span>
+<span class="nc" id="L325">			}</span>
+
+		} finally {
+<span class="nc bnc" id="L328" title="All 2 branches missed.">			if (bufferedWriter != null)</span>
+<span class="nc" id="L329">				bufferedWriter.close();</span>
+		}
+<span class="nc" id="L331">	}</span>
+
+	/**
+	 * Returns the application default scores if there is no user recent scores
+	 * file.
+	 *
+	 * @return Default recent scores.
+	 * @throws IOException
+	 *             In case of loading problems.
+	 * Method for implement Recent score
+	 * Team Clover
+	 */
+	private List&lt;Score&gt; loadDefaultRecentScores() throws IOException {
+<span class="nc" id="L344">		List&lt;Score&gt; recentScores = new ArrayList&lt;Score&gt;();</span>
+<span class="nc" id="L345">		InputStream inputStream = null;</span>
+<span class="nc" id="L346">		BufferedReader reader = null;</span>
+
+		try {
+<span class="nc" id="L349">			inputStream = FileManager.class.getClassLoader()</span>
+<span class="nc" id="L350">					.getResourceAsStream(&quot;recent&quot;);</span>
+<span class="nc" id="L351">			reader = new BufferedReader(new InputStreamReader(inputStream));</span>
+
+			Score recentScore;
+<span class="nc" id="L354">			String date = reader.readLine();</span>
+<span class="nc" id="L355">			String score = reader.readLine();</span>
+<span class="nc" id="L356">			String highestLevel = reader.readLine();</span>
+<span class="nc" id="L357">			String totalShipDestroyed = reader.readLine();</span>
+<span class="nc" id="L358">			String clearAchievementNumber = reader.readLine();</span>
+<span class="nc" id="L359">			String name = null;</span>
+
+<span class="nc bnc" id="L361" title="All 4 branches missed.">			while ((date != null) &amp;&amp; (score != null)) {</span>
+<span class="nc" id="L362">				recentScore = new Score(name, Integer.parseInt(score), date, Integer.parseInt(highestLevel),</span>
+<span class="nc" id="L363">						Integer.parseInt(totalShipDestroyed), Integer.parseInt(clearAchievementNumber));</span>
+<span class="nc" id="L364">				recentScores.add(recentScore);</span>
+<span class="nc" id="L365">				date = reader.readLine();</span>
+<span class="nc" id="L366">				score = reader.readLine();</span>
+<span class="nc" id="L367">				highestLevel = reader.readLine();</span>
+<span class="nc" id="L368">				totalShipDestroyed = reader.readLine();</span>
+<span class="nc" id="L369">				clearAchievementNumber = reader.readLine();</span>
+			}
+
+		} finally {
+<span class="nc bnc" id="L373" title="All 2 branches missed.">			if (inputStream != null)</span>
+<span class="nc" id="L374">				inputStream.close();</span>
+		}
+
+<span class="nc" id="L377">		return recentScores;</span>
+	}
+	/**
+	 * Loads recent scores from file, and returns a sorted list of pairs score -
+	 * value.
+	 *
+	 * @return Sorted list of Recent scores - players.
+	 * @throws IOException
+	 *             In case of loading problems.
+	 *
+	 * Method for implement Recent score
+	 * Team Clove
+	 */
+	public List&lt;Score&gt; loadRecentScores() throws IOException {
+
+<span class="nc" id="L392">		List&lt;Score&gt; recentScores = new ArrayList&lt;Score&gt;();</span>
+<span class="nc" id="L393">		InputStream inputStream = null;</span>
+<span class="nc" id="L394">		BufferedReader bufferedReader = null;</span>
+
+		try {
+<span class="nc" id="L397">			String jarPath = FileManager.class.getProtectionDomain()</span>
+<span class="nc" id="L398">					.getCodeSource().getLocation().getPath();</span>
+<span class="nc" id="L399">			jarPath = URLDecoder.decode(jarPath, &quot;UTF-8&quot;);</span>
+
+<span class="nc" id="L401">			String scoresPath = new File(jarPath).getParent();</span>
+<span class="nc" id="L402">			scoresPath += File.separator;</span>
+<span class="nc" id="L403">			scoresPath += &quot;recent&quot;;</span>
+
+<span class="nc" id="L405">			System.out.print(scoresPath);</span>
+
+<span class="nc" id="L407">			File scoresFile = new File(scoresPath);</span>
+<span class="nc" id="L408">			inputStream = new FileInputStream(scoresFile);</span>
+<span class="nc" id="L409">			bufferedReader = new BufferedReader(new InputStreamReader(</span>
+<span class="nc" id="L410">					inputStream, Charset.forName(&quot;UTF-8&quot;)));</span>
+
+<span class="nc" id="L412">			logger.info(&quot;Loading user recent scores.&quot;);</span>
+
+			Score recentScore;
+<span class="nc" id="L415">			String date = bufferedReader.readLine();</span>
+<span class="nc" id="L416">			String score = bufferedReader.readLine();</span>
+<span class="nc" id="L417">			String highestLevel = bufferedReader.readLine();</span>
+<span class="nc" id="L418">			String totalShipDestroyed = bufferedReader.readLine();</span>
+<span class="nc" id="L419">			String clearAchievementNumber = bufferedReader.readLine();</span>
+<span class="nc" id="L420">			String name = null;</span>
+
+<span class="nc bnc" id="L422" title="All 4 branches missed.">			while ((date != null) &amp;&amp; (score != null)) {</span>
+<span class="nc" id="L423">				recentScore = new Score(name, Integer.parseInt(score), date, Integer.parseInt(highestLevel),</span>
+<span class="nc" id="L424">						Integer.parseInt(totalShipDestroyed), Integer.parseInt(clearAchievementNumber));</span>
+<span class="nc" id="L425">				recentScores.add(recentScore);</span>
+<span class="nc" id="L426">				date = bufferedReader.readLine();</span>
+<span class="nc" id="L427">				score = bufferedReader.readLine();</span>
+<span class="nc" id="L428">				highestLevel = bufferedReader.readLine();</span>
+<span class="nc" id="L429">				totalShipDestroyed = bufferedReader.readLine();</span>
+<span class="nc" id="L430">				clearAchievementNumber = bufferedReader.readLine();</span>
+
+			}
+
+<span class="nc" id="L434">		} catch (FileNotFoundException e) {</span>
+			// loads default if there's no user scores.
+<span class="nc" id="L436">			logger.info(&quot;Loading default high scores.&quot;);</span>
+<span class="nc" id="L437">			recentScores = loadDefaultRecentScores();</span>
+		} finally {
+<span class="nc bnc" id="L439" title="All 2 branches missed.">			if (bufferedReader != null)</span>
+<span class="nc" id="L440">				bufferedReader.close();</span>
+		}
+
+		//Collections.sort(recentScores);
+<span class="nc" id="L444">		return recentScores;</span>
+	}
+
+	/**
+	 * Saves user recent scores to disk.
+	 *
+	 * @param recentScores
+	 *            High scores to save.
+	 * @throws IOException
+	 *             In case of loading problems.
+	 * Method for implement Recent score
+	 * Team Clove
+	 */
+
+	public void saveRecentScores(final List&lt;Score&gt; recentScores)
+			throws IOException {
+<span class="nc" id="L460">		OutputStream outputStream = null;</span>
+<span class="nc" id="L461">		BufferedWriter bufferedWriter = null;</span>
+
+		try {
+<span class="nc" id="L464">			String jarPath = FileManager.class.getProtectionDomain()</span>
+<span class="nc" id="L465">					.getCodeSource().getLocation().getPath();</span>
+<span class="nc" id="L466">			jarPath = URLDecoder.decode(jarPath, &quot;UTF-8&quot;);</span>
+
+<span class="nc" id="L468">			String scoresPath = new File(jarPath).getParent();</span>
+<span class="nc" id="L469">			scoresPath += File.separator;</span>
+<span class="nc" id="L470">			scoresPath += &quot;recent&quot;;</span>
+
+<span class="nc" id="L472">			File scoresFile = new File(scoresPath);</span>
+
+<span class="nc bnc" id="L474" title="All 2 branches missed.">			if (!scoresFile.exists())</span>
+<span class="nc" id="L475">				scoresFile.createNewFile();</span>
+
+<span class="nc" id="L477">			outputStream = new FileOutputStream(scoresFile);</span>
+<span class="nc" id="L478">			bufferedWriter = new BufferedWriter(new OutputStreamWriter(</span>
+<span class="nc" id="L479">					outputStream, Charset.forName(&quot;UTF-8&quot;)));</span>
+
+<span class="nc" id="L481">			Statistics stat = new Statistics();</span>
+<span class="nc" id="L482">			stat = stat.loadUserData(stat);</span>
+
+<span class="nc" id="L484">			logger.info(&quot;Saving user recent scores.&quot;);</span>
+
+			// Saves 10 or less scores.
+<span class="nc" id="L487">			int savedCount = 0;</span>
+<span class="nc bnc" id="L488" title="All 2 branches missed.">			for (Score score : recentScores) {</span>
+<span class="nc bnc" id="L489" title="All 2 branches missed.">				if (savedCount &gt;= MAX_RECORD)</span>
+<span class="nc" id="L490">					break;</span>
+<span class="nc" id="L491">				bufferedWriter.write(score.getDate());</span>
+<span class="nc" id="L492">				bufferedWriter.newLine();</span>
+<span class="nc" id="L493">				bufferedWriter.write(Integer.toString(score.getScore()));</span>
+<span class="nc" id="L494">				bufferedWriter.newLine();</span>
+<span class="nc" id="L495">				bufferedWriter.write(Integer.toString(score.getHighestLevel()));</span>
+<span class="nc" id="L496">				bufferedWriter.newLine();</span>
+<span class="nc" id="L497">				bufferedWriter.write(Integer.toString(score.getShipDestroyed()));</span>
+<span class="nc" id="L498">				bufferedWriter.newLine();</span>
+<span class="nc" id="L499">				bufferedWriter.write(Integer.toString(score.getClearAchievementNumber()));</span>
+<span class="nc" id="L500">				bufferedWriter.newLine();</span>
+<span class="nc" id="L501">				savedCount++;</span>
+<span class="nc" id="L502">			}</span>
+<span class="nc" id="L503">			stat.resetStatistics();</span>
+
+		} finally {
+<span class="nc bnc" id="L506" title="All 2 branches missed.">			if (bufferedWriter != null)</span>
+<span class="nc" id="L507">				bufferedWriter.close();</span>
+		}
+<span class="nc" id="L509">	}</span>
+
+	/**
+	 *  save userData(Statistics) to disk
+	 *
+	 * @param playerStatistics
+	 * 				Player's Statistics list to save.
+	 * @throws IOException
+	 * 				In case of saving problems.
+	 *
+	 */
+	// Team Clove
+    public void saveUserData(final List&lt;Statistics&gt; playerStatistics) throws IOException {
+<span class="nc" id="L522">		Properties properties = new Properties();</span>
+<span class="nc" id="L523">		OutputStream outputStream = null;</span>
+
+        try {
+<span class="nc" id="L526">            String jarPath = FileManager.class.getProtectionDomain()</span>
+<span class="nc" id="L527">                    .getCodeSource().getLocation().getPath();</span>
+<span class="nc" id="L528">            jarPath = URLDecoder.decode(jarPath, &quot;UTF-8&quot;);</span>
+
+<span class="nc" id="L530">            String staticsPath = new File(jarPath).getParent();</span>
+<span class="nc" id="L531">            staticsPath += File.separator;</span>
+<span class="nc" id="L532">			staticsPath += &quot;Statistic.properties&quot;;</span>
+
+<span class="nc" id="L534">            File staticsFile = new File(staticsPath);</span>
+
+<span class="nc" id="L536">			logger.info(&quot;Saving Player Statistic.&quot;);</span>
+
+<span class="nc bnc" id="L538" title="All 2 branches missed.">            if (!staticsFile.exists())</span>
+<span class="nc" id="L539">				staticsFile.createNewFile();</span>
+
+<span class="nc bnc" id="L541" title="All 2 branches missed.">			if(!playerStatistics.isEmpty()){</span>
+<span class="nc" id="L542">				Statistics stat = playerStatistics.get(0);</span>
+<span class="nc" id="L543">				properties.setProperty(&quot;highestLevel&quot;, String.valueOf(stat.getHighestLevel()));</span>
+<span class="nc" id="L544">				properties.setProperty(&quot;totalBulletsShot&quot;, String.valueOf(stat.getTotalBulletsShot()));</span>
+<span class="nc" id="L545">				properties.setProperty(&quot;totalShipsDestroyed&quot;, String.valueOf(stat.getTotalShipsDestroyed()));</span>
+<span class="nc" id="L546">				properties.setProperty(&quot;shipsDestructionStreak&quot;, String.valueOf(stat.getShipsDestructionStreak()));</span>
+<span class="nc" id="L547">				properties.setProperty(&quot;playedGameNumber&quot;, String.valueOf(stat.getPlayedGameNumber()));</span>
+<span class="nc" id="L548">				properties.setProperty(&quot;clearAchievementNumber&quot;, String.valueOf(stat.getClearAchievementNumber()));</span>
+<span class="nc" id="L549">				properties.setProperty(&quot;totalPlaytime&quot;, String.valueOf(stat.getTotalPlaytime()));</span>
+			}
+<span class="nc" id="L551">			outputStream = new FileOutputStream(staticsFile);</span>
+<span class="nc" id="L552">			properties.store(new OutputStreamWriter(outputStream, Charset.forName(&quot;UTF-8&quot;)),</span>
+					&quot;PlayerGameStatistics&quot;);
+
+
+        } finally {
+<span class="nc bnc" id="L557" title="All 2 branches missed.">            if (outputStream != null)</span>
+<span class="nc" id="L558">                outputStream.close();</span>
+        }
+<span class="nc" id="L560">    }</span>
+
+	/**
+	 *
+	 * load userData(Statistics) from file, and return userData(Statistics)
+	 *
+	 * @return Player's Statistics
+	 * @throws IOException
+	 * 				In case of loading problems.
+	 */
+	// Team Clove
+	public Statistics loadUserData() throws IOException {
+<span class="nc" id="L572">		Properties properties = new Properties();</span>
+<span class="nc" id="L573">		InputStream inputStream = null;</span>
+
+		Statistics stat;
+
+		try{
+<span class="nc" id="L578">			String jarPath = FileManager.class.getProtectionDomain()</span>
+<span class="nc" id="L579">					.getCodeSource().getLocation().getPath();</span>
+<span class="nc" id="L580">			jarPath = URLDecoder.decode(jarPath, &quot;UTF-8&quot;);</span>
+
+<span class="nc" id="L582">			String staticsPath = new File(jarPath).getParent();</span>
+<span class="nc" id="L583">			staticsPath += File.separator;</span>
+<span class="nc" id="L584">			staticsPath += &quot;Statistic.properties&quot;;</span>
+
+<span class="nc" id="L586">			File staticsFile = new File(staticsPath);</span>
+
+<span class="nc" id="L588">			inputStream = new FileInputStream(staticsFile);</span>
+<span class="nc" id="L589">			properties.load(new InputStreamReader(inputStream, Charset.forName(&quot;UTF-8&quot;)));</span>
+
+<span class="nc" id="L591">			logger.info(&quot;Loading Player Statistic.&quot;);</span>
+
+<span class="nc" id="L593">			int highestLevel = Integer.parseInt(properties.getProperty(&quot;highestLevel&quot;));</span>
+<span class="nc" id="L594">			int totalBulletsShot = Integer.parseInt(properties.getProperty(&quot;totalBulletsShot&quot;));</span>
+<span class="nc" id="L595">			int totalShipsDestroyed = Integer.parseInt(properties.getProperty(&quot;totalShipsDestroyed&quot;));</span>
+<span class="nc" id="L596">			int shipsDestructionStreak = Integer.parseInt(properties.getProperty(&quot;shipsDestructionStreak&quot;));</span>
+<span class="nc" id="L597">			int playedGameNumber = Integer.parseInt(properties.getProperty(&quot;playedGameNumber&quot;));</span>
+<span class="nc" id="L598">			int clearAchievementNumber = Integer.parseInt(properties.getProperty(&quot;clearAchievementNumber&quot;));</span>
+<span class="nc" id="L599">			long totalPlaytime = Integer.parseInt(properties.getProperty(&quot;totalPlaytime&quot;));</span>
+
+<span class="nc" id="L601">			stat = new Statistics(highestLevel, totalBulletsShot, totalShipsDestroyed, shipsDestructionStreak,</span>
+					playedGameNumber, clearAchievementNumber, totalPlaytime);
+
+<span class="nc" id="L604">		} catch (FileNotFoundException e){</span>
+<span class="nc" id="L605">			logger.info(&quot;Loading default user statistics.&quot;);</span>
+<span class="nc" id="L606">			stat = loadDefaultUserData();</span>
+		} finally {
+<span class="nc bnc" id="L608" title="All 2 branches missed.">			if(inputStream != null){</span>
+<span class="nc" id="L609">				inputStream.close();</span>
+			}
+
+		}
+
+<span class="nc" id="L614">		return stat;</span>
+	}
+
+	/**
+	 * Returns the application default userData(Statistics)
+	 * if there is no Statistic.properties file.
+	 *
+	 *
+	 * @return Default Player's Statistics
+	 * @throws IOException
+	 * 				In case of loading problems.
+	 */
+	// Team Clove
+	public Statistics loadDefaultUserData() throws IOException {
+<span class="nc" id="L628">		Properties properties = new Properties();</span>
+<span class="nc" id="L629">		InputStream inputStream = null;</span>
+
+		Statistics stat;
+
+		try{
+<span class="nc" id="L634">			inputStream = FileManager.class.getClassLoader()</span>
+<span class="nc" id="L635">					.getResourceAsStream(&quot;Statistic.properties&quot;);</span>
+
+<span class="nc" id="L637">			properties.load(new InputStreamReader(inputStream, Charset.forName(&quot;UTF-8&quot;)));</span>
+
+<span class="nc" id="L639">			int highestLevel = Integer.parseInt(properties.getProperty(&quot;highestLevel&quot;));</span>
+<span class="nc" id="L640">			int totalBulletsShot = Integer.parseInt(properties.getProperty(&quot;totalBulletsShot&quot;));</span>
+<span class="nc" id="L641">			int totalShipsDestroyed = Integer.parseInt(properties.getProperty(&quot;totalShipsDestroyed&quot;));</span>
+<span class="nc" id="L642">			int shipsDestructionStreak = Integer.parseInt(properties.getProperty(&quot;shipsDestructionStreak&quot;));</span>
+<span class="nc" id="L643">			int playedGameNumber = Integer.parseInt(properties.getProperty(&quot;playedGameNumber&quot;));</span>
+<span class="nc" id="L644">			int clearAchievementNumber = Integer.parseInt(properties.getProperty(&quot;clearAchievementNumber&quot;));</span>
+<span class="nc" id="L645">			long totalPlaytime = Integer.parseInt(properties.getProperty(&quot;totalPlaytime&quot;));</span>
+
+<span class="nc" id="L647">			stat = new Statistics(highestLevel, totalBulletsShot, totalShipsDestroyed, shipsDestructionStreak,</span>
+					playedGameNumber, clearAchievementNumber, totalPlaytime);
+
+		} finally {
+<span class="nc bnc" id="L651" title="All 2 branches missed.">			if(inputStream != null){</span>
+<span class="nc" id="L652">				inputStream.close();</span>
+			}
+		}
+<span class="nc" id="L655">		return stat;</span>
+	}
+
+	/**
+	 * Saves user coin to disk.
+	 *
+	 * @param coin
+	 *            amount of user coin to save.
+	 * @throws IOException
+	 *             In case of saving problems.
+	 */
+
+	public void saveCoin(final int coin) throws IOException {
+<span class="nc" id="L668">		String jarPath = FileManager.class.getProtectionDomain().getCodeSource().getLocation().getPath();</span>
+<span class="nc" id="L669">		jarPath = URLDecoder.decode(jarPath, &quot;UTF-8&quot;);</span>
+
+		//Choose File root
+<span class="nc" id="L672">		String currencyPath = new File(jarPath).getParent();</span>
+<span class="nc" id="L673">		currencyPath += File.separator;</span>
+<span class="nc" id="L674">		currencyPath += &quot;currency&quot;;</span>
+
+<span class="nc" id="L676">		File currencyFile = new File(currencyPath);</span>
+
+		// create File If there is no currencyFile
+<span class="nc bnc" id="L679" title="All 2 branches missed.">		if (!currencyFile.exists())</span>
+<span class="nc" id="L680">			currencyFile.createNewFile();</span>
+
+<span class="nc" id="L682">		List&lt;String&gt; lines = new ArrayList&lt;&gt;();</span>
+		String line;
+
+<span class="nc" id="L685">		try (BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(</span>
+<span class="nc" id="L686">				new FileInputStream(currencyFile), Charset.forName(&quot;UTF-8&quot;)))) {</span>
+			// Read the file's current content
+<span class="nc bnc" id="L688" title="All 2 branches missed.">			while ((line = bufferedReader.readLine()) != null) {</span>
+<span class="nc" id="L689">				lines.add(line);</span>
+			}
+		}
+
+		// Modify the first line (coin)
+<span class="nc bnc" id="L694" title="All 2 branches missed.">		if (!lines.isEmpty()) {</span>
+<span class="nc" id="L695">			lines.set(0, EncryptionSupport.encrypt(Integer.toString(coin)));</span>
+		} else {
+			// If the file was empty, add the new coin as the first line and the new gem as the second line
+<span class="nc" id="L698">			lines.add(EncryptionSupport.encrypt(Integer.toString(coin)));</span>
+<span class="nc" id="L699">			lines.add(EncryptionSupport.encrypt(&quot;0&quot;));</span>
+		}
+
+<span class="nc" id="L702">		try (BufferedWriter bufferedWriter = new BufferedWriter(new OutputStreamWriter(</span>
+<span class="nc" id="L703">				new FileOutputStream(currencyFile), Charset.forName(&quot;UTF-8&quot;)))) {</span>
+			// Write back the modified content
+<span class="nc bnc" id="L705" title="All 2 branches missed.">			for (String l : lines) {</span>
+<span class="nc" id="L706">				bufferedWriter.write(l);</span>
+<span class="nc" id="L707">				bufferedWriter.newLine();</span>
+<span class="nc" id="L708">			}</span>
+<span class="nc" id="L709">			logger.info(&quot;Saving user's coin.&quot;);</span>
+		}
+<span class="nc" id="L711">	}</span>
+
+	/**
+	 * Loads user coin from file, and returns current coin.
+	 *
+	 * @return amount of current coin.
+	 * @throws IOException
+	 *             In case of loading problems.
+	 */
+	public int loadCoin() throws IOException {
+		int coin;
+<span class="nc" id="L722">		String jarPath = FileManager.class.getProtectionDomain().getCodeSource().getLocation().getPath();</span>
+<span class="nc" id="L723">		jarPath = URLDecoder.decode(jarPath, &quot;UTF-8&quot;);</span>
+
+<span class="nc" id="L725">		String currencyPath = new File(jarPath).getParent();</span>
+<span class="nc" id="L726">		currencyPath += File.separator;</span>
+<span class="nc" id="L727">		currencyPath += &quot;currency&quot;;</span>
+
+<span class="nc" id="L729">		File currencyFile = new File(currencyPath);</span>
+
+		// create File If there is no currencyFile
+<span class="nc bnc" id="L732" title="All 2 branches missed.">		if (!currencyFile.exists())</span>
+<span class="nc" id="L733">			currencyFile.createNewFile();</span>
+
+		// If the file was empty, add the new coin as the first line and the new gem as the second line
+<span class="nc bnc" id="L736" title="All 2 branches missed.">		if (currencyFile.length() == 0) {</span>
+<span class="nc" id="L737">			try (BufferedWriter bufferedWriter = new BufferedWriter(new OutputStreamWriter(</span>
+<span class="nc" id="L738">					new FileOutputStream(currencyFile), Charset.forName(&quot;UTF-8&quot;)))) {</span>
+<span class="nc" id="L739">				bufferedWriter.write(EncryptionSupport.encrypt(&quot;0&quot;));</span>
+<span class="nc" id="L740">				bufferedWriter.newLine();</span>
+<span class="nc" id="L741">				bufferedWriter.write(EncryptionSupport.encrypt(&quot;0&quot;));</span>
+<span class="nc" id="L742">				bufferedWriter.newLine();</span>
+			}
+		}
+
+<span class="nc" id="L746">		try (BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(</span>
+<span class="nc" id="L747">				new FileInputStream(currencyFile), Charset.forName(&quot;UTF-8&quot;)))) {</span>
+<span class="nc" id="L748">			logger.info(&quot;Loading user's coin.&quot;);</span>
+<span class="nc" id="L749">			String amount = bufferedReader.readLine();</span>
+<span class="nc" id="L750">			coin = Integer.parseInt(EncryptionSupport.decrypt(amount));</span>
+		}
+
+<span class="nc" id="L753">		return coin;</span>
+	}
+
+	/**
+	 * Saves user gem to disk.
+	 *
+	 * @param gem
+	 *            amount of user gem to save.
+	 * @throws IOException
+	 * 			   In case of saving problems.
+	 */
+	// Team-Ctrl-S(Currency)
+	public void saveGem(final int gem) throws IOException {
+<span class="nc" id="L766">		String jarPath = FileManager.class.getProtectionDomain().getCodeSource().getLocation().getPath();</span>
+<span class="nc" id="L767">		jarPath = URLDecoder.decode(jarPath, &quot;UTF-8&quot;);</span>
+
+		// Choose File root
+<span class="nc" id="L770">		String currencyPath = new File(jarPath).getParent();</span>
+<span class="nc" id="L771">		currencyPath += File.separator;</span>
+<span class="nc" id="L772">		currencyPath += &quot;currency&quot;;</span>
+
+<span class="nc" id="L774">		File currencyFile = new File(currencyPath);</span>
+
+		// create File If there is no currencyFile
+<span class="nc bnc" id="L777" title="All 2 branches missed.">		if (!currencyFile.exists())</span>
+<span class="nc" id="L778">			currencyFile.createNewFile();</span>
+
+<span class="nc" id="L780">		List&lt;String&gt; lines = new ArrayList&lt;&gt;();</span>
+		String line;
+
+<span class="nc" id="L783">		try (BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(</span>
+<span class="nc" id="L784">				new FileInputStream(currencyFile), Charset.forName(&quot;UTF-8&quot;)))) {</span>
+			// Read the file's current content
+<span class="nc bnc" id="L786" title="All 2 branches missed.">			while ((line = bufferedReader.readLine()) != null) {</span>
+<span class="nc" id="L787">				lines.add(line);</span>
+			}
+		}
+
+		// Modify the second line (gem)
+<span class="nc bnc" id="L792" title="All 2 branches missed.">		if (!lines.isEmpty()) {</span>
+<span class="nc" id="L793">			lines.set(1, EncryptionSupport.encrypt(Integer.toString(gem)));</span>
+		} else {
+			// If the file was empty, add the new coin as the first line and the new gem as the second line
+<span class="nc" id="L796">			lines.add(EncryptionSupport.encrypt(&quot;0&quot;));</span>
+<span class="nc" id="L797">			lines.add(EncryptionSupport.encrypt(Integer.toString(gem)));</span>
+		}
+
+<span class="nc" id="L800">		try (BufferedWriter bufferedWriter = new BufferedWriter(new OutputStreamWriter(</span>
+<span class="nc" id="L801">				new FileOutputStream(currencyFile), Charset.forName(&quot;UTF-8&quot;)))) {</span>
+			// Write back the modified content
+<span class="nc bnc" id="L803" title="All 2 branches missed.">			for (String l : lines) {</span>
+<span class="nc" id="L804">				bufferedWriter.write(l);</span>
+<span class="nc" id="L805">				bufferedWriter.newLine();</span>
+<span class="nc" id="L806">			}</span>
+<span class="nc" id="L807">			logger.info(&quot;Saving user's gem.&quot;);</span>
+		}
+<span class="nc" id="L809">	}</span>
+
+	/**
+	 * Loads user gem from file, and returns current gem.
+	 *
+	 * @return amount of current gem.
+	 * @throws IOException
+	 * 			   In case of loading problems.
+	 */
+	// Team-Ctrl-S(Currency)
+	public int loadGem() throws IOException {
+		int gem;
+<span class="nc" id="L821">		String jarPath = FileManager.class.getProtectionDomain().getCodeSource().getLocation().getPath();</span>
+<span class="nc" id="L822">		jarPath = URLDecoder.decode(jarPath, &quot;UTF-8&quot;);</span>
+
+<span class="nc" id="L824">		String currencyPath = new File(jarPath).getParent();</span>
+<span class="nc" id="L825">		currencyPath += File.separator;</span>
+<span class="nc" id="L826">		currencyPath += &quot;currency&quot;;</span>
+
+<span class="nc" id="L828">		File currencyFile = new File(currencyPath);</span>
+
+		// create File If there is no currencyFile
+<span class="nc bnc" id="L831" title="All 2 branches missed.">		if (!currencyFile.exists())</span>
+<span class="nc" id="L832">			currencyFile.createNewFile();</span>
+
+		// If the file was empty, add the new coin as the first line and the new gem as the second line
+<span class="nc bnc" id="L835" title="All 2 branches missed.">		if (currencyFile.length() == 0) {</span>
+<span class="nc" id="L836">			try (BufferedWriter bufferedWriter = new BufferedWriter(new OutputStreamWriter(</span>
+<span class="nc" id="L837">					new FileOutputStream(currencyFile), Charset.forName(&quot;UTF-8&quot;)))) {</span>
+<span class="nc" id="L838">				bufferedWriter.write(EncryptionSupport.encrypt(&quot;0&quot;));</span>
+<span class="nc" id="L839">				bufferedWriter.newLine();</span>
+<span class="nc" id="L840">				bufferedWriter.write(EncryptionSupport.encrypt(&quot;0&quot;));</span>
+<span class="nc" id="L841">				bufferedWriter.newLine();</span>
+			}
+		}
+
+<span class="nc" id="L845">		try (BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(</span>
+<span class="nc" id="L846">				new FileInputStream(currencyFile), Charset.forName(&quot;UTF-8&quot;)))) {</span>
+<span class="nc" id="L847">			logger.info(&quot;Loading user's gem.&quot;);</span>
+
+<span class="nc" id="L849">			bufferedReader.readLine(); // Ignore first(coin) line</span>
+<span class="nc" id="L850">			String amount = bufferedReader.readLine();</span>
+<span class="nc" id="L851">			gem = Integer.parseInt(EncryptionSupport.decrypt(amount));</span>
+		}
+
+<span class="nc" id="L854">		return gem;</span>
+	}
+
+	/**
+	 * Loads upgrade statuses from upgrade_status.properties file.
+	 *
+	 * @return Properties object containing the upgrade statuses.
+	 * @throws IOException In case of loading problems.
+	 */
+	public Properties loadUpgradeStatus() throws IOException {
+<span class="fc" id="L864">		Properties properties = new Properties();</span>
+<span class="fc" id="L865">		InputStream inputStream = null;</span>
+
+		try {
+<span class="fc" id="L868">			String jarPath = FileManager.class.getProtectionDomain().getCodeSource().getLocation().getPath();</span>
+<span class="fc" id="L869">			jarPath = URLDecoder.decode(jarPath, &quot;UTF-8&quot;);</span>
+
+<span class="fc" id="L871">			String propertiesPath = new File(jarPath).getParent();</span>
+<span class="fc" id="L872">			propertiesPath += File.separator + &quot;upgrade_status.properties&quot;;</span>
+
+<span class="fc" id="L874">			File upgradeFile = new File(propertiesPath);</span>
+
+<span class="pc bpc" id="L876" title="1 of 2 branches missed.">			if (upgradeFile.exists()) {</span>
+<span class="nc" id="L877">				inputStream = new FileInputStream(upgradeFile);</span>
+<span class="nc" id="L878">				properties.load(new InputStreamReader(inputStream, Charset.forName(&quot;UTF-8&quot;)));</span>
+			} else {
+<span class="fc" id="L880">				logger.info(&quot;upgrade_status.properties not found. Loading default upgrade statuses.&quot;);</span>
+<span class="fc" id="L881">				properties = loadDefaultUpgradeStatus();</span>
+			}
+
+		} finally {
+<span class="pc bpc" id="L885" title="1 of 2 branches missed.">			if (inputStream != null) {</span>
+<span class="nc" id="L886">				inputStream.close();</span>
+			}
+		}
+
+<span class="fc" id="L890">		return properties;</span>
+	}
+
+	/**
+	 * Saves upgrade statuses to upgrade_status.properties file.
+	 *
+	 * @param properties The Properties object containing the upgrade statuses to save.
+	 * @throws IOException In case of saving problems.
+	 */
+	public void saveUpgradeStatus(Properties properties) throws IOException {
+<span class="fc" id="L900">		OutputStream outputStream = null;</span>
+
+		try {
+<span class="fc" id="L903">			String jarPath = FileManager.class.getProtectionDomain().getCodeSource().getLocation().getPath();</span>
+<span class="fc" id="L904">			jarPath = URLDecoder.decode(jarPath, &quot;UTF-8&quot;);</span>
+
+<span class="fc" id="L906">			String propertiesPath = new File(jarPath).getParent();</span>
+<span class="fc" id="L907">			propertiesPath += File.separator + &quot;upgrade_status.properties&quot;;</span>
+
+<span class="fc" id="L909">			File upgradeFile = new File(propertiesPath);</span>
+
+<span class="pc bpc" id="L911" title="1 of 2 branches missed.">			if (!upgradeFile.exists()) {</span>
+<span class="fc" id="L912">				upgradeFile.createNewFile();</span>
+			}
+
+<span class="fc" id="L915">			outputStream = new FileOutputStream(upgradeFile);</span>
+<span class="fc" id="L916">			properties.store(new OutputStreamWriter(outputStream, Charset.forName(&quot;UTF-8&quot;)), &quot;Upgrade Statuses&quot;);</span>
+
+//			logger.info(&quot;Saving upgrade statuses.&quot;);
+
+		} finally {
+<span class="pc bpc" id="L921" title="1 of 2 branches missed.">			if (outputStream != null) {</span>
+<span class="fc" id="L922">				outputStream.close();</span>
+			}
+		}
+<span class="fc" id="L925">	}</span>
+
+	/**
+	 * Loads default upgrade statuses from upgrade_default.properties file.
+	 *
+	 * @return Properties object containing the default upgrade statuses.
+	 * @throws IOException In case of loading problems.
+	 */
+    public Properties loadDefaultUpgradeStatus() throws IOException {
+<span class="fc" id="L934">		Properties defaultProperties = new Properties();</span>
+<span class="fc" id="L935">		InputStream inputStream = null;</span>
+
+		try {
+<span class="fc" id="L938">			inputStream = FileManager.class.getClassLoader().getResourceAsStream(&quot;upgrade_default.properties&quot;);</span>
+<span class="pc bpc" id="L939" title="1 of 2 branches missed.">			if (inputStream != null) {</span>
+<span class="nc" id="L940">				defaultProperties.load(new InputStreamReader(inputStream, Charset.forName(&quot;UTF-8&quot;)));</span>
+<span class="nc" id="L941">				logger.info(&quot;Default upgrade statuses loaded from upgrade_default.properties.&quot;);</span>
+			} else {
+<span class="fc" id="L943">				logger.warning(&quot;upgrade_default.properties not found. Using hardcoded default values.&quot;);</span>
+<span class="fc" id="L944">				defaultProperties.setProperty(&quot;coin_acquisition_multiplier&quot;, &quot;1.0&quot;);</span>
+<span class="fc" id="L945">				defaultProperties.setProperty(&quot;attack_speed&quot;, &quot;600&quot;);</span>
+<span class="fc" id="L946">				defaultProperties.setProperty(&quot;movement_speed&quot;, &quot;3.5&quot;);</span>
+<span class="fc" id="L947">				defaultProperties.setProperty(&quot;bullet_damage&quot;, &quot;1&quot;);</span>
+<span class="fc" id="L948">				defaultProperties.setProperty(&quot;bullet_num&quot;, &quot;1&quot;);</span>
+<span class="fc" id="L949">				defaultProperties.setProperty(&quot;bullet_speed&quot;, &quot;10&quot;);</span>
+<span class="fc" id="L950">				defaultProperties.setProperty(&quot;ship_shoot360&quot;, &quot;false&quot;);</span>
+
+				//inventory team
+<span class="fc" id="L953">				defaultProperties.setProperty(&quot;speed_LevelCount&quot;, &quot;1&quot;);</span>
+<span class="fc" id="L954">				defaultProperties.setProperty(&quot;Coin_LevelCount&quot;, &quot;1&quot;);</span>
+<span class="fc" id="L955">				defaultProperties.setProperty(&quot;attack_LevelCount&quot;, &quot;1&quot;);</span>
+<span class="fc" id="L956">				defaultProperties.setProperty(&quot;bullet_LevelCount&quot;, &quot;0&quot;);</span>
+			}
+		} finally {
+<span class="pc bpc" id="L959" title="1 of 2 branches missed.">			if (inputStream != null) {</span>
+<span class="nc" id="L960">				inputStream.close();</span>
+			}
+		}
+
+<span class="fc" id="L964">		return defaultProperties;</span>
+	}
+
+	public BufferedImage loadTraitImage(String path) throws IOException{
+		try {
+<span class="nc" id="L969">			InputStream image = FileManager.class.getResourceAsStream(&quot;/Traits/&quot; + path);</span>
+<span class="nc" id="L970">			return ImageIO.read(image);</span>
+		} finally {}
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.10.202304240956</span></div></body></html>

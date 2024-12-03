@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="ko"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Item.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">my-java-project</a> &gt; <a href="index.source.html" class="el_package">Enemy</a> &gt; <span class="el_source">Item.java</span></div><h1>Item.java</h1><pre class="source lang-java linenums">package Enemy;
+
+import java.awt.Color;
+
+import engine.DrawManager.SpriteType;
+import entity.Entity;
+import inventory_develop.ShipStatus;
+
+public class Item extends Entity {
+<span class="nc" id="L10">    private final ShipStatus shipStatus = new ShipStatus();</span>
+    private int speed;
+    public Item(final int positionX, final int positionY, final int speed, final int type) {
+<span class="nc" id="L13">        super(positionX, positionY, 3 * 2, 5 * 2, Color.yellow);</span>
+<span class="nc" id="L14">        this.speed = speed;</span>
+<span class="nc" id="L15">        setSprite();</span>
+<span class="nc" id="L16">    }</span>
+
+    public final void setSprite() {
+<span class="nc" id="L19">        double rdItem = Math.random();</span>
+<span class="nc" id="L20">        shipStatus.loadProbability();</span>
+<span class="nc" id="L21">        double bombP = shipStatus.getBomb_probability();</span>
+<span class="nc" id="L22">        double PierceP = shipStatus.getPierce_probability();</span>
+<span class="nc" id="L23">        double ShieldP = shipStatus.getShield_probability();</span>
+<span class="nc" id="L24">        double HearthP = shipStatus.getHearth_probability();</span>
+<span class="nc" id="L25">        double FeverP = shipStatus.getFeverTimeProbability();</span>
+<span class="nc" id="L26">        double SpeedUpP = shipStatus.getSpeedUpProbability();</span>
+<span class="nc" id="L27">        double SpeedSlowP = shipStatus.getSpeedSlowProbability();</span>
+
+        // Import odds from properties file for easy balance patches
+<span class="nc bnc" id="L30" title="All 2 branches missed.">        if (rdItem &lt; bombP) { // 30%</span>
+<span class="nc" id="L31">            this.spriteType = SpriteType.ItemBomb;</span>
+<span class="nc" id="L32">            this.setColor(Color.gray);</span>
+<span class="nc bnc" id="L33" title="All 2 branches missed.">        } else if (rdItem &lt; bombP + PierceP) { // 0% - Fixing error</span>
+<span class="nc" id="L34">            this.spriteType = SpriteType.ItemPierce;</span>
+<span class="nc" id="L35">            this.setColor(Color.white);</span>
+<span class="nc bnc" id="L36" title="All 2 branches missed.">        } else if (rdItem &lt; bombP + PierceP + ShieldP) { // 20%</span>
+<span class="nc" id="L37">            this.spriteType = SpriteType.ItemBarrier;</span>
+<span class="nc" id="L38">            this.setColor(Color.green);</span>
+<span class="nc bnc" id="L39" title="All 2 branches missed.">        } else if (rdItem &lt; bombP + PierceP + ShieldP + HearthP) { // 100%</span>
+<span class="nc" id="L40">            this.spriteType = SpriteType.ItemHeart;</span>
+<span class="nc" id="L41">            this.setColor(Color.red);</span>
+<span class="nc bnc" id="L42" title="All 2 branches missed.">        } else if (rdItem &lt; bombP + PierceP + ShieldP + HearthP + FeverP ) {</span>
+<span class="nc" id="L43">            this.spriteType = SpriteType.ItemFeverTime;</span>
+<span class="nc" id="L44">            this.setColor(Color.yellow);</span>
+        }
+<span class="nc bnc" id="L46" title="All 2 branches missed.">        else if (rdItem &lt; bombP + PierceP + ShieldP + HearthP + SpeedUpP) {</span>
+<span class="nc" id="L47">            this.spriteType = SpriteType.ItemSpeedUp;</span>
+<span class="nc" id="L48">            this.setColor(Color.CYAN);</span>
+        }
+<span class="nc bnc" id="L50" title="All 2 branches missed.">        else if (rdItem &lt; bombP + PierceP + ShieldP + HearthP + SpeedUpP + SpeedSlowP) {</span>
+<span class="nc" id="L51">            this.spriteType = SpriteType.ItemSpeedSlow;</span>
+<span class="nc" id="L52">            this.setColor(Color.ORANGE);</span>
+        }
+        else {
+<span class="nc" id="L55">            this.spriteType = SpriteType.ItemCoin;</span>
+<span class="nc" id="L56">            this.setColor(Color.yellow);</span>
+        }
+<span class="nc" id="L58">    }</span>
+
+    public final void update() {
+<span class="nc" id="L61">        this.positionY += this.speed;</span>
+<span class="nc" id="L62">    }</span>
+    public final void setSpeed(final int speed) {
+<span class="nc" id="L64">        this.speed = speed;</span>
+<span class="nc" id="L65">    }</span>
+    public final int getSpeed() {
+<span class="nc" id="L67">        return this.speed;</span>
+    }
+
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.10.202304240956</span></div></body></html>

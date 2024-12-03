@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="ko"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>SpeedItem.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">my-java-project</a> &gt; <a href="index.source.html" class="el_package">inventory_develop</a> &gt; <span class="el_source">SpeedItem.java</span></div><h1>SpeedItem.java</h1><pre class="source lang-java linenums">package inventory_develop;
+
+import entity.EnemyShip;
+
+import java.util.Set;
+
+public class SpeedItem {
+
+    private boolean isSpeedUp;     // true - SpeedUp / false - SpeedDown
+    private boolean isActive;
+
+    private long startTime;
+<span class="nc" id="L13">    private long effectDuration = 10000;</span>
+<span class="nc" id="L14">    private double increaseSpeedMultiplier = 3.0;</span>
+<span class="nc" id="L15">    private double decreaseSpeedMultiplier = 0.25;</span>
+
+    private Set&lt;EnemyShip&gt; enemyShips;
+
+<span class="nc" id="L19">    public SpeedItem() {</span>
+<span class="nc" id="L20">        this.isActive = false;</span>
+<span class="nc" id="L21">    }</span>
+
+    // active
+    public void activate(boolean isSpeedUp, Set&lt;EnemyShip&gt; enemyShips) {
+<span class="nc" id="L25">        this.isActive = true;</span>
+<span class="nc" id="L26">        this.isSpeedUp = isSpeedUp;</span>
+<span class="nc" id="L27">        this.startTime = System.currentTimeMillis();</span>
+<span class="nc" id="L28">        this.enemyShips = enemyShips;</span>
+
+<span class="nc bnc" id="L30" title="All 2 branches missed.">        for (EnemyShip enemyShip : this.enemyShips) {</span>
+<span class="nc bnc" id="L31" title="All 2 branches missed.">            if (this.isSpeedUp) {</span>
+<span class="nc" id="L32">                enemyShip.setSpeedMultiplier(increaseSpeedMultiplier); //increase enemy's speed</span>
+            } else {
+<span class="nc" id="L34">                enemyShip.setSpeedMultiplier(decreaseSpeedMultiplier); // decrease enemy's speed</span>
+            }
+
+<span class="nc" id="L37">        }</span>
+<span class="nc" id="L38">    }</span>
+
+    public void deActivate() {
+<span class="nc" id="L41">        this.isActive = false;</span>
+<span class="nc bnc" id="L42" title="All 2 branches missed.">        for (EnemyShip enemyShip : this.enemyShips) {</span>
+<span class="nc" id="L43">            enemyShip.resetSpeedMultiplier();</span>
+<span class="nc" id="L44">        }</span>
+<span class="nc" id="L45">    }</span>
+
+    public void update() {
+<span class="nc bnc" id="L48" title="All 2 branches missed.">        if (isActive) {</span>
+<span class="nc" id="L49">            long currentTime = System.currentTimeMillis();</span>
+<span class="nc bnc" id="L50" title="All 2 branches missed.">            if (currentTime - startTime &gt; effectDuration) { // 5 seconds</span>
+<span class="nc" id="L51">                deActivate();</span>
+            }
+        }
+<span class="nc" id="L54">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.10.202304240956</span></div></body></html>

@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="ko"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>InputManager.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">my-java-project</a> &gt; <a href="index.source.html" class="el_package">engine</a> &gt; <span class="el_source">InputManager.java</span></div><h1>InputManager.java</h1><pre class="source lang-java linenums">package engine;
+
+import java.awt.event.*;
+
+/**
+ * Manages keyboard input for the provided screen.
+ * 
+ * @author &lt;a href=&quot;mailto:RobertoIA1987@gmail.com&quot;&gt;Roberto Izquierdo Amo&lt;/a&gt;
+ * 
+ */
+public final class InputManager implements KeyListener, MouseListener, MouseMotionListener {
+
+	/** Number of recognised keys. */
+	private static final int NUM_KEYS = 256;
+	/** Number of recognised mouse buttons. */
+	private static final int NUM_MOUSE_BUTTONS = 5;
+	/** Array with the jeys marked as pressed or not. */
+	private static boolean[] keys;
+	/** Array with the mouse buttons marked as pressed or not. */
+	private static boolean[] mouseButtons;
+	/** Mouse cursor X position. */
+	private static int mouseX;
+	/** Mouse cursor Y position. */
+	private static int mouseY;
+	/** Singleton instance of the class. */
+	private static InputManager instance;
+
+	/**
+	 * Private constructor.
+	 */
+<span class="nc" id="L31">	private InputManager() {</span>
+<span class="nc" id="L32">		keys = new boolean[NUM_KEYS];</span>
+<span class="nc" id="L33">		mouseButtons = new boolean[NUM_MOUSE_BUTTONS];</span>
+<span class="nc" id="L34">		mouseX = 0;</span>
+<span class="nc" id="L35">		mouseY = 0;</span>
+<span class="nc" id="L36">	}</span>
+
+	/**
+	 * Returns shared instance of InputManager.
+	 * 
+	 * @return Shared instance of InputManager.
+	 */
+	protected static InputManager getInstance() {
+<span class="nc bnc" id="L44" title="All 2 branches missed.">		if (instance == null)</span>
+<span class="nc" id="L45">			instance = new InputManager();</span>
+<span class="nc" id="L46">		return instance;</span>
+	}
+
+	/**
+	 * Returns true if the provided key is currently pressed.
+	 * 
+	 * @param keyCode
+	 *            Key number to check.
+	 * @return Key state.
+	 */
+	public boolean isKeyDown(final int keyCode) {
+<span class="nc" id="L57">		return keys[keyCode];</span>
+	}
+
+	/**
+	 * Changes the state of the key to pressed.
+	 * 
+	 * @param key
+	 *            Key pressed.
+	 */
+	@Override
+	public void keyPressed(final KeyEvent key) {
+<span class="nc bnc" id="L68" title="All 4 branches missed.">		if (key.getKeyCode() &gt;= 0 &amp;&amp; key.getKeyCode() &lt; NUM_KEYS)</span>
+<span class="nc" id="L69">			keys[key.getKeyCode()] = true;</span>
+<span class="nc" id="L70">	}</span>
+
+	/**
+	 * Changes the state of the key to not pressed.
+	 * 
+	 * @param key
+	 *            Key released.
+	 */
+	@Override
+	public void keyReleased(final KeyEvent key) {
+<span class="nc bnc" id="L80" title="All 4 branches missed.">		if (key.getKeyCode() &gt;= 0 &amp;&amp; key.getKeyCode() &lt; NUM_KEYS)</span>
+<span class="nc" id="L81">			keys[key.getKeyCode()] = false;</span>
+<span class="nc" id="L82">	}</span>
+
+	/**
+	 * Does nothing.
+	 * 
+	 * @param key
+	 *            Key typed.
+	 */
+	@Override
+	public void keyTyped(final KeyEvent key) {
+
+<span class="nc" id="L93">	}</span>
+
+	// 마우스
+	/**
+	 * Returns true if the provided mouse button is currently pressed.
+	 *
+	 * @param button
+	 *            Mouse button to check (1 = left, 2 = middle, 3 = right).
+	 * @return Mouse button state.
+	 */
+	public boolean isMouseButtonDown(final int button) {
+<span class="nc bnc" id="L104" title="All 6 branches missed.">		return button &gt;= 1 &amp;&amp; button &lt;= NUM_MOUSE_BUTTONS &amp;&amp; mouseButtons[button - 1];</span>
+	}
+
+	@Override
+	public void mousePressed(final MouseEvent e) {
+<span class="nc bnc" id="L109" title="All 4 branches missed.">		if (e.getButton() &gt;= 1 &amp;&amp; e.getButton() &lt;= NUM_MOUSE_BUTTONS)</span>
+<span class="nc" id="L110">			mouseButtons[e.getButton() - 1] = true;</span>
+<span class="nc" id="L111">	}</span>
+
+	@Override
+	public void mouseReleased(final MouseEvent e) {
+<span class="nc bnc" id="L115" title="All 4 branches missed.">		if (e.getButton() &gt;= 1 &amp;&amp; e.getButton() &lt;= NUM_MOUSE_BUTTONS)</span>
+<span class="nc" id="L116">			mouseButtons[e.getButton() - 1] = false;</span>
+<span class="nc" id="L117">	}</span>
+
+	/**
+	 *
+	 * Returns the current X position of the mouse cursor.
+	 *
+	 * @return Mouse X position.
+	 */
+	public int getMouseX() {
+<span class="nc" id="L126">		return mouseX;</span>
+	}
+
+	/**
+	 * Returns the current Y position of the mouse cursor.
+	 *
+	 * @return Mouse Y position.
+	 */
+	public int getMouseY() {
+<span class="nc" id="L135">		return mouseY;</span>
+	}
+
+	/**
+	 * Tracks the mouse cursor's position.
+	 *
+	 * @param e
+	 *            Mouse moved.
+	 */
+	@Override
+	public void mouseMoved(final MouseEvent e) {
+<span class="nc" id="L146">		mouseX = e.getX();</span>
+<span class="nc" id="L147">		mouseY = e.getY();</span>
+<span class="nc" id="L148">	}</span>
+
+	@Override
+	public void mouseDragged(final MouseEvent e) {
+<span class="nc" id="L152">		mouseMoved(e);</span>
+<span class="nc" id="L153">	}</span>
+
+	@Override
+	public void mouseClicked(MouseEvent e) {
+
+<span class="nc" id="L158">	}</span>
+	@Override
+	public void mouseEntered(MouseEvent e) {
+
+<span class="nc" id="L162">	}</span>
+	@Override
+	public void mouseExited(MouseEvent e) {
+
+<span class="nc" id="L166">	}</span>
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.10.202304240956</span></div></body></html>

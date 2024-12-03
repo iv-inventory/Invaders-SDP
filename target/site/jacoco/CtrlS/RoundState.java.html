@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="ko"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>RoundState.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">my-java-project</a> &gt; <a href="index.source.html" class="el_package">CtrlS</a> &gt; <span class="el_source">RoundState.java</span></div><h1>RoundState.java</h1><pre class="source lang-java linenums">package CtrlS;
+
+import engine.Core;
+import engine.GameState;
+// item level Bonus
+import inventory_develop.ShipStatus;
+
+import java.io.IOException;
+
+public class RoundState {
+    private final GameState prevState;
+    private final GameState currState;
+    private final int roundScore;
+    private final int roundBulletsShot;
+    private final int roundHitCount;
+    private final int roundCoin;
+    private final int roundCoinItemsCollected;
+    private final int timeBonus_amount;
+    private final int levelBonus_amount;
+    private final int accuracyBonus_amount;
+    private final int baseCoin_amount;
+
+    private final float roundHitRate;
+    private final long roundTime;
+
+    private double statBonus;
+    private static final int COIN_ITEM_VALUE = 10;
+
+<span class="nc" id="L29">    public RoundState(GameState prevState, GameState currState) {</span>
+<span class="nc" id="L30">        this.prevState = prevState;</span>
+<span class="nc" id="L31">        this.currState = currState;</span>
+<span class="nc" id="L32">        this.roundScore = currState.getScore() - prevState.getScore();</span>
+<span class="nc" id="L33">        this.roundBulletsShot = currState.getBulletsShot() - prevState.getBulletsShot();</span>
+<span class="nc" id="L34">        this.roundHitCount = currState.getHitCount() - prevState.getHitCount();</span>
+<span class="nc" id="L35">        this.roundHitRate = roundHitCount / (float) roundBulletsShot;</span>
+<span class="nc" id="L36">        this.roundTime = currState.getTime() - prevState.getTime();</span>
+<span class="nc" id="L37">        this.roundCoinItemsCollected = currState.getCoinItemsCollected() - prevState.getCoinItemsCollected();</span>
+        //Calculate BaseCoin
+<span class="nc" id="L39">        this.baseCoin_amount = calculate_BaseCoin();</span>
+        //Calculate levelBonus
+<span class="nc" id="L41">        this.levelBonus_amount = calculate_levelBonus();</span>
+        //Calculate accuracyBonus
+<span class="nc" id="L43">        this.accuracyBonus_amount = calculate_accuracyBonus();</span>
+        //Calculate timeBonus
+<span class="nc" id="L45">        this.timeBonus_amount = calculate_timeBonus();</span>
+
+
+        //Calculate RoundCoin
+
+        // CtrlS: load stat bonus via UpgradeManager
+        try {
+<span class="nc" id="L52">            this.statBonus = Core.getUpgradeManager().getCoinAcquisitionMultiplier();</span>
+<span class="nc" id="L53">        } catch (IOException e) {</span>
+<span class="nc" id="L54">            throw new RuntimeException(e);</span>
+<span class="nc" id="L55">        }</span>
+
+<span class="nc" id="L57">        this.roundCoin = calculateCoin();</span>
+<span class="nc" id="L58">    }</span>
+
+    private int calculateCoin() {
+<span class="nc" id="L61">        int coin, bonusCoin = 0;</span>
+        // If it's not Game Over, apply bonus
+<span class="nc bnc" id="L63" title="All 2 branches missed.">        if(currState.getLivesRemaining() &gt; 0) {</span>
+<span class="nc" id="L64">            bonusCoin += this.levelBonus_amount + this.accuracyBonus_amount + this.timeBonus_amount;</span>
+<span class="nc" id="L65">            Core.getLogger().info(&quot;Bonus occurs! level bonus: &quot; + this.levelBonus_amount + &quot;, accuracy bonus: &quot; + this.accuracyBonus_amount + &quot;, time bonus: &quot; + this.timeBonus_amount);</span>
+        }
+
+        // Apply stat bonus
+<span class="nc" id="L69">        coin = (int) ((this.baseCoin_amount + bonusCoin) * statBonus);</span>
+<span class="nc" id="L70">        Core.getLogger().info(&quot;coin = ((baseCoin(&quot; + this.baseCoin_amount + &quot;) + bonusCoin(&quot; + bonusCoin + &quot;)) * statBonus(&quot; + statBonus + &quot;) = &quot; + coin);</span>
+<span class="nc" id="L71">        return coin;</span>
+    }
+
+    private int calculate_BaseCoin() {
+        int baseCoin;
+<span class="nc" id="L76">        int coinItemsCollectedValue = COIN_ITEM_VALUE * this.roundCoinItemsCollected;</span>
+<span class="nc" id="L77">        int scoreCoin = roundScore / 10;</span>
+<span class="nc" id="L78">        baseCoin = coinItemsCollectedValue + scoreCoin;</span>
+<span class="nc" id="L79">        Core.getLogger().info(&quot;base coin = coinItemsCollectedValue(&quot; + coinItemsCollectedValue + &quot;) + scoreCoin(&quot; + scoreCoin + &quot;) = &quot; + baseCoin);</span>
+
+<span class="nc" id="L81">        return baseCoin;</span>
+    }
+
+    private int calculate_levelBonus() {
+<span class="nc" id="L85">        int levelBonus_amount = (this.baseCoin_amount / 10) * currState.getLevel();</span>
+
+<span class="nc" id="L87">        return levelBonus_amount;</span>
+    }
+
+    private int calculate_accuracyBonus() {
+<span class="nc" id="L91">        int accuracyBonus = 0;</span>
+<span class="nc bnc" id="L92" title="All 2 branches missed.">        if (roundHitRate &gt; 0.9) {</span>
+<span class="nc" id="L93">            accuracyBonus += (int) (this.baseCoin_amount * 0.3);</span>
+<span class="nc" id="L94">            Core.getLogger().info(&quot;hitRate bonus occurs (30%).&quot;);</span>
+<span class="nc bnc" id="L95" title="All 2 branches missed.">        } else if (roundHitRate &gt; 0.8) {</span>
+<span class="nc" id="L96">            accuracyBonus += (int) (this.baseCoin_amount * 0.2);</span>
+<span class="nc" id="L97">            Core.getLogger().info(&quot;hitRate bonus occurs (20%).&quot;);</span>
+<span class="nc bnc" id="L98" title="All 2 branches missed.">        } else if (roundHitRate &gt; 0.7) {</span>
+<span class="nc" id="L99">            accuracyBonus += (int) (this.baseCoin_amount * 0.1);</span>
+<span class="nc" id="L100">            Core.getLogger().info(&quot;hitRate bonus occurs (10%).&quot;);</span>
+        }
+<span class="nc" id="L102">        return accuracyBonus;</span>
+    }
+
+    private int calculate_timeBonus() {
+<span class="nc" id="L106">        long timeDifferenceInSeconds = (currState.getTime() - prevState.getTime()) / 1000;</span>
+<span class="nc" id="L107">        int timeBonus = 0;</span>
+        /*
+          clear time   : 0 ~ 50    : +50
+                       : 51 ~ 80   : +30
+                       : 81 ~ 100  : +10
+                       : 101 ~     : 0
+         */
+<span class="nc bnc" id="L114" title="All 2 branches missed.">        if (timeDifferenceInSeconds &lt;= 50) {</span>
+<span class="nc" id="L115">            timeBonus = 50;</span>
+<span class="nc bnc" id="L116" title="All 2 branches missed.">        } else if (timeDifferenceInSeconds &lt;= 80) {</span>
+<span class="nc" id="L117">            timeBonus = 30;</span>
+<span class="nc bnc" id="L118" title="All 2 branches missed.">        } else if (timeDifferenceInSeconds &lt;= 100) {</span>
+<span class="nc" id="L119">            timeBonus = 10;</span>
+        }
+<span class="nc" id="L121">        return timeBonus;</span>
+    }
+    public int getRoundScore() {
+<span class="nc" id="L124">        return roundScore;</span>
+    }
+
+    public float getRoundHitRate() {
+<span class="nc" id="L128">        return roundHitRate;</span>
+    }
+
+    public long getRoundTime() {
+<span class="nc" id="L132">        return roundTime;</span>
+    }
+
+    public int getRoundCoin() {
+<span class="nc" id="L136">        return roundCoin;</span>
+    }
+
+<span class="nc" id="L139">    public int getLevelBonus_amount() { return levelBonus_amount; }</span>
+
+<span class="nc" id="L141">    public int getTimeBonus_amount() { return timeBonus_amount; }</span>
+
+<span class="nc" id="L143">    public int getAccuracyBonus_amount() { return accuracyBonus_amount; }</span>
+
+<span class="nc" id="L145">    public int getBaseCoin_amount() { return baseCoin_amount; }</span>
+
+<span class="nc" id="L147">    public int getRoundCoinItemsCollected() { return roundCoinItemsCollected; }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.10.202304240956</span></div></body></html>

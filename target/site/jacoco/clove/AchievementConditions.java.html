@@ -1,0 +1,280 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="ko"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>AchievementConditions.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">my-java-project</a> &gt; <a href="index.source.html" class="el_package">clove</a> &gt; <span class="el_source">AchievementConditions.java</span></div><h1>AchievementConditions.java</h1><pre class="source lang-java linenums">package clove;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import engine.Core;
+import engine.DrawManager;
+import engine.GameState;
+import clove.Statistics;
+import HUDTeam.DrawAchievementHud;
+
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+import java.util.logging.Logger;
+
+
+public class AchievementConditions {
+
+    private DrawManager drawManager;
+
+    private GameState gameState;
+    private static Logger logger;
+
+    private int highestLevel;
+    private int totalBulletsShot;
+    private int totalShipsDestroyed;
+    private int shipsDestructionStreak;
+    private int playedGameNumber;
+    private int clearAchievementNumber;
+    private long TotalPlaytime;
+    private Statistics stats;
+
+<span class="nc" id="L34">    private List&lt;Achievement&gt; killAchievements = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L35">    private List&lt;Achievement&gt; trialAchievements = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L36">    private List&lt;Achievement&gt; streakAchievements = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L37">    private List&lt;Achievement&gt; fastKillAchievements = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L38">    private List&lt;Achievement&gt; noDeathAchievements = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L39">    private List&lt;Achievement&gt; stageAchievements = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L40">    private List&lt;Achievement&gt; scoreAchievements = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L41">    private List&lt;Achievement&gt; allAchievements = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L42">    private List&lt;String&gt; unlockedAchievements = new ArrayList&lt;&gt;();</span>
+
+    private static final int FAST_KILL_TIME = 5;
+
+<span class="nc" id="L46">    public AchievementConditions() {</span>
+<span class="nc" id="L47">        initializeAchievements();</span>
+
+        try{
+<span class="nc" id="L50">            this.stats = new Statistics();</span>
+<span class="nc" id="L51">            setStatistics();</span>
+<span class="nc" id="L52">        } catch (IOException e){</span>
+<span class="nc" id="L53">            logger.warning(&quot;Couldn't load Statistics!&quot;);</span>
+<span class="nc" id="L54">        }</span>
+
+<span class="nc" id="L56">        scheduler = Executors.newSingleThreadScheduledExecutor();</span>
+<span class="nc" id="L57">        startFastKillCheck();</span>
+<span class="nc" id="L58">    }</span>
+
+    private void setStatistics() throws IOException {
+<span class="nc" id="L61">        this.stats = stats.loadUserData(stats);</span>
+<span class="nc" id="L62">    }</span>
+
+<span class="nc" id="L64">    private int enemiesKilledIn3Seconds = 0;</span>
+
+    public void startFastKillCheck() {
+<span class="nc" id="L67">        scheduler.scheduleAtFixedRate(() -&gt; {</span>
+            try {
+<span class="nc bnc" id="L69" title="All 2 branches missed.">                if (enemiesKilledIn3Seconds &gt; 0) {</span>
+<span class="nc" id="L70">                    fastKill(enemiesKilledIn3Seconds);</span>
+                }
+<span class="nc" id="L72">            } catch (IOException e) {</span>
+<span class="nc" id="L73">                e.printStackTrace();</span>
+<span class="nc" id="L74">            }</span>
+<span class="nc" id="L75">        }, 0, 1, TimeUnit.SECONDS);</span>
+<span class="nc" id="L76">    }</span>
+
+    public void stopFastKillCheck() {
+<span class="nc bnc" id="L79" title="All 4 branches missed.">        if (scheduler != null &amp;&amp; !scheduler.isShutdown()) {</span>
+<span class="nc" id="L80">            scheduler.shutdown();</span>
+        }
+<span class="nc" id="L82">    }</span>
+
+<span class="nc" id="L84">    public AchievementConditions(DrawManager drawManager) {</span>
+<span class="nc" id="L85">        this.drawManager = drawManager;</span>
+<span class="nc" id="L86">        initializeAchievements();</span>
+<span class="nc" id="L87">    }</span>
+
+    public void initializeAchievements() {
+
+        // TODO Some of the codes below are non-operational.(fastKillAchievement,trialAchievement) Will be updated if related record fuctions are added.
+<span class="nc" id="L92">        noDeathAchievements.add(new Achievement(&quot;Aerobatics&quot;,&quot;Maintain Maximum Life&quot;,3, Achievement.AchievementType.LIVES));</span>
+
+<span class="nc" id="L94">        killAchievements.add(new Achievement(&quot;Rookie Pilot&quot;, &quot;Destroy 25 enemies&quot;, 25, Achievement.AchievementType.KILLS, 1));</span>
+<span class="nc" id="L95">        killAchievements.add(new Achievement(&quot;Space Hunter&quot;, &quot;Destroy 50 enemies&quot;, 100, Achievement.AchievementType.KILLS, 1));</span>
+<span class="nc" id="L96">        killAchievements.add(new Achievement(&quot;Space Trooper&quot;, &quot;Destroy 100 enemies&quot;, 250, Achievement.AchievementType.KILLS, 1));</span>
+<span class="nc" id="L97">        killAchievements.add(new Achievement(&quot;Guardian of Universe&quot;, &quot;Destroy 200 enemies&quot;, 500, Achievement.AchievementType.KILLS, 1));</span>
+
+<span class="nc" id="L99">        trialAchievements.add(new Achievement(&quot;Welcome Recruit&quot;, &quot;Finished first game&quot;, 1, Achievement.AchievementType.TRIALS, 1));</span>
+<span class="nc" id="L100">        trialAchievements.add(new Achievement(&quot;Skilled Solider&quot;, &quot;Finished 10th game&quot;, 10, Achievement.AchievementType.TRIALS, 1));</span>
+<span class="nc" id="L101">        trialAchievements.add(new Achievement(&quot;Veteran Pilot&quot;, &quot;Finished 50th game&quot;, 50, Achievement.AchievementType.TRIALS, 1));</span>
+
+<span class="nc" id="L103">        streakAchievements.add(new Achievement(&quot;Preheating&quot;, &quot;Kill streak of 10&quot;, 10, Achievement.AchievementType.KILLSTREAKS, 1));</span>
+<span class="nc" id="L104">        streakAchievements.add(new Achievement(&quot;Overheating&quot;, &quot;Kill streak of 30&quot;, 30, Achievement.AchievementType.KILLSTREAKS, 5));</span>
+<span class="nc" id="L105">        streakAchievements.add(new Achievement(&quot;Runaway&quot;,&quot;Kill streak of 60&quot;, 60, Achievement.AchievementType.KILLSTREAKS, 10));</span>
+
+<span class="nc" id="L107">        fastKillAchievements.add(new Achievement(&quot;Gunsliger&quot;,&quot;Kill 3 enemies 5 seconds&quot;, 3, Achievement.AchievementType.FASTKILL,5));</span>
+<span class="nc" id="L108">        fastKillAchievements.add(new Achievement(&quot;Fear the Enemy&quot;,&quot;Kill 5 enemies 5 seconds&quot;, 5, Achievement.AchievementType.FASTKILL, 5));</span>
+<span class="nc" id="L109">        fastKillAchievements.add(new Achievement(&quot;Genocide&quot;,&quot;Kill 15 enemies 5 seconds&quot;, 15, Achievement.AchievementType.FASTKILL, 5));</span>
+
+<span class="nc" id="L111">        scoreAchievements.add(new Achievement(&quot;First Milestone&quot;, &quot;Reach 1,000 points&quot;, 6000, Achievement.AchievementType.SCORE,1));</span>
+<span class="nc" id="L112">        scoreAchievements.add(new Achievement(&quot;Score Hunter&quot;, &quot;Reach 5,000 points&quot;, 15000, Achievement.AchievementType.SCORE,3));</span>
+<span class="nc" id="L113">        scoreAchievements.add(new Achievement(&quot;Score Master&quot;, &quot;Reach 10,000 points&quot;, 30000, Achievement.AchievementType.SCORE,5));</span>
+
+<span class="nc" id="L115">        stageAchievements.add(new Achievement(&quot;Home Sweet Home&quot;,&quot;Cleared Final Stage&quot;, Core.NUM_LEVELS, Achievement.AchievementType.STAGE, 5));</span>
+
+<span class="nc" id="L117">        allAchievements.addAll(killAchievements);</span>
+<span class="nc" id="L118">        allAchievements.addAll(trialAchievements);</span>
+<span class="nc" id="L119">        allAchievements.addAll(streakAchievements);</span>
+<span class="nc" id="L120">        allAchievements.addAll(fastKillAchievements);</span>
+<span class="nc" id="L121">        allAchievements.addAll(noDeathAchievements);</span>
+<span class="nc" id="L122">        allAchievements.addAll(stageAchievements);</span>
+<span class="nc" id="L123">        allAchievements.addAll(scoreAchievements);</span>
+
+<span class="nc" id="L125">        allAchievements.add(new Achievement(&quot;Medal of Honor&quot;, &quot;Complete all achievements&quot;, 0, Achievement.AchievementType.STAGE, 10));</span>
+<span class="nc" id="L126">    }</span>
+
+    // Have to check if the code right below works
+    public void checkAllAchievements() {
+<span class="nc" id="L130">        boolean allCompleted = true;</span>
+
+<span class="nc" id="L132">        System.out.println(&quot;Checking all achievements...&quot;);</span>
+<span class="nc bnc" id="L133" title="All 2 branches missed.">        for (Achievement achievement: allAchievements) {</span>
+<span class="nc bnc" id="L134" title="All 2 branches missed.">            if (!achievement.isCompleted()) {</span>
+<span class="nc" id="L135">                allCompleted = false;</span>
+<span class="nc" id="L136">                break;</span>
+            }
+<span class="nc" id="L138">        }</span>
+<span class="nc bnc" id="L139" title="All 2 branches missed.">        if (allCompleted) {</span>
+<span class="nc" id="L140">            completeAchievement(allAchievements.get(allAchievements.size() - 1));</span>
+        }
+<span class="nc" id="L142">    }</span>
+
+    public void onStage() throws  IOException {
+<span class="nc" id="L145">        int highestStage = stats.getHighestLevel();</span>
+<span class="nc" id="L146">        System.out.println(&quot;Checking stage achievements. Highest stage: &quot; + highestStage);</span>
+<span class="nc bnc" id="L147" title="All 2 branches missed.">        for (Achievement achievement : stageAchievements) {</span>
+<span class="nc bnc" id="L148" title="All 4 branches missed.">            if (highestStage &gt;= achievement.getRequiredStages() &amp;&amp; !achievement.isCompleted()) {</span>
+<span class="nc" id="L149">                completeAchievement(achievement);</span>
+            }
+<span class="nc" id="L151">        }</span>
+<span class="nc" id="L152">    }</span>
+
+    public void onKill() throws IOException {
+<span class="nc" id="L155">        enemiesKilledIn3Seconds++;</span>
+<span class="nc" id="L156">        lastKillTime = System.currentTimeMillis();</span>
+
+<span class="nc" id="L158">        int currentKills = stats.getTotalShipsDestroyed();</span>
+<span class="nc" id="L159">        System.out.println(&quot;Checking kill achievements. Current kills: &quot; + currentKills);</span>
+<span class="nc" id="L160">        System.out.println(&quot;Kill Achievements size: &quot; + killAchievements.size());</span>
+<span class="nc bnc" id="L161" title="All 2 branches missed.">        for (Achievement achievement : killAchievements) {</span>
+<span class="nc" id="L162">            System.out.println(&quot;Checking &quot; + achievement.getAchievementName());</span>
+<span class="nc bnc" id="L163" title="All 4 branches missed.">            if (currentKills &gt;= achievement.getRequiredKills() &amp;&amp; !achievement.isCompleted()) {</span>
+<span class="nc" id="L164">                completeAchievement(achievement);</span>
+            }
+<span class="nc" id="L166">        }</span>
+<span class="nc" id="L167">    }</span>
+
+    private ScheduledExecutorService scheduler;
+
+    private static final long TIME_LIMIT = 3000;
+<span class="nc" id="L172">    private long lastKillTime = 0;</span>
+
+    private void resetKillCountIfNeeded() {
+<span class="nc" id="L175">        long currentTime = System.currentTimeMillis();</span>
+<span class="nc bnc" id="L176" title="All 2 branches missed.">        if (currentTime - lastKillTime &gt; TIME_LIMIT) {</span>
+<span class="nc" id="L177">            enemiesKilledIn3Seconds = 0;</span>
+        }
+<span class="nc" id="L179">    }</span>
+    // TODO Not functioning well
+    public void fastKill(int killCount) throws IOException {
+<span class="nc" id="L182">        long currentTime = System.currentTimeMillis();</span>
+
+<span class="nc bnc" id="L184" title="All 2 branches missed.">        if (currentTime - lastKillTime &lt;= TIME_LIMIT) {</span>
+<span class="nc" id="L185">            resetKillCountIfNeeded();</span>
+        } else {
+<span class="nc" id="L187">            enemiesKilledIn3Seconds = 0;</span>
+        }
+<span class="nc" id="L189">        lastKillTime = currentTime;</span>
+
+<span class="nc bnc" id="L191" title="All 2 branches missed.">        if (enemiesKilledIn3Seconds &gt; 0) {</span>
+            //System.out.println(&quot;Kills in last 3 seconds: &quot; + enemiesKilledIn3Seconds);
+        }
+<span class="nc bnc" id="L194" title="All 2 branches missed.">        if (enemiesKilledIn3Seconds &gt;= Achievement.getRequiredFastKills()) {</span>
+<span class="nc" id="L195">            System.out.println(&quot;Checking fastkill achievements. Current fastkills: &quot; + killCount);</span>
+<span class="nc bnc" id="L196" title="All 2 branches missed.">            for (Achievement achievement : fastKillAchievements) {</span>
+<span class="nc bnc" id="L197" title="All 2 branches missed.">                if (!achievement.isCompleted()) {</span>
+<span class="nc" id="L198">                    completeAchievement(achievement);</span>
+                }
+<span class="nc" id="L200">            }</span>
+        }
+<span class="nc" id="L202">    }</span>
+
+    public void checkNoDeathAchievements(int lives) {
+<span class="nc" id="L205">        System.out.println(&quot;Checking No Death achievements. Current lives: &quot; + lives);</span>
+<span class="nc bnc" id="L206" title="All 2 branches missed.">        if (lives == Core.MAX_LIVES) {</span>
+<span class="nc bnc" id="L207" title="All 2 branches missed.">            for (Achievement achievement : noDeathAchievements) {</span>
+<span class="nc bnc" id="L208" title="All 4 branches missed.">                if (highestLevel==7 &amp;&amp; !achievement.isCompleted()) {</span>
+<span class="nc" id="L209">                    completeAchievement(achievement);</span>
+                }
+<span class="nc" id="L211">            }</span>
+        }
+<span class="nc" id="L213">    }</span>
+
+    public void score(int score) {
+<span class="nc" id="L216">        System.out.println(&quot;Checking score achievements. Current score: &quot; + score);</span>
+<span class="nc bnc" id="L217" title="All 2 branches missed.">            for (Achievement achievement : scoreAchievements) {</span>
+<span class="nc bnc" id="L218" title="All 4 branches missed.">                if (score &gt;= achievement.getRequiredScore() &amp;&amp; !achievement.isCompleted()) {</span>
+<span class="nc" id="L219">                    completeAchievement(achievement);</span>
+                }
+<span class="nc" id="L221">            }</span>
+<span class="nc" id="L222">    }</span>
+
+    // TODO function getShipsDestructionStreak not added yet
+    public void killStreak() throws IOException {
+<span class="nc" id="L226">        int shipsDestructionStreak = stats.getShipsDestructionStreak();</span>
+<span class="nc" id="L227">        System.out.println(&quot;Checking killstreak achievements. Current killstreaks: &quot; + shipsDestructionStreak);</span>
+<span class="nc" id="L228">        System.out.println(&quot;Killstreak Achievements size: &quot; + streakAchievements.size());</span>
+<span class="nc bnc" id="L229" title="All 2 branches missed.">        for (Achievement achievement : streakAchievements) {</span>
+<span class="nc" id="L230">            System.out.println(&quot;Checking &quot; + achievement.getAchievementName());</span>
+<span class="nc bnc" id="L231" title="All 4 branches missed.">            if (shipsDestructionStreak&gt;= achievement.getRequiredKillStreaks() &amp;&amp; !achievement.isCompleted()) {</span>
+<span class="nc" id="L232">                completeAchievement(achievement);</span>
+            }
+<span class="nc" id="L234">        }</span>
+<span class="nc" id="L235">    }</span>
+
+    public void trials() {
+<span class="nc" id="L238">        int playedTrials = stats.getPlayedGameNumber();</span>
+<span class="nc bnc" id="L239" title="All 2 branches missed.">        for (Achievement achievement : trialAchievements) {</span>
+<span class="nc" id="L240">            System.out.println(&quot;Checking trial achievements. Current trials: &quot; + playedTrials);</span>
+<span class="nc bnc" id="L241" title="All 4 branches missed.">            if (playedTrials &gt;= achievement.getRequiredTrials() &amp;&amp; !achievement.isCompleted()) {</span>
+<span class="nc" id="L242">                completeAchievement(achievement);</span>
+            }
+<span class="nc" id="L244">        }</span>
+<span class="nc" id="L245">    }</span>
+
+    /*
+    // TODO Achievements to add : Hidden Achievements
+    */
+
+    private void completeAchievement(Achievement achievement) {
+<span class="nc bnc" id="L252" title="All 2 branches missed.">        if (!unlockedAchievements.contains(achievement.getAchievementName())) {</span>
+<span class="nc" id="L253">            System.out.println(&quot;Achievement Unlocked: &quot; + achievement.getAchievementName() + &quot; - &quot; + achievement.getAchievementDescription());</span>
+<span class="nc" id="L254">            unlockedAchievements.add(achievement.getAchievementName());</span>
+<span class="nc" id="L255">            achievement.completeAchievement();</span>
+<span class="nc" id="L256">            getUnlockedAchievements();</span>
+<span class="nc" id="L257">            System.out.println(&quot;Unlocked achievements list: &quot; + unlockedAchievements);</span>
+<span class="nc" id="L258">            DrawAchievementHud.achieve(achievement.getAchievementName());</span>
+<span class="nc bnc" id="L259" title="All 2 branches missed.">            if(achievement.getGem() &gt; 0) {</span>
+                try {
+<span class="nc" id="L261">                    Core.getCurrencyManager().addGem(achievement.getGem());</span>
+<span class="nc" id="L262">                } catch (IOException e) {</span>
+<span class="nc" id="L263">                    logger.warning(&quot;Couldn't load gem!&quot;);</span>
+<span class="nc" id="L264">                }</span>
+            }
+        }
+<span class="nc bnc" id="L267" title="All 2 branches missed.">        else if (unlockedAchievements.contains(achievement.getAchievementName())) {</span>
+<span class="nc" id="L268">            System.out.println(achievement.getAchievementName() + &quot; has already been unlocked.&quot;);</span>
+        }
+<span class="nc" id="L270">    }</span>
+
+    public List&lt;String&gt; getUnlockedAchievements() {
+<span class="nc" id="L273">        return new ArrayList&lt;&gt;(unlockedAchievements);</span>
+    }
+
+    public int getTotalAchievements() {
+<span class="nc" id="L277">        return unlockedAchievements.size();</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.10.202304240956</span></div></body></html>
